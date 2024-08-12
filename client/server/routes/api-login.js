@@ -19,6 +19,14 @@ const route = (app) => {
         "123",
         true
       ),
+      new User(
+        "jimDoe",
+        "1992-02-02",
+        57,
+        "jimdoe@gmail.com",
+        "123",
+        true
+      ),
     ];
     const { email, password } = req.body;
     const user = users.find(
