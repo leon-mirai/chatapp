@@ -1,0 +1,84 @@
+<h1>Profile</h1>
+<nav>
+  <a class="nav-link" routerLink="/dashboard">Back to dashboard</a>
+</nav>
+<!-- display current user details -->
+<div class="current-details">
+  <p><strong>Username:</strong> {{ displayUsername }}</p>
+  <p><strong>Birthdate:</strong> {{ displayBirthdate }}</p>
+  <p><strong>Age:</strong> {{ displayAge }}</p>
+  <p><strong>Email:</strong> {{ displayEmail }}</p>
+  <p><strong>Password:</strong> {{ displayPassword }}</p>
+  <p><strong>Valid:</strong> {{ displayValid ? 'Yes' : 'No' }}</p>
+</div>
+
+<!-- form to edit user details -->
+<form (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="username">Username:</label>
+    <input
+      type="text"
+      class="form-control"
+      id="username"
+      [(ngModel)]="editUsername"
+      name="username"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="birthdate">Birthdate:</label>
+    <input
+      type="date"
+      class="form-control"
+      id="birthdate"
+      [(ngModel)]="editBirthdate"
+      name="birthdate"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="age">Age:</label>
+    <input
+      type="number"
+      class="form-control"
+      id="age"
+      [(ngModel)]="editAge"
+      name="age"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="email">Email:</label>
+    <input
+      type="email"
+      class="form-control"
+      id="email"
+      [(ngModel)]="editEmail"
+      name="email"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="password">Password:</label>
+    <input
+      type="password"
+      class="form-control"
+      id="password"
+      [(ngModel)]="editPassword"
+      name="password"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="valid">Valid:</label>
+    <input
+      type="checkbox"
+      class="form-control"
+      id="valid"
+      [(ngModel)]="editValid"
+      name="valid"
+    />
+  </div>
+
+  <button type="submit" class="btn btn-primary">Change details</button>
+</form>
