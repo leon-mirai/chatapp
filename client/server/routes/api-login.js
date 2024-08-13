@@ -1,48 +1,24 @@
-const { User } = require("../routes/user");
+// routes/api-login
+const users = require("../data/users");
 
 const route = (app) => {
   app.post("/api/auth", function (req, res) {
-    const users = [
-      new User(
-        "johnDoe",
-        "1990-01-01",
-        34,
-        "johndoe@gmail.com",
-        "123",
-        true
-      ),
-      new User(
-        "janeDoe",
-        "1995-05-05",
-        34,
-        "janedoe@gmail.com",
-        "123",
-        true
-      ),
-      new User(
-        "jimDoe",
-        "1992-02-02",
-        57,
-        "jimdoe@gmail.com",
-        "123",
-        true
-      ),
-    ];
     const { email, password } = req.body;
     const user = users.find(
-      user => user.email === email && user.password === password
+      (user) => user.email === email && user.password === password
     );
-
     if (user) {
       if (user.valid) {
         res.status(200).json({
           message: "Login successful",
           user: {
             username: user.username,
-            birthdate: user.birthdate,
-            age: user.age,
+            id: user.id,
             email: user.email,
-            valid: user.valid
+            roles: user.roles,
+            groups: user.groups,
+            password: user.password,
+            valid: user.valid,
           },
         });
       } else {
@@ -51,13 +27,6 @@ const route = (app) => {
     } else {
       res.status(401).json({ message: "Invalid username or password" });
     }
-
-    // const { email, password } = req.body;
-    // const user = users.find((u.email === email && u.password === password));
-    // const isValid = !!user;
-
-    // console.log("Login valid", isValid);
-    // res.json({ valid: isValid });
   });
 };
 

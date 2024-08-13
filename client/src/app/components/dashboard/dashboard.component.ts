@@ -14,7 +14,7 @@ export class DashboardComponent {
   constructor(private router: Router) {}
 
   logout() {
-    sessionStorage.clear();
+    localStorage.clear();
     this.router.navigate(['/']);
   }
 }

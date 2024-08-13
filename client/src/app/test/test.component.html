@@ -1,0 +1,20 @@
+<h1>Group Service Testing</h1>
+
+<form (ngSubmit)="onSubmit()">
+  <div>
+    <input [(ngModel)]="groupName" name="groupName" placeholder="Group Name" />
+    <button type="submit">Add Group</button>
+  </div>
+  
+  <div>
+    <input [(ngModel)]="groupIdToRemove" name="groupIdToRemove" placeholder="Group ID to Remove" />
+    <button type="button" (click)="removeGroup()">Remove Group</button>
+  </div>
+</form>
+
+<div>
+  <h3>Existing Groups</h3>
+  <ul>
+    <li *ngFor="let group of groups">{{ group.id }} - {{ group.name }}</li>
+  </ul>
+</div>

@@ -26,7 +26,7 @@ export class ProfileComponent implements OnInit {
   editValid: boolean = false;
 
   ngOnInit(): void {
-    const userString = sessionStorage.getItem('user');
+    const userString = localStorage.getItem('user');
     if (userString != null) {
       const user = JSON.parse(userString);
       // initialise display data with sesionstorage
@@ -59,7 +59,7 @@ export class ProfileComponent implements OnInit {
     this.displayPassword = this.editPassword;
     this.displayValid = this.editValid;
 
-    // Save updated data to sessionStorage
+    // Save updated data to localStorage
     const updatedUser = {
       username: this.displayUsername,
       birthdate: this.displayBirthdate,
@@ -68,7 +68,7 @@ export class ProfileComponent implements OnInit {
       password: this.displayPassword,
       valid: this.displayValid,
     };
-    sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    localStorage.setItem('user', JSON.stringify(updatedUser));
     alert('Profile updated successfully');
   }
 
@@ -86,7 +86,7 @@ export class ProfileComponent implements OnInit {
   // ngOnInit(): void {
   //   console.log('hi');
 
-  //   const userString = sessionStorage.getItem('user');
+  //   const userString = localStorage.getItem('user');
   //   if (userString != null) {
   //     const user = JSON.parse(userString);
   //     this.username = user.username;
@@ -110,7 +110,7 @@ export class ProfileComponent implements OnInit {
   //     password: this.password,
   //     valid: this.valid,
   //   };
-  //   sessionStorage.setItem('user', JSON.stringify(updatedUser));
+  //   localStorage.setItem('user', JSON.stringify(updatedUser));
   //   alert('Profile updated successfully');
   // }
   
