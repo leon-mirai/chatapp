@@ -1,1 +1,21 @@
-<p>groups works!</p>
+<h1>{{ group?.name }}</h1>
+
+<div>
+  <h2>Members</h2>
+  <ul>
+    <li *ngFor="let member of group?.members">{{ member }}</li>
+  </ul>
+
+  <input [(ngModel)]="newMemberId" placeholder="Enter user ID" />
+  <button (click)="addMember()">Add Member</button>
+</div>
+
+<div>
+  <h2>Channels</h2>
+  <ul>
+    <li *ngFor="let channel of group?.channels">{{ channel }}</li>
+  </ul>
+
+  <input [(ngModel)]="newChannelName" placeholder="Enter channel name" />
+  <button (click)="createChannel()">Create Channel</button>
+</div>

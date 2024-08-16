@@ -42,4 +42,7 @@ export class TestComponent {
   loadGroups() {
     this.groups = this.groupService.getGroups(); // load groups from the service m
   }
+
+  
+  
 }
