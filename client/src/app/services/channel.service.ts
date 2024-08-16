@@ -7,7 +7,7 @@ import { Channel } from '../models/channel.model';
 export class ChannelService {
   private channels: Channel[] = [];
 
-  construct() {
+  constructor() {
     this.loadChannels();
   }
 
@@ -30,5 +30,19 @@ export class ChannelService {
 
   getChannelsByGroupId(groupId: string): Channel[] {
     return this.channels.filter((channel) => channel.groupId === groupId);
+  }
+
+  getChannelById(channelId: string): Channel | undefined {
+    return this.channels.find((channel) => channel.id === channelId);
+  }
+
+  addMember(channelId: string, userId: string) {
+    const channel = this.getChannelById(channelId);
+    if (channel && !channel.members.includes(userId)) {
+      channel.members.push(userId);
+      this.saveChannels();
+    } else {
+      console.log('Channel does not exist');
+    }
   }
 }
