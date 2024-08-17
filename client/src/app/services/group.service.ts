@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Group } from '../models/group.model';
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -57,6 +56,12 @@ export class GroupService {
   }
 
   addMember(groupId: string, userId: string) {
+    // const user = this.userService.getUserById(userId);
+    // if (!user) {
+    //   console.log(`User with ID ${userId} does not exist.`);
+    //   return;
+    // }
+
     const group = this.getGroupById(groupId);
     if (group && !group.members.includes(userId)) {
       group.members.push(userId);
@@ -85,23 +90,6 @@ export class GroupService {
     const group = this.getGroupById(groupId);
     return group?.members.includes(userId) || false;
   }
-
-  // new Group("id", "name");
-
-  /* 
-  getItem reads 
-  loadGroups *
-  saveGroups *
-  addGroup * 
-  removeGroup *
-  getGroups *
-  getGroupById
-  addAdmin*
-  addMember*
-  removeMember
-  isMember
-  isAdmin
-  */
 }
 
 // Handles the creation, retrieval, management of groups and channels

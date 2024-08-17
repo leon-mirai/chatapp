@@ -47,13 +47,15 @@ export class GroupsComponent implements OnInit {
   
   createChannel() {
     if (this.group && this.newChannelName.trim()) {
-      console.log('Creating channel:', this.newChannelName);  // Debugging log
+      console.log('Creating channel:', this.newChannelName); 
       const newChannel = new Channel(
         Math.random().toString(36).substring(2, 15),
         this.newChannelName,
         this.group.id
       );
       this.channelService.addChannel(newChannel);
+      this.group.channels.push(newChannel.id);
+      // this.saveGroups();
       this.channels = this.channelService.getChannelsByGroupId(this.group.id);
       this.newChannelName = '';
     }

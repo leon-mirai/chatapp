@@ -3,7 +3,7 @@ const { User } = require("../models/user")
 const users = [
     new User(
       "gronk",
-      1234,
+      "1111",
       "gronk@gmail.com",
       ["ChatUser"],
       [],
@@ -12,7 +12,7 @@ const users = [
     ),
     new User(
       "pudgey",
-      4567,
+      "2222",
       "pudge@gmail.com",
       ["ChatUser", "GroupAdmin"],
       ["GroupA"],
@@ -20,9 +20,9 @@ const users = [
       true
     ),
     new User(
-      "yoshi",
-      4567,
-      "yoshi@gmail.com",
+      "super",
+      "9999",
+      "super@gmail.com",
       ["ChatUser", "GroupAdmin", "SuperAdmin"],
       [],
       "123",

@@ -24,7 +24,7 @@ export class ChannelsComponent implements OnInit {
   ngOnInit(): void {
     const channelId = this.route.snapshot.params['id'];
     if (channelId) {
-      this.channel = this.channelService.getChannelById(channelId); // You’ll need to implement this in the ChannelService
+      this.channel = this.channelService.getChannelById(channelId); 
     }
   }
 

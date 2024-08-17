@@ -11,7 +11,10 @@ const uiPath = path.join(__dirname, "../dist/client/browser");
 app.use(express.static(uiPath));
 
 const login = require("./routes/api-login.js");
+const user = require("./routes/user.js");
+
 login.route(app);
+user.route(app);
 
 app.get("*", function (request, response) {
   response.sendFile(
@@ -19,8 +22,6 @@ app.get("*", function (request, response) {
   );
 });
 
-
 app.listen(3000, function () {
   console.log("Server is running on", 3000);
 });
-
