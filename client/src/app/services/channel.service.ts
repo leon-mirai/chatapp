@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Channel } from '../models/channel.model';
+import { GroupService } from './group.service';
 
 @Injectable({
   providedIn: 'root',
@@ -7,7 +8,7 @@ import { Channel } from '../models/channel.model';
 export class ChannelService {
   private channels: Channel[] = [];
 
-  constructor() {
+  constructor(private groupService: GroupService) {
     this.loadChannels();
   }
 
@@ -38,11 +39,22 @@ export class ChannelService {
 
   addMember(channelId: string, userId: string) {
     const channel = this.getChannelById(channelId);
-    if (channel && !channel.members.includes(userId)) {
+    if (!channel) {
+      console.log("Channel doesn't exist");
+      return;
+    }
+
+    const isMember = this.groupService.isMember(channel.groupId, userId);
+    if (!isMember) {
+      console.log(`User with ID ${userId} is not a member of the group.`);
+      return;
+    }
+
+    if (!channel.members.includes(userId)) {
       channel.members.push(userId);
       this.saveChannels();
     } else {
-      console.log('Channel does not exist');
+      console.log('User is already a member of the channel');
     }
   }
 }

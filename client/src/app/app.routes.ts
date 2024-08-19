@@ -9,11 +9,11 @@ import { TestComponent } from './test/test.component';
 import { AuthGuardService } from './services/auth-guard.service';
 
 export const routes: Routes = [
-  { path: '', component: LoginComponent }, // Remove the leading slash
-  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuardService] }, // Remove the leading slash
-  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuardService]  }, // Remove the leading slash
+  { path: '', component: LoginComponent }, 
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuardService] }, 
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuardService]  }, 
   { path: 'groups/:id', component: GroupsComponent, canActivate: [AuthGuardService]  },
   { path: 'channels/:id', component: ChannelsComponent, canActivate: [AuthGuardService]  },
   { path: 'test', component: TestComponent },
-  { path: '**', redirectTo: '', pathMatch: 'full' }, // Redirect unknown paths to login
+  { path: '**', redirectTo: '', pathMatch: 'full' }, // wild route
 ];

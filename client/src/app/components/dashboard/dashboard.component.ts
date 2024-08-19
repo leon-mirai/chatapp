@@ -5,6 +5,7 @@ import { Group } from '../../models/group.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { IdService } from '../../services/id.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +23,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private groupService: GroupService,
-    private authService: AuthService
+    private authService: AuthService,
+    private idService: IdService
   ) {}
 
   ngOnInit(): void {
@@ -39,8 +41,9 @@ export class DashboardComponent implements OnInit {
 
   createGroup() {
     if (this.newGroupName.trim()) {
+      const newGroupId = this.idService.generateId(this.newGroupName);
       const newGroup = new Group(
-        Math.random().toString(36).substring(2, 15),
+        newGroupId,
         this.newGroupName,
         [this.user.id],
         [this.user.id]

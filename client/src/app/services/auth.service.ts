@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('user');
+    localStorage.clear();
     this.router.navigate(['/']);
   }
 }

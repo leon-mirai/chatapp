@@ -8,7 +8,7 @@ import { User } from '../models/user.model';
 })
 export class GroupService {
   private groups: Group[] = [];
-  
+
   constructor(private userService: UserService) {
     this.loadGroups(); // calls loadGroups method on current instance
     // methods declarations in JS are hoisted (recognised by interpreter before code is run)
@@ -70,15 +70,17 @@ export class GroupService {
     this.userService.getUserById(userId).subscribe({
       next: (user: User) => {
         const group = this.getGroupById(groupId);
-        if (group && !group.members.includes(userId)) {
+        if (group) {
+          if (this.isMember(groupId, userId)) {
+            console.log('User is already member of group');
+            return;
+          }
           group.members.push(userId);
-          this.saveGroups(); // persist changes after adding the member
-        } else {
-          console.log("Group doesn't exist or user is already a member.");
+          this.saveGroups();
         }
       },
       error: (err) => {
-        console.error(`Error fetching user: ${err.message}`);
+        console.log(`Error fetching user: ${err.message}`);
       },
     });
   }

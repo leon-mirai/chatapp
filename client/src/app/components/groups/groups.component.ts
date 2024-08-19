@@ -6,6 +6,7 @@ import { Group } from '../../models/group.model';
 import { Channel } from '../../models/channel.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { IdService } from '../../services/id.service';
 
 @Component({
   selector: 'app-groups',
@@ -23,7 +24,8 @@ export class GroupsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private groupService: GroupService,
-    private channelService: ChannelService
+    private channelService: ChannelService,
+    private idService: IdService
   ) {}
 
   ngOnInit(): void {
@@ -52,8 +54,9 @@ export class GroupsComponent implements OnInit {
 
   createChannel() {
     if (this.group && this.newChannelName.trim()) {
+      const newChannelId = this.idService.generateId(this.newChannelName);
       const newChannel = new Channel(
-        Math.random().toString(36).substring(2, 15),
+        newChannelId,
         this.newChannelName,
         this.group.id
       );
