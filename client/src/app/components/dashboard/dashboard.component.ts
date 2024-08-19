@@ -4,6 +4,7 @@ import { GroupService } from '../../services/group.service';
 import { Group } from '../../models/group.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,7 +19,11 @@ export class DashboardComponent implements OnInit {
   user: any = null;
   groups: Group[] = [];
   newGroupName: string = '';
-  constructor(private router: Router, private groupService: GroupService) {}
+  constructor(
+    private router: Router,
+    private groupService: GroupService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     const userData = localStorage.getItem('user');
@@ -44,14 +49,13 @@ export class DashboardComponent implements OnInit {
       this.loadGroups();
       this.newGroupName = '';
     }
-    
+
     /* 
     initialise new Group instance. 
     */
   }
 
   logout() {
-    localStorage.clear();
-    this.router.navigate(['/']);
+    this.authService.logout();
   }
 }

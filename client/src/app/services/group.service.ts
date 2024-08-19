@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Group } from '../models/group.model';
+import { UserService } from './user.service';
+import { User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GroupService {
   private groups: Group[] = [];
-
-  constructor() {
+  
+  constructor(private userService: UserService) {
     this.loadGroups(); // calls loadGroups method on current instance
     // methods declarations in JS are hoisted (recognised by interpreter before code is run)
   }
@@ -19,7 +21,7 @@ export class GroupService {
     }
   }
 
-  private saveGroups() {
+  public saveGroups() {
     localStorage.setItem('groups', JSON.stringify(this.groups)); // save the string JSON object to localStorage
   }
 
@@ -27,7 +29,16 @@ export class GroupService {
     // create group
     this.groups.push(group);
     this.saveGroups();
-    console.log(typeof this.groups);
+
+    // populates groups property of User instance
+    const currentUserData = localStorage.getItem('user');
+    if (currentUserData) {
+      const currentUser = JSON.parse(currentUserData);
+
+      currentUser.groups.push(group.id);
+
+      localStorage.setItem('user', JSON.stringify(currentUser));
+    }
   }
 
   removeGroup(groupId: string) {
@@ -56,19 +67,20 @@ export class GroupService {
   }
 
   addMember(groupId: string, userId: string) {
-    // const user = this.userService.getUserById(userId);
-    // if (!user) {
-    //   console.log(`User with ID ${userId} does not exist.`);
-    //   return;
-    // }
-
-    const group = this.getGroupById(groupId);
-    if (group && !group.members.includes(userId)) {
-      group.members.push(userId);
-      this.saveGroups();
-    } else {
-      console.log("Group doesn't exist");
-    }
+    this.userService.getUserById(userId).subscribe({
+      next: (user: User) => {
+        const group = this.getGroupById(groupId);
+        if (group && !group.members.includes(userId)) {
+          group.members.push(userId);
+          this.saveGroups(); // persist changes after adding the member
+        } else {
+          console.log("Group doesn't exist or user is already a member.");
+        }
+      },
+      error: (err) => {
+        console.error(`Error fetching user: ${err.message}`);
+      },
+    });
   }
 
   removeMember(groupId: string, userId: string) {

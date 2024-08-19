@@ -29,25 +29,29 @@ export class GroupsComponent implements OnInit {
   ngOnInit(): void {
     const groupId = this.route.snapshot.params['id'];
     if (groupId) {
-      this.group = this.groupService.getGroupById(groupId);  // Use the variable, not the string
+      this.group = this.groupService.getGroupById(groupId);
       if (this.group) {
-        this.channels = this.channelService.getChannelsByGroupId(groupId);  // Use the variable, not the string
+        this.channels = this.channelService.getChannelsByGroupId(groupId);
+      } else {
+        console.error('Group not found');
       }
     }
   }
-  
 
   addMember() {
-    if (this.group && this.newMemberId.trim()) {
-      console.log('Adding member:', this.newMemberId);  // Debugging log
-      this.groupService.addMember(this.group.id, this.newMemberId);
+    if (this.group) {
+      const userId = this.newMemberId.trim();
+      if (!userId) return;
+
+      this.groupService.addMember(this.group.id, userId);
       this.newMemberId = '';
+    } else {
+      console.error('Group does not exist.');
     }
   }
-  
+
   createChannel() {
     if (this.group && this.newChannelName.trim()) {
-      console.log('Creating channel:', this.newChannelName); 
       const newChannel = new Channel(
         Math.random().toString(36).substring(2, 15),
         this.newChannelName,
@@ -55,10 +59,9 @@ export class GroupsComponent implements OnInit {
       );
       this.channelService.addChannel(newChannel);
       this.group.channels.push(newChannel.id);
-      // this.saveGroups();
+      this.groupService.saveGroups(); // perist changes after adding a channel
       this.channels = this.channelService.getChannelsByGroupId(this.group.id);
       this.newChannelName = '';
     }
   }
-  
 }

@@ -1,9 +1,10 @@
 const users = require("../data/users");
 
 const route = (app) => {
-  app.post("/api/users/:id", (req, res) => {
-    const userId = req.params.id;
-    const user = users.find((user) => user.id === userId);
+  app.get("/api/users/:id", (req, res) => {
+    const userId = req.params.id.trim();
+
+    const user = users.find((user) => user.id === String(userId));
 
     if (user) {
       res.status(200).json(user);
