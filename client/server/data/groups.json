@@ -1,1 +1,58 @@
-[]
+[
+  {
+    "id": "group1",
+    "name": "Tech Enthusiasts",
+    "admins": [
+      "2222",
+      "6666"
+    ],
+    "members": [
+      "1111",
+      "2222",
+      "9999",
+      "6666"
+    ],
+    "channels": [
+      "channel1",
+      "channel2"
+    ]
+  },
+  {
+    "id": "group2",
+    "name": "Gaming Community",
+    "admins": [
+      "4444"
+    ],
+    "members": [
+      "2222",
+      "3333",
+      "4444"
+    ],
+    "channels": [
+      "channel3"
+    ]
+  },
+  {
+    "id": "group3",
+    "name": "Photography Club",
+    "admins": [
+      "9999",
+      "6666"
+    ],
+    "members": [
+      "9999",
+      "5555",
+      "6666"
+    ],
+    "channels": [
+      "channel4"
+    ]
+  },
+  {
+    "id": "group4",
+    "name": "thesadpeople",
+    "admins": "[1111]",
+    "members": "[1111]",
+    "channels": "[]"
+  }
+]

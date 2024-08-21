@@ -7,18 +7,6 @@ const route = (app) => {
     res.status(200).json(groups);
   });
 
-  // Create a new group
-  app.post("/groups", (req, res) => {
-    const newGroup = req.body;
-    const groups = groupService.readGroups();
-
-    // Add the new group and save to file
-    groups.push(newGroup);
-    groupService.writeGroups(groups);
-
-    res.status(201).json(newGroup);
-  });
-
   // Get a group by ID
   app.get("/api/groups/:id", (req, res) => {
     const groupId = req.params.id.trim();
@@ -30,6 +18,18 @@ const route = (app) => {
     } else {
       res.status(404).json({ message: "Group not found" });
     }
+  });
+
+  // Create a new group
+  app.post("/api/groups", (req, res) => {
+    const newGroup = req.body;
+    const groups = groupService.readGroups();
+
+    // Add the new group and save to file
+    groups.push(newGroup);
+    groupService.writeGroups(groups);
+
+    res.status(201).json(newGroup);
   });
 
   // Update a group by ID
