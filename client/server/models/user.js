@@ -1,7 +1,7 @@
 class User {
-  constructor(username, id, email, roles = [], groups = [], password, valid) {
-    this.username = username;
+  constructor(id, username, email, roles = [], groups = [], password, valid) {
     this.id = id;
+    this.username = username;
     this.email = email;
     this.roles = roles;
     this.groups = groups;

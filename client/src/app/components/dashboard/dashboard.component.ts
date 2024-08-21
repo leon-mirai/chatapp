@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { GroupService } from '../../services/group.service';
 import { Group } from '../../models/group.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { IdService } from '../../services/id.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,11 +21,15 @@ export class DashboardComponent implements OnInit {
   user: any = null;
   groups: Group[] = [];
   newGroupName: string = '';
+  username: string = '';
+  email: string = '';
+  errorMessage: string = '';
+
   constructor(
-    private router: Router,
     private groupService: GroupService,
     private authService: AuthService,
-    private idService: IdService
+    private idService: IdService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -52,10 +57,39 @@ export class DashboardComponent implements OnInit {
       this.loadGroups();
       this.newGroupName = '';
     }
+  }
 
-    /* 
-    initialise new Group instance. 
-    */
+  addUser() {
+    if (this.username.trim() && this.email.trim()) {
+      this.userService.addUser(this.username, this.email).subscribe({
+        next: (result) => {
+          if (result.success) {
+            this.username = '';
+            this.email = '';
+            this.errorMessage = '';
+          } else {
+            this.errorMessage = result.message;
+          }
+        },
+        error: () => {
+          this.errorMessage = 'An error has occurred. Try again';
+        },
+      });
+    } else {
+      this.errorMessage = 'Username and email are require';
+    }
+  }
+
+  isSuperAdmin(): boolean {
+    return this.user && this.user.roles.includes('SuperAdmin');
+  }
+
+  isGroupAdmin(): boolean {
+    return this.user && this.user.roles.includes('GroupAdmin');
+  }
+
+  isChatUser(): boolean {
+    return this.user && this.user.roles.includes('ChatUser');
   }
 
   logout() {

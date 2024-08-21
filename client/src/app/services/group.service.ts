@@ -34,9 +34,7 @@ export class GroupService {
     const currentUserData = localStorage.getItem('user');
     if (currentUserData) {
       const currentUser = JSON.parse(currentUserData);
-
       currentUser.groups.push(group.id);
-
       localStorage.setItem('user', JSON.stringify(currentUser));
     }
   }
