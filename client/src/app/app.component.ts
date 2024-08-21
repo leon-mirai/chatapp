@@ -3,7 +3,6 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
-import { TestComponent } from './test/test.component';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +13,6 @@ import { TestComponent } from './test/test.component';
     LoginComponent,
     DashboardComponent,
     ProfileComponent,
-    TestComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

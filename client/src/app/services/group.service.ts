@@ -7,6 +7,7 @@ import { User } from '../models/user.model';
   providedIn: 'root',
 })
 export class GroupService {
+
   private groups: Group[] = [];
 
   constructor(private userService: UserService) {

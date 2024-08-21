@@ -1,6 +1,6 @@
 const path = require("path");
-
 const express = require("express");
+
 const cors = require("cors");
 
 const app = express();
@@ -12,9 +12,11 @@ app.use(express.static(uiPath));
 
 const login = require("./routes/api-login.js");
 const user = require("./routes/user.js");
+const group = require("./routes/group.js");
 
 login.route(app);
 user.route(app);
+group.route(app);
 
 app.get("*", function (request, response) {
   response.sendFile(

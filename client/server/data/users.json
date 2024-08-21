@@ -1,0 +1,60 @@
+[
+  {
+    "id": "1111",
+    "username": "gronk",
+    "email": "gronk@gmail.com",
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": true
+  },
+  {
+    "id": "2222",
+    "username": "pudgey",
+    "email": "pudge@gmail.com",
+    "roles": [
+      "ChatUser",
+      "GroupAdmin"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": true
+  },
+  {
+    "id": "9999",
+    "username": "super",
+    "email": "super@gmail.com",
+    "roles": [
+      "ChatUser",
+      "GroupAdmin",
+      "SuperAdmin"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": true
+  },
+  {
+    "id": "pog-3t3j",
+    "username": "pog",
+    "email": "pog@gmail.com",
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": true
+  },
+  {
+    "id": "poly-dr9r",
+    "username": "poly",
+    "email": "poly@gmail.com",
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": true
+  }
+]

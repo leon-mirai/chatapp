@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { User } from '../models/user.model';
 import { IdService } from './id.service';
@@ -9,48 +9,100 @@ import { IdService } from './id.service';
 })
 export class UserService {
   private apiUrl = 'http://localhost:3000/api/users';
-  private users: User[] = [];
-  constructor(private http: HttpClient, private idService: IdService) {
-    this.loadUsers();
+
+  constructor(private http: HttpClient, private idService: IdService) {}
+
+  // Fetch all users from the backend
+  getUsers(): Observable<User[]> {
+    console.log('Fetching users from the backend...');
+    return this.http.get<User[]>(this.apiUrl);
   }
 
-  private loadUsers() {
-    const usersJson = localStorage.getItem('users');
-    if (usersJson) {
-      this.users = JSON.parse(usersJson);
-    }
-  }
-
-  public saveUsers() {
-    localStorage.setItem('users', JSON.stringify(this.users));
-  }
-
+  // Fetch a specific user by ID from the backend
   getUserById(userId: string): Observable<User> {
+    console.log(`Fetching user with ID: ${userId}`);
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
+  // Update a user on the backend
   updateUser(user: User): Observable<any> {
+    console.log(`Updating user with ID: ${user.id}`);
     return this.http.put(`${this.apiUrl}/${user.id}`, user);
   }
 
+  // Add a new user to the backend
   addUser(username: string, email: string): Observable<any> {
-    const myUser = this.users.find((user) => user.username === username);
+    console.log(`Attempting to add user: ${username}`);
+    return new Observable((observer) => {
+      this.getUsers().subscribe({
+        next: (users) => {
+          console.log('Users fetched:', users);
+          this.processUserCreation(users, username, email, observer);
+        },
+        error: (error) => {
+          this.handleError('Failed to fetch users', observer, error);
+        },
+      });
+    });
+  }
 
-    if (myUser) {
-      return of({ success: false, message: 'Username already exists' });
+  // Process the user creation flow
+  private processUserCreation(
+    users: User[],
+    username: string,
+    email: string,
+    observer: any
+  ): void {
+    const existingUser = users.find((user) => user.username === username);
+    if (existingUser) {
+      console.log('Username already exists:', username);
+      this.sendError(observer, 'Username already exists');
+    } else {
+      const newUser = this.createNewUser(username, email);
+      console.log('Creating new user:', newUser);
+      this.http.post<User>(this.apiUrl, newUser).subscribe({
+        next: () => {
+          console.log('User added successfully:', newUser);
+          this.sendSuccess(observer, newUser);
+        },
+        error: (error) => {
+          this.handleError('Failed to add user', observer, error);
+        },
+      });
     }
-    const newUserId = this.idService.generateId(username);
-    const newUser: User = {
-      id: newUserId,
+  }
+
+  // Create a new user object
+  private createNewUser(username: string, email: string): User {
+    return {
+      id: this.idService.generateId(username),
       username,
       email,
       roles: ['ChatUser'],
       groups: [],
+      password: '123',
+      valid: true,
     };
+  }
 
-    this.users.push(newUser);
-    this.saveUsers();
+  // Send success response to observer
+  private sendSuccess(observer: any, newUser: User): void {
+    console.log('Success response sent for user:', newUser);
+    observer.next({ success: true, user: newUser });
+    observer.complete();
+  }
 
-    return of({ success: true, user: newUser });
+  // Send error response to observer
+  private sendError(observer: any, message: string): void {
+    console.log('Error response sent:', message);
+    observer.next({ success: false, message });
+    observer.complete();
+  }
+
+  // Handle errors during HTTP requests
+  private handleError(message: string, observer: any, error: any): void {
+    console.error(message, error);
+    observer.next({ success: false, message });
+    observer.complete();
   }
 }
