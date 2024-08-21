@@ -16,14 +16,9 @@ import { UserService } from '../../services/user.service';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
-  // in login component response object has user info. So when you navigate to dashboard route, pass
-  // data into profile route
   user: any = null;
   groups: Group[] = [];
   newGroupName: string = '';
-  username: string = '';
-  email: string = '';
-  errorMessage: string = '';
 
   constructor(
     private groupService: GroupService,
@@ -40,44 +35,41 @@ export class DashboardComponent implements OnInit {
     this.loadGroups();
   }
 
-  loadGroups() {
-    this.groups = this.groupService.getGroups();
+  loadGroups(): void {
+    this.groupService.getGroups().subscribe({
+      next: (groups) => {
+        this.groups = groups;
+      },
+      error: (err) => {
+        console.error('Error fetching groups:', err);
+      },
+    });
   }
 
-  createGroup() {
-    if (this.newGroupName.trim()) {
-      const newGroupId = this.idService.generateId(this.newGroupName);
-      const newGroup = new Group(
-        newGroupId,
-        this.newGroupName,
-        [this.user.id],
-        [this.user.id]
-      );
-      this.groupService.addGroup(newGroup);
-      this.loadGroups();
-      this.newGroupName = '';
-    }
-  }
+  createGroup(): void {
+    if (this.newGroupName.trim() && this.user) {
+      const newGroup = {
+        id: this.idService.generateId(this.newGroupName),
+        name: this.newGroupName,
+        admins: [this.user.id],
+        members: [this.user.id],
+        channels: [],
+      };
 
-  addUser() {
-    if (this.username.trim() && this.email.trim()) {
-      this.userService.addUser(this.username, this.email).subscribe({
-        next: (result) => {
-          if (result.success) {
-            this.username = '';
-            this.email = '';
-            this.errorMessage = '';
-          } else {
-            this.errorMessage = result.message;
-          }
+      this.groupService.addGroup(newGroup).subscribe({
+        next: (group) => {
+          this.groups.push(group); // Update the UI with the new group
+          this.newGroupName = ''; // Clear the input field
         },
-        error: () => {
-          this.errorMessage = 'An error has occurred. Try again';
+        error: (err) => {
+          console.error('Error creating group:', err);
         },
       });
-    } else {
-      this.errorMessage = 'Username and email are require';
     }
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   isSuperAdmin(): boolean {
@@ -90,9 +82,5 @@ export class DashboardComponent implements OnInit {
 
   isChatUser(): boolean {
     return this.user && this.user.roles.includes('ChatUser');
-  }
-
-  logout() {
-    this.authService.logout();
   }
 }

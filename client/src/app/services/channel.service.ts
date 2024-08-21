@@ -1,60 +1,36 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Channel } from '../models/channel.model';
-import { GroupService } from './group.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChannelService {
-  private channels: Channel[] = [];
+  private apiUrl = 'http://localhost:3000/api/channels';
 
-  constructor(private groupService: GroupService) {
-    this.loadChannels();
+  constructor(private http: HttpClient) {}
+
+  getChannels(): Observable<Channel[]> {
+    return this.http.get<Channel[]>(this.apiUrl);
   }
 
-  private loadChannels() {
-    const channelsJson = localStorage.getItem('channels');
-    if (channelsJson) {
-      this.channels = JSON.parse(channelsJson);
-    }
+  getChannelById(channelId: string): Observable<Channel> {
+    return this.http.get<Channel>(`${this.apiUrl}/${channelId}`);
   }
 
-  private saveChannels() {
-    localStorage.setItem('channels', JSON.stringify(this.channels));
+  // Add this method to fetch channels by groupId
+  getChannelsByGroupId(groupId: string): Observable<Channel[]> {
+    const url = `${this.apiUrl}/group/${groupId}`;
+    return this.http.get<Channel[]>(url);
   }
 
-  addChannel(channel: Channel) {
-    this.channels.push(channel);
-    this.saveChannels();
-    console.log(typeof this.channels);
+  addChannel(channel: Channel): Observable<Channel> {
+    return this.http.post<Channel>(this.apiUrl, channel);
   }
 
-  getChannelsByGroupId(groupId: string): Channel[] {
-    return this.channels.filter((channel) => channel.groupId === groupId);
-  }
-
-  getChannelById(channelId: string): Channel | undefined {
-    return this.channels.find((channel) => channel.id === channelId);
-  }
-
-  addMember(channelId: string, userId: string) {
-    const channel = this.getChannelById(channelId);
-    if (!channel) {
-      console.log("Channel doesn't exist");
-      return;
-    }
-
-    const isMember = this.groupService.isMember(channel.groupId, userId);
-    if (!isMember) {
-      console.log(`User with ID ${userId} is not a member of the group.`);
-      return;
-    }
-
-    if (!channel.members.includes(userId)) {
-      channel.members.push(userId);
-      this.saveChannels();
-    } else {
-      console.log('User is already a member of the channel');
-    }
+  addMember(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/add-member`;
+    return this.http.post(url, { userId });
   }
 }

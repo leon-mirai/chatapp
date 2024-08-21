@@ -13,7 +13,7 @@ import { IdService } from '../../services/id.service';
   standalone: true,
   imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './groups.component.html',
-  styleUrl: './groups.component.css',
+  styleUrls: ['./groups.component.css'],
 })
 export class GroupsComponent implements OnInit {
   group: Group | undefined;
@@ -31,22 +31,41 @@ export class GroupsComponent implements OnInit {
   ngOnInit(): void {
     const groupId = this.route.snapshot.params['id'];
     if (groupId) {
-      this.group = this.groupService.getGroupById(groupId);
-      if (this.group) {
-        this.channels = this.channelService.getChannelsByGroupId(groupId);
-      } else {
-        console.error('Group not found');
-      }
+      this.groupService.getGroupById(groupId).subscribe({
+        next: (group: Group) => {
+          this.group = group;
+          // Fetch channels by groupId
+          this.channelService.getChannelsByGroupId(groupId).subscribe({
+            next: (channels: Channel[]) => {
+              this.channels = channels;
+            },
+            error: (err: any) => {
+              console.error('Error fetching channels:', err.message);
+            },
+          });
+        },
+        error: (err: any) => {
+          console.error('Error fetching group:', err.message);
+        },
+      });
     }
   }
-
+  
+  
   addMember() {
     if (this.group) {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
-      this.groupService.addMember(this.group.id, userId);
-      this.newMemberId = '';
+      this.groupService.addMember(this.group.id, userId).subscribe({
+        next: () => {
+          console.log('Member added successfully');
+          this.newMemberId = '';
+        },
+        error: (err: any) => {
+          console.error('Error adding member:', err.message);
+        },
+      });
     } else {
       console.error('Group does not exist.');
     }
@@ -60,11 +79,15 @@ export class GroupsComponent implements OnInit {
         this.newChannelName,
         this.group.id
       );
-      this.channelService.addChannel(newChannel);
-      this.group.channels.push(newChannel.id);
-      this.groupService.saveGroups(); // perist changes after adding a channel
-      this.channels = this.channelService.getChannelsByGroupId(this.group.id);
-      this.newChannelName = '';
+      this.channelService.addChannel(newChannel).subscribe({
+        next: () => {
+          this.channels.push(newChannel);
+          this.newChannelName = '';
+        },
+        error: (err: any) => {
+          console.error('Error adding channel:', err.message);
+        },
+      });
     }
   }
 }

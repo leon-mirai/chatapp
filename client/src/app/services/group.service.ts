@@ -1,109 +1,38 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Group } from '../models/group.model';
-import { UserService } from './user.service';
-import { User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GroupService {
+  private apiUrl = 'http://localhost:3000/api/groups';
 
-  private groups: Group[] = [];
+  constructor(private http: HttpClient) {}
 
-  constructor(private userService: UserService) {
-    this.loadGroups(); // calls loadGroups method on current instance
-    // methods declarations in JS are hoisted (recognised by interpreter before code is run)
+  getGroups(): Observable<Group[]> {
+    return this.http.get<Group[]>(this.apiUrl);
   }
 
-  private loadGroups() {
-    const groupsJson = localStorage.getItem('groups');
-    if (groupsJson) {
-      this.groups = JSON.parse(groupsJson); // assign a javascript object to groups property of the object
-    }
+  getGroupById(groupId: string): Observable<Group> {
+    return this.http.get<Group>(`${this.apiUrl}/${groupId}`);
   }
 
-  public saveGroups() {
-    localStorage.setItem('groups', JSON.stringify(this.groups)); // save the string JSON object to localStorage
+  addGroup(group: Group): Observable<Group> {
+    return this.http.post<Group>(this.apiUrl, group);
   }
 
-  addGroup(group: Group) {
-    // create group
-    this.groups.push(group);
-    this.saveGroups();
-
-    // populates groups property of User instance
-    const currentUserData = localStorage.getItem('user');
-    if (currentUserData) {
-      const currentUser = JSON.parse(currentUserData);
-      currentUser.groups.push(group.id);
-      localStorage.setItem('user', JSON.stringify(currentUser));
-    }
+  // Method to check if a user is a member of a group
+  isMember(groupId: string, userId: string): Observable<boolean> {
+    return this.getGroupById(groupId).pipe(
+      map(group => group ? group.members.includes(userId) : false)
+    );
   }
 
-  removeGroup(groupId: string) {
-    this.groups = this.groups.filter((group) => group.id !== groupId);
-    this.saveGroups();
-  }
-
-  getGroups(): Group[] {
-    // helps me display all the groups
-    return this.groups;
-  }
-
-  getGroupById(groupId: string): Group | undefined {
-    // helps me add or remove members
-    return this.groups.find((group) => group.id === groupId);
-  }
-
-  addAdmin(groupId: string, userId: string) {
-    const group = this.getGroupById(groupId);
-    if (group && !group.admins.includes(userId)) {
-      group.admins.push(userId);
-      this.saveGroups();
-    } else {
-      console.log("Group doesn't exist");
-    }
-  }
-
-  addMember(groupId: string, userId: string) {
-    this.userService.getUserById(userId).subscribe({
-      next: (user: User) => {
-        const group = this.getGroupById(groupId);
-        if (group) {
-          if (this.isMember(groupId, userId)) {
-            console.log('User is already member of group');
-            return;
-          }
-          group.members.push(userId);
-          this.saveGroups();
-        }
-      },
-      error: (err) => {
-        console.log(`Error fetching user: ${err.message}`);
-      },
-    });
-  }
-
-  removeMember(groupId: string, userId: string) {
-    const group = this.getGroupById(groupId);
-    if (group) {
-      group.members = group.members.filter((member) => member !== userId);
-      group.admins = group.admins.filter((admin) => admin !== userId);
-    } else {
-      console.log("Member doesn't exist");
-    }
-  }
-
-  isAdmin(groupId: string, userId: string) {
-    const group = this.getGroupById(groupId);
-    return group?.admins.includes(userId) || false; // ? optional chaining
-  } // basically if the object called is undefined, it returns undefined instead of an error.
-
-  isMember(groupId: string, userId: string) {
-    const group = this.getGroupById(groupId);
-    return group?.members.includes(userId) || false;
+  addMember(groupId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}/add-member`;
+    return this.http.post(url, { userId });
   }
 }
-
-// Handles the creation, retrieval, management of groups and channels
-// Uses localstorage for data persistence

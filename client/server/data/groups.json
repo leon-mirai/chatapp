@@ -54,5 +54,16 @@
     "admins": "[1111]",
     "members": "[1111]",
     "channels": "[]"
+  },
+  {
+    "id": "thepogchampers-b1mk",
+    "name": "thepogchampers",
+    "admins": [
+      "9999"
+    ],
+    "members": [
+      "9999"
+    ],
+    "channels": []
   }
 ]
