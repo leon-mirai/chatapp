@@ -32,7 +32,7 @@ export class GroupService {
   }
 
   addMember(groupId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${groupId}/add-member`;
+    const url = `${this.apiUrl}/${groupId}/members`;
     return this.http.post(url, { userId });
   }
 }

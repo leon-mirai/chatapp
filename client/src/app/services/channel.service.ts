@@ -29,8 +29,9 @@ export class ChannelService {
     return this.http.post<Channel>(this.apiUrl, channel);
   }
 
-  addMember(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/add-member`;
-    return this.http.post(url, { userId });
-  }
+  // addMember(channelId: string, userId: string): Observable<any> {
+  //   const url = `${this.apiUrl}/${channelId}/members`; 
+  //   return this.http.post(url, { userId });
+  // }
+  
 }

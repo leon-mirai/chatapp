@@ -49,20 +49,14 @@
     ]
   },
   {
-    "id": "group4",
-    "name": "thesadpeople",
-    "admins": "[1111]",
-    "members": "[1111]",
-    "channels": "[]"
-  },
-  {
-    "id": "thepogchampers-b1mk",
-    "name": "thepogchampers",
+    "id": "pancake-dubn",
+    "name": "Pancake",
     "admins": [
       "9999"
     ],
     "members": [
-      "9999"
+      "9999",
+      "1111"
     ],
     "channels": []
   }

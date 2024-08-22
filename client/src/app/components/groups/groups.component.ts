@@ -59,6 +59,7 @@ export class GroupsComponent implements OnInit {
 
       this.groupService.addMember(this.group.id, userId).subscribe({
         next: () => {
+          this.group?.members.push(this.newMemberId);
           console.log('Member added successfully');
           this.newMemberId = '';
         },

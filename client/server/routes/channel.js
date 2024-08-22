@@ -16,10 +16,14 @@ const route = (app) => {
     try {
       const groupId = req.params.groupId.trim();
       const channels = channelService.readChannels();
-      const groupChannels = channels.filter(channel => channel.groupId === groupId);
+      const groupChannels = channels.filter(
+        (channel) => channel.groupId === groupId
+      );
       res.status(200).json(groupChannels);
     } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve channels by group ID", error });
+      res
+        .status(500)
+        .json({ message: "Failed to retrieve channels by group ID", error });
     }
   });
 
@@ -62,10 +66,15 @@ const route = (app) => {
       const channelId = req.params.channelId.trim();
       const updatedChannelData = req.body;
       const channels = channelService.readChannels();
-      const channelIndex = channels.findIndex((channel) => channel.id === channelId);
+      const channelIndex = channels.findIndex(
+        (channel) => channel.id === channelId
+      );
 
       if (channelIndex !== -1) {
-        channels[channelIndex] = { ...channels[channelIndex], ...updatedChannelData };
+        channels[channelIndex] = {
+          ...channels[channelIndex],
+          ...updatedChannelData,
+        };
         channelService.writeChannels(channels);
         res.status(200).json(channels[channelIndex]);
       } else {
@@ -81,7 +90,9 @@ const route = (app) => {
     try {
       const channelId = req.params.channelId.trim();
       let channels = channelService.readChannels();
-      const channelExists = channels.some((channel) => channel.id === channelId);
+      const channelExists = channels.some(
+        (channel) => channel.id === channelId
+      );
 
       if (channelExists) {
         channels = channels.filter((channel) => channel.id !== channelId);
@@ -96,14 +107,34 @@ const route = (app) => {
   });
 
   // Add a user to a channel
-  app.post("/api/channels/:channelId/members", (req, res) => {
+  // app.post("/api/channels/:channelId/members", (req, res) => {
+  //   try {
+  //     const channelId = req.params.channelId.trim();
+  //     const { userId } = req.body;
+  //     const response = channelService.addUserToChannel(channelId, userId);
+  //     res.status(200).json(response);
+  //   } catch (error) {
+  //     res.status(500).json({ message: "Failed to add user to channel", error });
+  //   }
+  // });
+
+  // User joins a channel
+  app.post("/api/channels/:channelId/join", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
       const { userId } = req.body;
-      const response = channelService.addUserToChannel(channelId, userId);
+
+      // Validate userId
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        return res.status(400).json({ message: "Invalid userId" });
+      }
+
+      // Call the service to join the channel
+      const response = channelService.joinChannel(channelId, userId);
+
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to add user to channel", error });
+      res.status(500).json({ message: "Failed to join the channel", error: error.message });
     }
   });
 
@@ -115,7 +146,9 @@ const route = (app) => {
       const response = channelService.removeUserFromChannel(channelId, userId);
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to remove user from channel", error });
+      res
+        .status(500)
+        .json({ message: "Failed to remove user from channel", error });
     }
   });
 
@@ -127,7 +160,9 @@ const route = (app) => {
       const response = channelService.banUserFromChannel(channelId, userId);
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to ban user from channel", error });
+      res
+        .status(500)
+        .json({ message: "Failed to ban user from channel", error });
     }
   });
 
@@ -139,7 +174,9 @@ const route = (app) => {
       const isMember = channelService.isUserInChannel(channelId, userId);
       res.status(200).json({ isMember });
     } catch (error) {
-      res.status(500).json({ message: "Failed to check if user is in channel", error });
+      res
+        .status(500)
+        .json({ message: "Failed to check if user is in channel", error });
     }
   });
 };

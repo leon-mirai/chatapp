@@ -60,17 +60,19 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
-  addMember() {
-    if (this.channel && this.newMemberId.trim()) {
-      this.channelService.addMember(this.channel.id, this.newMemberId).subscribe({
-        next: () => {
-          console.log('Member added successfully');
-          this.newMemberId = '';
-        },
-        error: (err: any) => {
-          console.error('Error adding member:', err.message);
-        },
-      });
-    }
-  }
+  
+
+  // addMember() {
+  //   if (this.channel && this.newMemberId.trim()) {
+  //     this.channelService.addMember(this.channel.id, this.newMemberId).subscribe({
+  //       next: () => {
+  //         console.log('Member added successfully');
+  //         this.newMemberId = '';
+  //       },
+  //       error: (err: any) => {
+  //         console.error('Error adding member:', err.message);
+  //       },
+  //     });
+  //   }
+  // }
 }
