@@ -24,10 +24,16 @@ export class GroupService {
     return this.http.post<Group>(this.apiUrl, group);
   }
 
+  deleteGroup(groupId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}`;
+    return this.http.delete(url);
+  }
+  
+
   // Method to check if a user is a member of a group
   isMember(groupId: string, userId: string): Observable<boolean> {
     return this.getGroupById(groupId).pipe(
-      map(group => group ? group.members.includes(userId) : false)
+      map((group) => (group ? group.members.includes(userId) : false))
     );
   }
 

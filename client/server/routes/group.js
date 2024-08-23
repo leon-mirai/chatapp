@@ -1,3 +1,5 @@
+const userService = require("../services/userService");
+const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
 const route = (app) => {
@@ -50,16 +52,38 @@ const route = (app) => {
 
   // Delete a group by ID
   app.delete("/api/groups/:groupId", (req, res) => {
-    const { groupId } = req.params;
-    let groups = groupService.readGroups();
-    const groupExists = groups.some((group) => group.id === groupId);
+    try {
+      const { groupId } = req.params;
+      let groups = groupService.readGroups();
 
-    if (groupExists) {
-      groups = groups.filter((group) => group.id !== groupId);
+      // Check if the group exists
+      const groupExists = groups.some(group => group.id === groupId);
+
+      if (!groupExists) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      // 1. Delete all channels associated with this group
+      let channels = channelService.readChannels();
+      channels = channels.filter(channel => channel.groupId !== groupId);
+      channelService.writeChannels(channels);
+
+      // 2. Remove the group reference from all users
+      let users = userService.readUsers();
+      users = users.map(user => {
+        // Remove the group reference from the user's groups
+        user.groups = user.groups.filter(groupIdInUser => groupIdInUser !== groupId);
+        return user;
+      });
+      userService.writeUsers(users);
+
+      // 3. Delete the group from the groups array
+      groups = groups.filter(group => group.id !== groupId);
       groupService.writeGroups(groups);
+
       res.status(200).json({ message: "Group deleted successfully" });
-    } else {
-      res.status(404).json({ message: "Group not found" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete group", error: error.message });
     }
   });
 
@@ -76,7 +100,9 @@ const route = (app) => {
         groupService.writeGroups(groups);
         res.status(200).json({ message: "Member added successfully" });
       } else {
-        res.status(400).json({ message: "User is already a member of the group" });
+        res
+          .status(400)
+          .json({ message: "User is already a member of the group" });
       }
     } else {
       res.status(404).json({ message: "Group not found" });
@@ -111,7 +137,9 @@ const route = (app) => {
         groupService.writeGroups(groups);
         res.status(200).json({ message: "Admin added successfully" });
       } else {
-        res.status(400).json({ message: "User is already an admin of the group" });
+        res
+          .status(400)
+          .json({ message: "User is already an admin of the group" });
       }
     } else {
       res.status(404).json({ message: "Group not found" });

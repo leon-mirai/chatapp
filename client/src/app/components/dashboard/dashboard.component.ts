@@ -68,6 +68,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  deleteGroup(groupId: string): void {
+    if (confirm('Are you sure you want to delete this group?')) {
+      this.groupService.deleteGroup(groupId).subscribe({
+        next: () => {
+          // Remove the deleted group from the local groups array
+          this.groups = this.groups.filter(group => group.id !== groupId);
+        },
+        error: (err) => {
+          console.error('Error deleting group:', err);
+        }
+      });
+    }
+  }
+  
+
   logout(): void {
     this.authService.logout();
   }
