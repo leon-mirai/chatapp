@@ -95,8 +95,14 @@ const route = (app) => {
       );
 
       if (channelExists) {
+        // Filter out the channel from the list
         channels = channels.filter((channel) => channel.id !== channelId);
+
+        // TODO: Add cleanup for related data, such as messages or other linked entities
+
+        // Write the updated channels list
         channelService.writeChannels(channels);
+
         res.status(200).json({ message: "Channel deleted successfully" });
       } else {
         res.status(404).json({ message: "Channel not found" });
@@ -125,7 +131,7 @@ const route = (app) => {
       const { userId } = req.body;
 
       // Validate userId
-      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      if (!userId || typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ message: "Invalid userId" });
       }
 
@@ -134,7 +140,9 @@ const route = (app) => {
 
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to join the channel", error: error.message });
+      res
+        .status(500)
+        .json({ message: "Failed to join the channel", error: error.message });
     }
   });
 

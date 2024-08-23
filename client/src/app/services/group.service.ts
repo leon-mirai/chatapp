@@ -28,7 +28,6 @@ export class GroupService {
     const url = `${this.apiUrl}/${groupId}`;
     return this.http.delete(url);
   }
-  
 
   // Method to check if a user is a member of a group
   isMember(groupId: string, userId: string): Observable<boolean> {

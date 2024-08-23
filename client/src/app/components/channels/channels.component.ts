@@ -60,6 +60,20 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
+  deleteChannel(): void {
+    if (this.channel && confirm('Are you sure you want to delete this channel?')) {
+      this.channelService.deleteChannel(this.channel.id).subscribe({
+        next: () => {
+          console.log('Channel deleted successfully');
+          this.router.navigate(['/dashboard']); // Navigate to a different page after deletion
+        },
+        error: (err) => {
+          console.error('Error deleting channel:', err.message);
+        }
+      });
+    }
+  }
+
   joinChannel(): void {
     if (this.channel && this.newMemberId.trim()) {
       this.channelService.joinChannel(this.channel.id, this.newMemberId.trim()).subscribe({
