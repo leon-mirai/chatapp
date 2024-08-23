@@ -22,25 +22,41 @@
       </li>
     </ul>
   </div>
-
-  <!-- <div>
-    <h2>Create a New User</h2>
-    <input [(ngModel)]="username" placeholder="Enter username" />
-    <input [(ngModel)]="email" placeholder="Enter email" />
-    <button (click)="addUser()">Create User</button>
-    
-  </div> -->
 </div>
 
 <!-- view for groupadmin -->
 <div *ngIf="isGroupAdmin() && !isSuperAdmin()">
   <h3>GroupAdmin Panel</h3>
+  <div>
+    <h2>Create a New Group</h2>
+    <input [(ngModel)]="newGroupName" placeholder="Enter group name" />
+    <button (click)="createGroup()">Create Group</button>
+  </div>
+
+  <div>
+    <h2>Your Groups</h2>
+    <ul>
+      <li *ngFor="let group of groups">
+        {{ group.name }}
+        <a routerLink="/groups/{{ group.id }}">Manage group</a>
+      </li>
+    </ul>
+  </div>
 </div>
 
 <!-- view for chatuser -->
 <div *ngIf="isChatUser() && !isSuperAdmin() && !isGroupAdmin()">
   <h3>ChatUser Panel</h3>
+  <div>
+    <h2>Your Groups</h2>
+    <ul>
+      <li *ngFor="let group of groups">
+        {{ group.name }}
+        <a routerLink="/groups/{{ group.id }}">Join Channel</a>
+      </li>
+    </ul>
+  </div>
 </div>
-<hr>
-<div><button (click)="logout()">Logout</button></div>
 
+<hr />
+<div><button (click)="logout()">Logout</button></div>

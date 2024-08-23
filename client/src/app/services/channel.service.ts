@@ -29,6 +29,11 @@ export class ChannelService {
     return this.http.post<Channel>(this.apiUrl, channel);
   }
 
+  joinChannel(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/join`; // Use backticks here
+    return this.http.post(url, { userId });
+}
+
   // addMember(channelId: string, userId: string): Observable<any> {
   //   const url = `${this.apiUrl}/${channelId}/members`; 
   //   return this.http.post(url, { userId });

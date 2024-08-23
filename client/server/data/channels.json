@@ -17,8 +17,7 @@
     "members": [
       "1111",
       "2222",
-      "6666",
-      "9999"
+      "6666"
     ]
   },
   {
@@ -40,11 +39,5 @@
       "5555",
       "6666"
     ]
-  },
-  {
-    "id": "book-channel-5lp8",
-    "name": "Book channel",
-    "groupId": "pancake-dubn",
-    "members": []
   }
 ]

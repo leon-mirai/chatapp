@@ -60,6 +60,37 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
+  joinChannel(): void {
+    if (this.channel && this.newMemberId.trim()) {
+      this.channelService.joinChannel(this.channel.id, this.newMemberId.trim()).subscribe({
+        next: (response) => {
+          console.log(response.message);
+          if (response.message === "User joined the channel successfully") {
+            // re-fetch the channel data to ensure it's up-to-date
+            this.reloadChannel();
+          }
+          this.newMemberId = ''; 
+        },
+        error: (err) => {
+          console.error('Error joining channel:', err.message);
+        }
+      });
+    }
+  }
+  
+  // reload the channel data from the backend
+  reloadChannel(): void {
+    if (this.channel) {
+      this.channelService.getChannelById(this.channel.id).subscribe({
+        next: (updatedChannel: Channel) => {
+          this.channel = updatedChannel;
+        },
+        error: (err) => {
+          console.error('Error reloading channel:', err.message);
+        }
+      });
+    }
+  }
   
 
   // addMember() {

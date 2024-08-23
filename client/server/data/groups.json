@@ -47,17 +47,5 @@
     "channels": [
       "channel4"
     ]
-  },
-  {
-    "id": "pancake-dubn",
-    "name": "Pancake",
-    "admins": [
-      "9999"
-    ],
-    "members": [
-      "9999",
-      "1111"
-    ],
-    "channels": []
   }
 ]
