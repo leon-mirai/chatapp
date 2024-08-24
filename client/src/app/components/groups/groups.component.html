@@ -1,14 +1,20 @@
-<h1>{{ group?.name }}</h1>
+<h1>Group: {{ group?.name }}</h1>
 
+<!-- Members Section -->
 <div>
   <h2>Members</h2>
   <ul>
     <li *ngFor="let member of group?.members">{{ member }}</li>
   </ul>
-  <input [(ngModel)]="newMemberId" placeholder="Enter user ID" />
-  <button (click)="addMember()">Add Member</button>
+
+  <!-- Only SuperAdmin and GroupAdmin can add members -->
+  <div *ngIf="isSuperAdmin() || isGroupAdmin()">
+    <input [(ngModel)]="newMemberId" placeholder="Enter user ID" />
+    <button (click)="addMember()">Add Member</button>
+  </div>
 </div>
 
+<!-- Channels Section -->
 <div>
   <h2>Channels</h2>
   <ul>
@@ -16,6 +22,10 @@
       <a [routerLink]="['/channels', channel.id]">{{ channel.name }}</a> <!-- Add this link -->
     </li>
   </ul>
-  <input [(ngModel)]="newChannelName" placeholder="Enter channel name" />
-  <button (click)="createChannel()">Create Channel</button>
+
+  <!-- Only SuperAdmin and GroupAdmin can create channels -->
+  <div *ngIf="isSuperAdmin() || isGroupAdmin()">
+    <input [(ngModel)]="newChannelName" placeholder="Enter channel name" />
+    <button (click)="createChannel()">Create Channel</button>
+  </div>
 </div>

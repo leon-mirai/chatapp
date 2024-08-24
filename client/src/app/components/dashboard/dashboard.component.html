@@ -19,12 +19,12 @@
       <li *ngFor="let group of groups">
         {{ group.name }}
         <a routerLink="/groups/{{ group.id }}">Manage group</a>
-        <button (click)="deleteGroup(group.id)">Delete Group</button> <!-- Add delete button -->
+        <button (click)="deleteGroup(group.id)">Delete Group</button>
+        <!-- Add delete button -->
       </li>
     </ul>
   </div>
 </div>
-
 
 <!-- view for groupadmin -->
 <div *ngIf="isGroupAdmin() && !isSuperAdmin()">
@@ -55,7 +55,7 @@
     <ul>
       <li *ngFor="let group of groups">
         {{ group.name }}
-        <a routerLink="/groups/{{ group.id }}">Join Channel</a>
+        <a routerLink="/groups/{{ group.id }}">View Group</a>
       </li>
     </ul>
   </div>

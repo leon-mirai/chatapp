@@ -31,11 +31,12 @@ export class ChannelService {
 
   deleteChannel(channelId: string): Observable<any> {
     const url = `${this.apiUrl}/${channelId}`;
-    return this.http.delete(url)
+    return this.http.delete(url);
   }
 
   joinChannel(channelId: string, userId: string): Observable<any> {
     const url = `${this.apiUrl}/${channelId}/join`; // Use backticks here
+    console.log('Sending POST request to:', url); // Log the URL for verification
     return this.http.post(url, { userId });
   }
 

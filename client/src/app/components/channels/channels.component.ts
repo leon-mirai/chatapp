@@ -6,6 +6,7 @@ import { Channel } from '../../models/channel.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/user.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-channels',
@@ -23,34 +24,39 @@ export class ChannelsComponent implements OnInit {
     private route: ActivatedRoute,
     private channelService: ChannelService,
     private groupService: GroupService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    console.log("Component initialized"); // Add this log to ensure component initialization
     const userData = localStorage.getItem('user');
     if (userData) {
       this.user = JSON.parse(userData);
+      console.log("User data loaded:", this.user); // Log the user data
     }
-
+  
     const channelId = this.route.snapshot.params['id'];
     if (channelId) {
+      console.log("Fetching channel with ID:", channelId); // Add this log
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
-
-          // Ensure the user is a member of the group
+          console.log("Channel data loaded:", this.channel); // Log the channel data
           if (this.channel && this.user) {
-            this.groupService.isMember(this.channel.groupId, this.user.id).subscribe({
-              next: (isMember: boolean) => {
-                if (!isMember) {
-                  console.error('User is not part of group');
-                  this.router.navigate(['/dashboard']);
-                }
-              },
-              error: (err: any) => {
-                console.error('Error checking membership:', err.message);
-              },
-            });
+            this.groupService
+              .isMember(this.channel.groupId, this.user.id)
+              .subscribe({
+                next: (isMember: boolean) => {
+                  if (!isMember) {
+                    console.error('User is not part of group');
+                    this.router.navigate(['/dashboard']);
+                  }
+                },
+                error: (err: any) => {
+                  console.error('Error checking membership:', err.message);
+                },
+              });
           }
         },
         error: (err: any) => {
@@ -59,9 +65,13 @@ export class ChannelsComponent implements OnInit {
       });
     }
   }
+  
 
   deleteChannel(): void {
-    if (this.channel && confirm('Are you sure you want to delete this channel?')) {
+    if (
+      this.channel &&
+      confirm('Are you sure you want to delete this channel?')
+    ) {
       this.channelService.deleteChannel(this.channel.id).subscribe({
         next: () => {
           console.log('Channel deleted successfully');
@@ -69,43 +79,59 @@ export class ChannelsComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error deleting channel:', err.message);
-        }
+        },
       });
     }
   }
 
   joinChannel(): void {
-    if (this.channel && this.newMemberId.trim()) {
-      this.channelService.joinChannel(this.channel.id, this.newMemberId.trim()).subscribe({
+    const userId = this.authService.getUser()?.id;
+    console.log('Preparing to join channel with userId:', userId); // Log the userId
+  
+    if (this.channel && userId) {
+      console.log('Sending request to join channel:', this.channel.id); // Log the channel ID
+      this.channelService.joinChannel(this.channel.id, userId).subscribe({
         next: (response) => {
-          console.log(response.message);
-          if (response.message === "User joined the channel successfully") {
-            // re-fetch the channel data to ensure it's up-to-date
-            this.reloadChannel();
+          console.log('Join channel response:', response); // Log the response message
+          if (response.message === 'User joined the channel successfully') {
+            this.reloadChannel(); // Re-fetch the channel data
           }
-          this.newMemberId = ''; 
         },
         error: (err) => {
           console.error('Error joining channel:', err.message);
-        }
+        },
       });
     }
   }
   
-  // reload the channel data from the backend
+  
+
   reloadChannel(): void {
     if (this.channel) {
       this.channelService.getChannelById(this.channel.id).subscribe({
         next: (updatedChannel: Channel) => {
+          console.log('Channel reloaded:', updatedChannel); // Log the reloaded channel data
           this.channel = updatedChannel;
         },
         error: (err) => {
           console.error('Error reloading channel:', err.message);
-        }
+        },
       });
     }
   }
   
+
+  isSuperAdmin(): boolean {
+    return this.authService.isSuperAdmin();
+  }
+
+  isGroupAdmin(): boolean {
+    return this.authService.isGroupAdmin();
+  }
+
+  isChatUser(): boolean {
+    return this.authService.isChatUser();
+  }
 
   // addMember() {
   //   if (this.channel && this.newMemberId.trim()) {

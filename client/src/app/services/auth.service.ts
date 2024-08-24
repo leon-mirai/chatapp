@@ -26,7 +26,24 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  isSuperAdmin() {
-    
+  getUser(): User | null {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      this.currentUser = JSON.parse(userData);
+      return this.currentUser;
+    }
+    return null;
+  }
+
+  isSuperAdmin(): boolean {
+    return !!this.currentUser && this.currentUser.roles.includes('SuperAdmin');
+  }
+
+  isGroupAdmin(): boolean {
+    return !!this.currentUser && this.currentUser.roles.includes('GroupAdmin');
+  }
+
+  isChatUser(): boolean {
+    return !!this.currentUser && this.currentUser.roles.includes('ChatUser');
   }
 }

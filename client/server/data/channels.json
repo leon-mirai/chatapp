@@ -3,24 +3,41 @@
     "id": "channel1",
     "name": "General Discussion",
     "groupId": "group1",
-    "members": ["1111", "2222", "9999", "6666"]
+    "members": [
+      "2222",
+      "9999",
+      "6666",
+      "1111"
+    ]
   },
   {
     "id": "channel2",
     "name": "Tech News",
     "groupId": "group1",
-    "members": ["1111", "2222", "6666"]
+    "members": [
+      "1111",
+      "2222",
+      "6666"
+    ]
   },
   {
     "id": "channel3",
     "name": "Game Strategies",
     "groupId": "group2",
-    "members": ["2222", "3333", "4444"]
+    "members": [
+      "2222",
+      "3333",
+      "4444"
+    ]
   },
   {
     "id": "channel4",
     "name": "Photography Tips",
     "groupId": "group3",
-    "members": ["5555", "4444", "6666"]
+    "members": [
+      "5555",
+      "4444",
+      "6666"
+    ]
   }
 ]

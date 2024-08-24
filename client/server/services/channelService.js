@@ -22,7 +22,6 @@ function writeChannels(channels) {
   }
 }
 
-// Read groups from groups.json
 function readGroups() {
   try {
     const groupsData = fs.readFileSync(groupsPath, "utf-8");
@@ -33,11 +32,11 @@ function readGroups() {
   }
 }
 
-// Check if a user is in a specific group
 function isUserInGroup(groupId, userId) {
   const groups = readGroups();
-  const group = groups.find(group => group.id === groupId);
+  const group = groups.find((group) => group.id === groupId);
   if (!group) {
+    console.error(`Group with ID ${groupId} not found.`);
     return false; // Group not found
   }
   return group.members.includes(userId);
@@ -59,16 +58,19 @@ function joinChannel(channelId, userId) {
   if (!channel.members.includes(userId)) {
     channel.members.push(userId);
     writeChannels(channels);
+    console.log(`User ${userId} successfully joined channel ${channelId}`); // Log the success
     return { message: "User joined the channel successfully" };
   } else {
+    console.log(`User ${userId} is already a member of channel ${channelId}`);
     return { message: "User is already a member of the channel" };
   }
 }
+
 
 module.exports = {
   readChannels,
   writeChannels,
   joinChannel,
   readGroups,
-  isUserInGroup
+  isUserInGroup,
 };

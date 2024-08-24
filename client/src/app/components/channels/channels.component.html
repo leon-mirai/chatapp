@@ -1,13 +1,15 @@
-<h1>{{ channel?.name }}</h1>
+<h1>Channel: {{ channel?.name }}</h1>
 
 <div>
   <h2>Members</h2>
   <ul>
     <li *ngFor="let member of channel?.members">{{ member }}</li>
   </ul>
-  <input [(ngModel)]="newMemberId" placeholder="Enter user ID" />
   <button (click)="joinChannel()">Join Channel</button>
 </div>
 
+
 <!-- Add this delete button -->
-<button (click)="deleteChannel()">Delete Channel</button>
+<div *ngIf="isSuperAdmin() || isGroupAdmin()">
+  <button (click)="deleteChannel()">Delete Channel</button>
+</div>

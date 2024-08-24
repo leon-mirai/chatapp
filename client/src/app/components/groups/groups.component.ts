@@ -7,6 +7,7 @@ import { Channel } from '../../models/channel.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IdService } from '../../services/id.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-groups',
@@ -25,7 +26,8 @@ export class GroupsComponent implements OnInit {
     private route: ActivatedRoute,
     private groupService: GroupService,
     private channelService: ChannelService,
-    private idService: IdService
+    private idService: IdService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -50,10 +52,9 @@ export class GroupsComponent implements OnInit {
       });
     }
   }
-  
-  
+
   addMember() {
-    if (this.group) {
+    if ((this.isSuperAdmin() || this.isGroupAdmin()) && this.group) {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
@@ -73,7 +74,7 @@ export class GroupsComponent implements OnInit {
   }
 
   createChannel() {
-    if (this.group && this.newChannelName.trim()) {
+    if ((this.isSuperAdmin() || this.isGroupAdmin()) && this.group && this.newChannelName.trim()) {
       const newChannelId = this.idService.generateId(this.newChannelName);
       const newChannel = new Channel(
         newChannelId,
@@ -90,5 +91,17 @@ export class GroupsComponent implements OnInit {
         },
       });
     }
+  }
+
+  isSuperAdmin(): boolean {
+    return this.authService.isSuperAdmin();
+  }
+
+  isGroupAdmin(): boolean {
+    return this.authService.isGroupAdmin();
+  }
+
+  isChatUser(): boolean {
+    return this.authService.isChatUser();
   }
 }
