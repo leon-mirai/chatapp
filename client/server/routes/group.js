@@ -5,9 +5,17 @@ const groupService = require("../services/groupService");
 const route = (app) => {
   // Get all groups
   app.get("/api/groups", (req, res) => {
-    const groups = groupService.readGroups();
-    res.status(200).json(groups);
+    const userId = req.query.userId; // Get the userId from the query parameter
+    const groups = groupService.readGroups(); // Read all groups
+    const userGroups = groups.filter((group) => group.members.includes(userId)); // Filter groups by membership
+    res.status(200).json(userGroups); // Return the filtered groups
   });
+  
+  
+  // app.get("/api/groups", (req, res) => {
+  //   const groups = groupService.readGroups();
+  //   res.status(200).json(groups);
+  // });
 
   // Get a group by ID
   app.get("/api/groups/:groupId", (req, res) => {
@@ -57,7 +65,7 @@ const route = (app) => {
       let groups = groupService.readGroups();
 
       // Check if the group exists
-      const groupExists = groups.some(group => group.id === groupId);
+      const groupExists = groups.some((group) => group.id === groupId);
 
       if (!groupExists) {
         return res.status(404).json({ message: "Group not found" });
@@ -65,25 +73,29 @@ const route = (app) => {
 
       // 1. Delete all channels associated with this group
       let channels = channelService.readChannels();
-      channels = channels.filter(channel => channel.groupId !== groupId);
+      channels = channels.filter((channel) => channel.groupId !== groupId);
       channelService.writeChannels(channels);
 
       // 2. Remove the group reference from all users
       let users = userService.readUsers();
-      users = users.map(user => {
+      users = users.map((user) => {
         // Remove the group reference from the user's groups
-        user.groups = user.groups.filter(groupIdInUser => groupIdInUser !== groupId);
+        user.groups = user.groups.filter(
+          (groupIdInUser) => groupIdInUser !== groupId
+        );
         return user;
       });
       userService.writeUsers(users);
 
       // 3. Delete the group from the groups array
-      groups = groups.filter(group => group.id !== groupId);
+      groups = groups.filter((group) => group.id !== groupId);
       groupService.writeGroups(groups);
 
       res.status(200).json({ message: "Group deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete group", error: error.message });
+      res
+        .status(500)
+        .json({ message: "Failed to delete group", error: error.message });
     }
   });
 

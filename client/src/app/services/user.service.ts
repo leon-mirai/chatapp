@@ -85,6 +85,10 @@ export class UserService {
     };
   }
 
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`);
+  }
+  
   // Send success response to observer
   private sendSuccess(observer: any, newUser: User): void {
     console.log('Success response sent for user:', newUser);

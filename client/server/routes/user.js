@@ -54,13 +54,26 @@ const route = (app) => {
 
   // Delete user (Self-Deletion)
   app.delete("/api/users/:userId", (req, res) => {
-    const userId = req.params.userId.trim();
-    let users = userService.readUsers();
+    try {
+      const userId = req.params.userId.trim();
+      let users = userService.readUsers();
 
-    users = users.filter((user) => user.id !== userId);
-    userService.writeUsers(users);
+      // Check if the user exists
+      const user = users.find((user) => user.id === userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-    res.status(200).json({ message: "User deleted successfully" });
+      // Proceed to delete the user
+      users = users.filter((user) => user.id !== userId);
+      userService.writeUsers(users);
+
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Failed to delete user", error: error.message });
+    }
   });
 
   // Leave a group

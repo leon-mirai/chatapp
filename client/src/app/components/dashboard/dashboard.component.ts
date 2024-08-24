@@ -36,15 +36,18 @@ export class DashboardComponent implements OnInit {
   }
 
   loadGroups(): void {
-    this.groupService.getGroups().subscribe({
-      next: (groups) => {
-        this.groups = groups;
-      },
-      error: (err) => {
-        console.error('Error fetching groups:', err);
-      },
-    });
+    if (this.user) {
+      this.groupService.getGroups(this.user.id).subscribe({
+        next: (groups) => {
+          this.groups = groups; 
+        },
+        error: (err) => {
+          console.error('Error fetching groups:', err);
+        },
+      });
+    }
   }
+  
 
   createGroup(): void {
     if (this.newGroupName.trim() && this.user) {
@@ -73,15 +76,14 @@ export class DashboardComponent implements OnInit {
       this.groupService.deleteGroup(groupId).subscribe({
         next: () => {
           // Remove the deleted group from the local groups array
-          this.groups = this.groups.filter(group => group.id !== groupId);
+          this.groups = this.groups.filter((group) => group.id !== groupId);
         },
         error: (err) => {
           console.error('Error deleting group:', err);
-        }
+        },
       });
     }
   }
-  
 
   logout(): void {
     this.authService.logout();

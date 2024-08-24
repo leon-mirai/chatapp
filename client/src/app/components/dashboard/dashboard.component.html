@@ -41,6 +41,7 @@
       <li *ngFor="let group of groups">
         {{ group.name }}
         <a routerLink="/groups/{{ group.id }}">Manage group</a>
+        <button (click)="deleteGroup(group.id)">Delete Group</button>
       </li>
     </ul>
   </div>
