@@ -3,8 +3,12 @@
     "id": "1111",
     "username": "user1",
     "email": "user1@gmail.com",
-    "roles": ["ChatUser"],
-    "groups": ["group1"],
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [
+      "group1"
+    ],
     "password": "123",
     "valid": true
   },
@@ -12,8 +16,14 @@
     "id": "2222",
     "username": "groupadmin1",
     "email": "groupadmin1@gmail.com",
-    "roles": ["GroupAdmin", "ChatUser"],
-    "groups": ["group1", "group2"],
+    "roles": [
+      "GroupAdmin",
+      "ChatUser"
+    ],
+    "groups": [
+      "group1",
+      "group2"
+    ],
     "password": "123",
     "valid": true
   },
@@ -21,8 +31,12 @@
     "id": "3333",
     "username": "user2",
     "email": "user2@gmail.com",
-    "roles": ["ChatUser"],
-    "groups": ["group2"],
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [
+      "group2"
+    ],
     "password": "123",
     "valid": true
   },
@@ -30,8 +44,14 @@
     "id": "4444",
     "username": "groupadmin2",
     "email": "groupadmin2@gmail.com",
-    "roles": ["GroupAdmin", "ChatUser"],
-    "groups": ["group2", "group3"],
+    "roles": [
+      "GroupAdmin",
+      "ChatUser"
+    ],
+    "groups": [
+      "group2",
+      "group3"
+    ],
     "password": "123",
     "valid": true
   },
@@ -39,8 +59,12 @@
     "id": "5555",
     "username": "user3",
     "email": "user3@gmail.com",
-    "roles": ["ChatUser"],
-    "groups": ["group3"],
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [
+      "group3"
+    ],
     "password": "123",
     "valid": true
   },
@@ -48,8 +72,13 @@
     "id": "6666",
     "username": "superadmin1",
     "email": "superadmin1@gmail.com",
-    "roles": ["SuperAdmin"],
-    "groups": ["group1", "group3"],
+    "roles": [
+      "SuperAdmin"
+    ],
+    "groups": [
+      "group1",
+      "group3"
+    ],
     "password": "123",
     "valid": true
   },
@@ -57,8 +86,13 @@
     "id": "9999",
     "username": "user4",
     "email": "user4@gmail.com",
-    "roles": ["ChatUser"],
-    "groups": ["group1", "group3"],
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [
+      "group1",
+      "group3"
+    ],
     "password": "123",
     "valid": true
   }

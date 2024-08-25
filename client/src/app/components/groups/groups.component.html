@@ -14,12 +14,30 @@
   </div>
 </div>
 
+<!-- Available Groups Section -->
+<div *ngIf="availableGroups && availableGroups.length > 0; else noGroupsAvailable">
+  <h2>Available Groups</h2>
+  <ul>
+    <li *ngFor="let group of availableGroups">
+      {{ group.name }}
+      <button (click)="requestToJoin(group.id)">Request to Join</button>
+    </li>
+  </ul>
+</div>
+
+<!-- Display this when no groups are available -->
+<ng-template #noGroupsAvailable>
+  <p>No groups available to join.</p>
+</ng-template>
+
+
+
 <!-- Channels Section -->
 <div>
   <h2>Channels</h2>
   <ul>
     <li *ngFor="let channel of channels">
-      <a [routerLink]="['/channels', channel.id]">{{ channel.name }}</a> <!-- Add this link -->
+      <a [routerLink]="['/channels', channel.id]">{{ channel.name }}</a>
     </li>
   </ul>
 

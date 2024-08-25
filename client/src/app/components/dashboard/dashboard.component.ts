@@ -39,7 +39,7 @@ export class DashboardComponent implements OnInit {
     if (this.user) {
       this.groupService.getGroups(this.user.id).subscribe({
         next: (groups) => {
-          this.groups = groups; 
+          this.groups = groups;
         },
         error: (err) => {
           console.error('Error fetching groups:', err);
@@ -47,16 +47,16 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
-  
 
   createGroup(): void {
     if (this.newGroupName.trim() && this.user) {
       const newGroup = {
         id: this.idService.generateId(this.newGroupName),
         name: this.newGroupName,
-        admins: [this.user.id],
-        members: [this.user.id],
+        admins: [this.user.id], // assuming you're setting the creator as an admin
+        members: [this.user.id], // assuming the creator is also the first member
         channels: [],
+        joinRequests: [], // Add this line to initialize the joinRequests property
       };
 
       this.groupService.addGroup(newGroup).subscribe({

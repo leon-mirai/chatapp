@@ -12,13 +12,21 @@ export class GroupService {
 
   constructor(private http: HttpClient) {}
 
+  getAllGroups(): Observable<Group[]> {
+    return this.http.get<Group[]>(this.apiUrl);
+  }
+
   getGroups(userId: string): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.apiUrl}?userId=${userId}`);
   }
-  
 
   getGroupById(groupId: string): Observable<Group> {
     return this.http.get<Group>(`${this.apiUrl}/${groupId}`);
+  }
+
+  requestToJoinGroup(groupId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}/request-join`;
+    return this.http.post(url, { userId });
   }
 
   addGroup(group: Group): Observable<Group> {

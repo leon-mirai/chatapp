@@ -21,6 +21,8 @@ export class GroupsComponent implements OnInit {
   channels: Channel[] = [];
   newMemberId: string = '';
   newChannelName: string = '';
+  availableGroups: Group[] = []; // Initialized as an empty array
+  userId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,6 +33,26 @@ export class GroupsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.userId = this.authService.getUser()?.id ?? null;
+
+    if (this.userId) {
+      // Fetch all groups
+      this.groupService.getAllGroups().subscribe({
+        next: (groups: Group[]) => {
+          // Filter groups where the user is not a member and hasn't requested to join
+          this.availableGroups = groups.filter(
+            (group) =>
+              !group.members.includes(this.userId!) &&
+              !group.joinRequests.includes(this.userId!)
+          );
+          console.log('Available groups:', this.availableGroups);
+        },
+        error: (err: any) => {
+          console.error('Error fetching all groups:', err.message);
+        },
+      });
+    }
+
     const groupId = this.route.snapshot.params['id'];
     if (groupId) {
       this.groupService.getGroupById(groupId).subscribe({
@@ -51,6 +73,21 @@ export class GroupsComponent implements OnInit {
         },
       });
     }
+  }
+
+  requestToJoin(groupId: string): void {
+    if (!this.userId) return;
+
+    this.groupService.requestToJoinGroup(groupId, this.userId).subscribe({
+      next: () => {
+        this.availableGroups = this.availableGroups.filter(
+          (group) => group.id !== groupId
+        );
+      },
+      error: (err: any) => {
+        console.error('Error requesting to join group:', err.message);
+      },
+    });
   }
 
   addMember() {
@@ -74,7 +111,11 @@ export class GroupsComponent implements OnInit {
   }
 
   createChannel() {
-    if ((this.isSuperAdmin() || this.isGroupAdmin()) && this.group && this.newChannelName.trim()) {
+    if (
+      (this.isSuperAdmin() || this.isGroupAdmin()) &&
+      this.group &&
+      this.newChannelName.trim()
+    ) {
       const newChannelId = this.idService.generateId(this.newChannelName);
       const newChannel = new Channel(
         newChannelId,

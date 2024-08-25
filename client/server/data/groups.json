@@ -4,20 +4,23 @@
     "name": "Tech Enthusiasts",
     "admins": ["2222", "6666"],
     "members": ["1111", "2222", "9999", "6666"],
-    "channels": ["channel1", "channel2"]
+    "channels": ["channel1", "channel2"],
+    "joinRequests": ["4444", "3333"]
   },
   {
     "id": "group2",
     "name": "Gaming Community",
     "admins": ["4444"],
     "members": ["2222", "3333", "4444"],
-    "channels": ["channel3"]
+    "channels": ["channel3"],
+    "joinRequests": []
   },
   {
     "id": "group3",
     "name": "Photography Club",
     "admins": ["4444", "6666"],
     "members": ["5555", "4444", "6666"],
-    "channels": ["channel4"]
+    "channels": ["channel4"],
+    "joinRequests": ["2222"]
   }
 ]
