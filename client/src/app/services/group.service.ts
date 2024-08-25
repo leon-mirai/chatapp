@@ -29,6 +29,16 @@ export class GroupService {
     return this.http.post(url, { userId });
   }
 
+  approveRequest(groupId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}/approve-join`;
+    return this.http.post(url, { userId });
+  }
+
+  rejectRequest(groupId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}/reject-join`;
+    return this.http.post(url, { userId });
+  }
+
   addGroup(group: Group): Observable<Group> {
     return this.http.post<Group>(this.apiUrl, group);
   }

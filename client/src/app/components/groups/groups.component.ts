@@ -75,6 +75,16 @@ export class GroupsComponent implements OnInit {
     }
   }
 
+  // New computed property to check if there are join requests
+  // get hasJoinRequests(): boolean {
+  //   return this.group?.joinRequests?.length > 0 || false;
+  // }
+
+  get hasJoinRequests(): boolean {
+    return !!(this.group && this.group.joinRequests && this.group.joinRequests.length > 0);
+  }
+  
+
   requestToJoin(groupId: string): void {
     if (!this.userId) return;
 
@@ -88,6 +98,38 @@ export class GroupsComponent implements OnInit {
         console.error('Error requesting to join group:', err.message);
       },
     });
+  }
+
+  approveRequest(userId: string): void {
+    if (this.group) {
+      this.groupService.approveRequest(this.group.id, userId).subscribe({
+        next: () => {
+          console.log(`User ${userId} approved to join the group.`);
+          this.group!.joinRequests = this.group!.joinRequests.filter(
+            (id) => id !== userId
+          );
+        },
+        error: (err: any) => {
+          console.error('Error approving join request:', err.message);
+        },
+      });
+    }
+  }
+
+  rejectRequest(userId: string): void {
+    if (this.group) {
+      this.groupService.rejectRequest(this.group.id, userId).subscribe({
+        next: () => {
+          console.log(`User ${userId}'s request rejected.`);
+          this.group!.joinRequests = this.group!.joinRequests.filter(
+            (id) => id !== userId
+          );
+        },
+        error: (err: any) => {
+          console.error('Error rejecting join request:', err.message);
+        },
+      });
+    }
   }
 
   addMember() {

@@ -24,7 +24,6 @@ export class DashboardComponent implements OnInit {
     private groupService: GroupService,
     private authService: AuthService,
     private idService: IdService,
-    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -39,7 +38,16 @@ export class DashboardComponent implements OnInit {
     if (this.user) {
       this.groupService.getGroups(this.user.id).subscribe({
         next: (groups) => {
-          this.groups = groups;
+          if (this.isSuperAdmin()) {
+            // SuperAdmin can see all groups
+            this.groups = groups;
+          } else if (this.isGroupAdmin()) {
+            // GroupAdmin should only see the groups they administrate
+            this.groups = groups.filter(group => group.members.includes(this.user.id));
+          } else if (this.isChatUser()) {
+            // ChatUser should see only the groups they are a member of
+            this.groups = groups.filter(group => group.members.includes(this.user.id));
+          }
         },
         error: (err) => {
           console.error('Error fetching groups:', err);
@@ -47,6 +55,7 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
+  
 
   createGroup(): void {
     if (this.newGroupName.trim() && this.user) {

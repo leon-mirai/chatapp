@@ -4,7 +4,7 @@
   <h2>Welcome, {{ user?.username }}</h2>
 </div>
 
-<!-- view for superadmin -->
+<!-- SuperAdmin View -->
 <div *ngIf="isSuperAdmin()">
   <h3>SuperAdmin Panel</h3>
   <div>
@@ -18,15 +18,14 @@
     <ul>
       <li *ngFor="let group of groups">
         {{ group.name }}
-        <a routerLink="/groups/{{ group.id }}">Manage group</a>
+        <a [routerLink]="['/groups', group.id]">Manage group</a>
         <button (click)="deleteGroup(group.id)">Delete Group</button>
-        <!-- Add delete button -->
       </li>
     </ul>
   </div>
 </div>
 
-<!-- view for groupadmin -->
+<!-- GroupAdmin View -->
 <div *ngIf="isGroupAdmin() && !isSuperAdmin()">
   <h3>GroupAdmin Panel</h3>
   <div>
@@ -40,14 +39,14 @@
     <ul>
       <li *ngFor="let group of groups">
         {{ group.name }}
-        <a routerLink="/groups/{{ group.id }}">Manage group</a>
+        <a [routerLink]="['/groups', group.id]">Manage group</a>
         <button (click)="deleteGroup(group.id)">Delete Group</button>
       </li>
     </ul>
   </div>
 </div>
 
-<!-- view for chatuser -->
+<!-- ChatUser View -->
 <div *ngIf="isChatUser() && !isSuperAdmin() && !isGroupAdmin()">
   <h3>ChatUser Panel</h3>
   <div>
@@ -55,11 +54,13 @@
     <ul>
       <li *ngFor="let group of groups">
         {{ group.name }}
-        <a routerLink="/groups/{{ group.id }}">View Group</a>
+        <a [routerLink]="['/groups', group.id]">View Group</a>
       </li>
     </ul>
   </div>
 </div>
 
 <hr />
-<div><button (click)="logout()">Logout</button></div>
+<div>
+  <button (click)="logout()">Logout</button>
+</div>

@@ -14,6 +14,21 @@
   </div>
 </div>
 
+<!-- Join Requests Section -->
+<div *ngIf="isSuperAdmin() || isGroupAdmin() && hasJoinRequests">
+  <h2>Join Requests</h2>
+  <ul *ngIf="hasJoinRequests; else noRequests">
+    <li *ngFor="let userId of group?.joinRequests">
+      {{ userId }}
+      <button (click)="approveRequest(userId)">Approve</button>
+      <button (click)="rejectRequest(userId)">Reject</button>
+    </li>
+  </ul>
+  <ng-template #noRequests>
+    <p>No join requests at the moment.</p>
+  </ng-template>
+</div>
+
 <!-- Available Groups Section -->
 <div *ngIf="availableGroups && availableGroups.length > 0; else noGroupsAvailable">
   <h2>Available Groups</h2>
@@ -29,8 +44,6 @@
 <ng-template #noGroupsAvailable>
   <p>No groups available to join.</p>
 </ng-template>
-
-
 
 <!-- Channels Section -->
 <div>
