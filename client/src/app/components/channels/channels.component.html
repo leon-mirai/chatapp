@@ -1,27 +1,52 @@
-<h1>Channel: {{ channel?.name }}</h1>
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="text-center">Channel: {{ channel?.name }}</h1>
+    </div>
+  </div>
 
-<div *ngIf="isGroupAdmin() || isSuperAdmin()">
-  <h3>Ban a User from Channel</h3>
-  <ul>
-    <li *ngFor="let member of channel?.members">
-      {{ member }}
-      <button (click)="banUser(member)">Ban User</button>
-    </li>
-  </ul>
-</div>
+  <div class="row mt-4">
+    <!-- Ban a User Section -->
+    <div *ngIf="isGroupAdmin() || isSuperAdmin()" class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Ban a User from Channel</h3>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li *ngFor="let member of channel?.members" class="list-group-item d-flex justify-content-between align-items-center">
+              {{ member }}
+              <button (click)="banUser(member)" class="btn btn-danger btn-sm">Ban User</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
+    <!-- Members Section -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Members</h3>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li *ngFor="let member of channel?.members" class="list-group-item">
+              {{ member }}
+            </li>
+          </ul>
+          <button (click)="joinChannel()" class="btn btn-primary mt-3">Join Channel</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-
-<div>
-  <h2>Members</h2>
-  <ul>
-    <li *ngFor="let member of channel?.members">{{ member }}</li>
-  </ul>
-  <button (click)="joinChannel()">Join Channel</button>
-</div>
-
-
-<!-- Add this delete button -->
-<div *ngIf="isSuperAdmin() || isGroupAdmin()">
-  <button (click)="deleteChannel()">Delete Channel</button>
+  <!-- Delete Channel Button -->
+  <div class="row mt-4">
+    <div class="col-md-12 text-center">
+      <button *ngIf="isSuperAdmin() || isGroupAdmin()" (click)="deleteChannel()" class="btn btn-danger">
+        Delete Channel
+      </button>
+    </div>
+  </div>
 </div>

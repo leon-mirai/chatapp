@@ -1,100 +1,196 @@
-<h1>Dashboard</h1>
+<div class="container mt-5">
+  <h1 class="mb-4">Dashboard</h1>
 
-<div>
-  <h2>Welcome, {{ user?.username }}</h2>
-</div>
-
-<!-- SuperAdmin View -->
-<div *ngIf="isSuperAdmin()">
-  <h3>SuperAdmin Panel</h3>
-
-  <div>
-    <h2>Create a New Group</h2>
-    <input [(ngModel)]="newGroupName" placeholder="Enter group name" />
-    <button (click)="createGroup()">Create Group</button>
+  <div class="mb-4">
+    <h2>Welcome, {{ user?.username }}</h2>
   </div>
 
-  <div>
-    <h2>Your Groups</h2>
-    <ul>
-      <li *ngFor="let group of groups">
-        {{ group.name }}
-        <a [routerLink]="['/groups', group.id]">Manage group</a>
-        <button (click)="deleteGroup(group.id)">Delete Group</button>
-      </li>
-    </ul>
+  <!-- SuperAdmin View -->
+  <div *ngIf="isSuperAdmin()">
+    <h3>SuperAdmin Panel</h3>
+
+    <div class="card mb-4">
+      <div class="card-header">Create a New Group</div>
+      <div class="card-body">
+        <input
+          class="form-control mb-2"
+          [(ngModel)]="newGroupName"
+          placeholder="Enter group name"
+        />
+        <button class="btn btn-primary" (click)="createGroup()">
+          Create Group
+        </button>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Your Groups</div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let group of groups"
+          >
+            {{ group.name }}
+            <div>
+              <a
+                [routerLink]="['/groups', group.id]"
+                class="btn btn-secondary btn-sm mr-2"
+                >Manage group</a
+              >
+              <button
+                class="btn btn-danger btn-sm"
+                (click)="deleteGroup(group.id)"
+              >
+                Delete Group
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- User Creation Section -->
+    <div class="card mb-4">
+      <div class="card-header">Create a New User</div>
+      <div class="card-body">
+        <input
+          class="form-control mb-2"
+          [(ngModel)]="newUsername"
+          placeholder="Enter username"
+        />
+        <input
+          class="form-control mb-2"
+          [(ngModel)]="newUserEmail"
+          placeholder="Enter email"
+        />
+        <button class="btn btn-primary" (click)="createUser()">
+          Create User
+        </button>
+        <p *ngIf="createUserMessage" class="mt-2">{{ createUserMessage }}</p>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Manage Users</div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let user of users"
+          >
+            {{ user.username }} ({{ user.email }})
+            <button class="btn btn-danger btn-sm" (click)="deleteUser(user.id)">
+              Delete User
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Promote User</div>
+      <div class="card-body">
+        <input
+          class="form-control mb-2"
+          [(ngModel)]="promotionUserId"
+          placeholder="Enter User ID"
+        />
+        <select class="form-control mb-2" [(ngModel)]="promotionRole">
+          <option value="GroupAdmin">Promote to GroupAdmin</option>
+          <option value="SuperAdmin">Promote to SuperAdmin</option>
+        </select>
+        <button class="btn btn-primary" (click)="promoteUser()">
+          Promote User
+        </button>
+        <p class="mt-2">{{ promotionMessage }}</p>
+      </div>
+    </div>
   </div>
 
-  <!-- User Creation Section -->
-  <div>
-    <h2>Create a New User</h2>
-    <input [(ngModel)]="newUsername" placeholder="Enter username" />
-    <input [(ngModel)]="newUserEmail" placeholder="Enter email" />
-    <button (click)="createUser()">Create User</button>
-    <p *ngIf="createUserMessage">{{ createUserMessage }}</p>
+  <!-- GroupAdmin View -->
+  <div *ngIf="isGroupAdmin() && !isSuperAdmin()">
+    <h3>GroupAdmin Panel</h3>
+
+    <div class="card mb-4">
+      <div class="card-header">Create a New Group</div>
+      <div class="card-body">
+        <input
+          class="form-control mb-2"
+          [(ngModel)]="newGroupName"
+          placeholder="Enter group name"
+        />
+        <button class="btn btn-primary" (click)="createGroup()">
+          Create Group
+        </button>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Your Groups</div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let group of groups"
+          >
+            {{ group.name }}
+            <div>
+              <a
+                [routerLink]="['/groups', group.id]"
+                class="btn btn-secondary btn-sm mr-2"
+                >Manage group</a
+              >
+              <button
+                class="btn btn-danger btn-sm"
+                (click)="deleteGroup(group.id)"
+              >
+                Delete Group
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 
-  <div>
-    <h2>Manage Users</h2>
-    <ul>
-      <li *ngFor="let user of users">
-        {{ user.username }} ({{ user.email }})
-        <button (click)="deleteUser(user.id)">Delete User</button>
-      </li>
-    </ul>
+  <!-- ChatUser View -->
+  <div *ngIf="isChatUser() && !isSuperAdmin() && !isGroupAdmin()">
+    <h3>ChatUser Panel</h3>
+
+    <div class="card mb-4">
+      <div class="card-header">Your Groups</div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let group of groups"
+          >
+            {{ group.name }}
+            <div>
+              <a
+                [routerLink]="['/groups', group.id]"
+                class="btn btn-secondary btn-sm mr-2"
+                >View Group</a
+              >
+              <button
+                class="btn btn-warning btn-sm"
+                (click)="leaveGroup(group.id)"
+              >
+                Leave Group
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 
-  <h3>Promote User</h3>
-  <input [(ngModel)]="promotionUserId" placeholder="Enter User ID" />
-  <select [(ngModel)]="promotionRole">
-    <option value="GroupAdmin">Promote to GroupAdmin</option>
-    <option value="SuperAdmin">Promote to SuperAdmin</option>
-  </select>
-  <button (click)="promoteUser()">Promote User</button>
-  <p>{{ promotionMessage }}</p>
-</div>
-
-<!-- GroupAdmin View -->
-<div *ngIf="isGroupAdmin() && !isSuperAdmin()">
-  <h3>GroupAdmin Panel</h3>
-  <div>
-    <h2>Create a New Group</h2>
-    <input [(ngModel)]="newGroupName" placeholder="Enter group name" />
-    <button (click)="createGroup()">Create Group</button>
+  <hr />
+  <div class="d-flex justify-content-between">
+    <button class="btn btn-outline-primary" (click)="logout()">Logout</button>
+    <button class="btn btn-outline-danger" (click)="selfDelete()">
+      Delete My Account
+    </button>
   </div>
-
-  <div>
-    <h2>Your Groups</h2>
-    <ul>
-      <li *ngFor="let group of groups">
-        {{ group.name }}
-        <a [routerLink]="['/groups', group.id]">Manage group</a>
-        <button (click)="deleteGroup(group.id)">Delete Group</button>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<!-- ChatUser View -->
-<div *ngIf="isChatUser() && !isSuperAdmin() && !isGroupAdmin()">
-  <h3>ChatUser Panel</h3>
-  <div>
-    <h2>Your Groups</h2>
-    <ul>
-      <li *ngFor="let group of groups">
-        {{ group.name }}
-        <a [routerLink]="['/groups', group.id]">View Group</a>
-        <button (click)="leaveGroup(group.id)">Leave Group</button>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<hr />
-<div>
-  <button (click)="logout()">Logout</button>
-</div>
-
-<div>
-  <button (click)="selfDelete()">Delete My Account</button>
 </div>
