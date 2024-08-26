@@ -59,4 +59,5 @@ export class GroupService {
     const url = `${this.apiUrl}/${groupId}/members`;
     return this.http.post(url, { userId });
   }
+  
 }

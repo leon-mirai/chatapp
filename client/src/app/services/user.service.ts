@@ -85,10 +85,6 @@ export class UserService {
     };
   }
 
-  deleteUser(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${userId}`);
-  }
-  
   // Send success response to observer
   private sendSuccess(observer: any, newUser: User): void {
     console.log('Success response sent for user:', newUser);
@@ -108,5 +104,18 @@ export class UserService {
     console.error(message, error);
     observer.next({ success: false, message });
     observer.complete();
+  }
+
+  selfDelete(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`);
+  }
+
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}/delete-user`);
+  }
+
+  leaveGroup(userId: string, groupId: string): Observable<any> {
+    const url = `${this.apiUrl}/${userId}/groups/${groupId}/leave`;
+    return this.http.post(url, {});  // Send an empty body
   }
 }

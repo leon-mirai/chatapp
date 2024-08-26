@@ -7,6 +7,7 @@
 <!-- SuperAdmin View -->
 <div *ngIf="isSuperAdmin()">
   <h3>SuperAdmin Panel</h3>
+
   <div>
     <h2>Create a New Group</h2>
     <input [(ngModel)]="newGroupName" placeholder="Enter group name" />
@@ -20,6 +21,25 @@
         {{ group.name }}
         <a [routerLink]="['/groups', group.id]">Manage group</a>
         <button (click)="deleteGroup(group.id)">Delete Group</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- User Creation Section -->
+  <div>
+    <h2>Create a New User</h2>
+    <input [(ngModel)]="newUsername" placeholder="Enter username" />
+    <input [(ngModel)]="newUserEmail" placeholder="Enter email" />
+    <button (click)="createUser()">Create User</button>
+    <p *ngIf="createUserMessage">{{ createUserMessage }}</p>
+  </div>
+
+  <div>
+    <h2>Manage Users</h2>
+    <ul>
+      <li *ngFor="let user of users">
+        {{ user.username }} ({{ user.email }})
+        <button (click)="deleteUser(user.id)">Delete User</button>
       </li>
     </ul>
   </div>
@@ -55,6 +75,7 @@
       <li *ngFor="let group of groups">
         {{ group.name }}
         <a [routerLink]="['/groups', group.id]">View Group</a>
+        <button (click)="leaveGroup(group.id)">Leave Group</button>
       </li>
     </ul>
   </div>
@@ -63,4 +84,8 @@
 <hr />
 <div>
   <button (click)="logout()">Logout</button>
+</div>
+
+<div>
+  <button (click)="selfDelete()">Delete My Account</button>
 </div>
