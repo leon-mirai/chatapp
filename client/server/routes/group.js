@@ -136,25 +136,55 @@ const route = (app) => {
     }
   });
 
-  // Add an admin to a group
+  // Add an admin to a group and update the user's role
   app.post("/api/groups/:groupId/admins", (req, res) => {
-    const { groupId } = req.params;
-    const { userId } = req.body;
-    const groups = groupService.readGroups();
-    const group = groups.find((group) => group.id === groupId);
+    try {
+      const { groupId } = req.params;
+      const { userId } = req.body;
 
-    if (group) {
-      if (!group.admins.includes(userId)) {
-        group.admins.push(userId);
-        groupService.writeGroups(groups);
-        res.status(200).json({ message: "Admin added successfully" });
-      } else {
-        res
+      // Read all groups
+      const groups = groupService.readGroups();
+      const group = groups.find((group) => group.id === groupId);
+
+      // Read all users to check if the user exists
+      let users = userService.readUsers();
+      const user = users.find((user) => user.id === userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      if (group.admins.includes(userId)) {
+        return res
           .status(400)
           .json({ message: "User is already an admin of the group" });
       }
-    } else {
-      res.status(404).json({ message: "Group not found" });
+
+      // Add user to the admins array
+      group.admins.push(userId);
+
+      // Update the user's roles to include "GroupAdmin" if not already present
+      if (!user.roles.includes("GroupAdmin")) {
+        user.roles.push("GroupAdmin");
+      }
+
+      // Persist the changes to the groups and users
+      groupService.writeGroups(groups);
+      userService.writeUsers(users);
+
+      res.status(200).json({
+        message:
+          "Admin added successfully and user promoted to GroupAdmin role",
+      });
+    } catch (error) {
+      console.error("Error adding admin:", error);
+      res
+        .status(500)
+        .json({ message: "An error occurred while adding the admin" });
     }
   });
 

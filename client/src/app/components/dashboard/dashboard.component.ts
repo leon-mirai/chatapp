@@ -24,6 +24,9 @@ export class DashboardComponent implements OnInit {
   newUsername: string = ''; // For new user creation
   newUserEmail: string = ''; // For new user creation
   createUserMessage: string = ''; // To display success/error messages
+  promotionUserId: string = '';
+  promotionRole: string = 'GroupAdmin'; // Default to GroupAdmin
+  promotionMessage: string = '';
 
   constructor(
     private groupService: GroupService,
@@ -185,6 +188,25 @@ export class DashboardComponent implements OnInit {
           console.error('Error leaving group:', err);
         },
       });
+    }
+  }
+
+  promoteUser(): void {
+    if (this.promotionUserId.trim() && this.promotionRole) {
+      this.userService
+        .promoteUser(this.promotionUserId, this.promotionRole)
+        .subscribe({
+          next: (response: any) => {
+            this.promotionMessage = response.message;
+            this.promotionUserId = ''; // Clear input field
+          },
+          error: (err: any) => {
+            this.promotionMessage = `Failed to promote user: ${err.message}`;
+          },
+        });
+    } else {
+      this.promotionMessage =
+        'Please provide a valid user ID and select a role.';
     }
   }
 

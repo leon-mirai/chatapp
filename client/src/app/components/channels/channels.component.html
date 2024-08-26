@@ -1,5 +1,17 @@
 <h1>Channel: {{ channel?.name }}</h1>
 
+<div *ngIf="isGroupAdmin() || isSuperAdmin()">
+  <h3>Ban a User from Channel</h3>
+  <ul>
+    <li *ngFor="let member of channel?.members">
+      {{ member }}
+      <button (click)="banUser(member)">Ban User</button>
+    </li>
+  </ul>
+</div>
+
+
+
 <div>
   <h2>Members</h2>
   <ul>

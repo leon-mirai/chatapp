@@ -40,8 +40,8 @@ export class ChannelService {
     return this.http.post(url, { userId });
   }
 
-  // addMember(channelId: string, userId: string): Observable<any> {
-  //   const url = `${this.apiUrl}/${channelId}/members`;
-  //   return this.http.post(url, { userId });
-  // }
+  banUser(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/ban`;
+    return this.http.post(url, { userId });
+  }
 }

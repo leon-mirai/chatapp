@@ -122,21 +122,6 @@ const route = (app) => {
   });
 
   // Leave a group
-  // app.post("/api/users/:userId/groups/:groupId/leave", (req, res) => {
-  //   const userId = req.params.userId.trim();
-  //   const groupId = req.params.groupId.trim();
-  //   const users = userService.readUsers();
-  //   const user = users.find((user) => user.id === userId);
-
-  //   if (user) {
-  //     user.groups = user.groups.filter((group) => group !== groupId);
-  //     userService.writeUsers(users);
-  //     res.status(200).json({ message: "Left the group successfully" });
-  //   } else {
-  //     res.status(404).json({ message: "User not found" });
-  //   }
-  // });
-  // Leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", (req, res) => {
     try {
       const userId = req.params.userId.trim();
@@ -221,6 +206,39 @@ const route = (app) => {
       }
     }
   );
+
+  // Promote a user to GroupAdmin or SuperAdmin
+app.post("/api/users/:userId/promote", (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newRole } = req.body; // "GroupAdmin" or "SuperAdmin"
+
+    // Read all users
+    let users = userService.readUsers();
+    const user = users.find((user) => user.id === userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user already has the role
+    if (user.roles.includes(newRole)) {
+      return res.status(400).json({ message: `User is already a ${newRole}` });
+    }
+
+    // Add the new role to the user's roles
+    user.roles.push(newRole);
+
+    // Persist the updated user data
+    userService.writeUsers(users);
+
+    res.status(200).json({ message: `User promoted to ${newRole} successfully` });
+  } catch (error) {
+    console.error("Error promoting user:", error);
+    res.status(500).json({ message: "An error occurred while promoting the user" });
+  }
+});
+
 };
 
 module.exports = { route };

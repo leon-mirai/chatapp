@@ -43,6 +43,15 @@
       </li>
     </ul>
   </div>
+
+  <h3>Promote User</h3>
+  <input [(ngModel)]="promotionUserId" placeholder="Enter User ID" />
+  <select [(ngModel)]="promotionRole">
+    <option value="GroupAdmin">Promote to GroupAdmin</option>
+    <option value="SuperAdmin">Promote to SuperAdmin</option>
+  </select>
+  <button (click)="promoteUser()">Promote User</button>
+  <p>{{ promotionMessage }}</p>
 </div>
 
 <!-- GroupAdmin View -->

@@ -116,6 +116,10 @@ export class UserService {
 
   leaveGroup(userId: string, groupId: string): Observable<any> {
     const url = `${this.apiUrl}/${userId}/groups/${groupId}/leave`;
-    return this.http.post(url, {});  // Send an empty body
+    return this.http.post(url, {}); // Send an empty body
+  }
+
+  promoteUser(userId: string, newRole: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${userId}/promote`, { newRole });
   }
 }

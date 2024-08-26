@@ -29,27 +29,33 @@ export class ChannelsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log("Component initialized"); // Add this log to ensure component initialization
+    console.log('Component initialized'); // Log for debugging
     const userData = localStorage.getItem('user');
     if (userData) {
       this.user = JSON.parse(userData);
-      console.log("User data loaded:", this.user); // Log the user data
+      console.log('User data loaded:', this.user); // Log user data
     }
-  
+
     const channelId = this.route.snapshot.params['id'];
-    if (channelId) {
-      console.log("Fetching channel with ID:", channelId); // Add this log
+    if (channelId && this.user) {
+      console.log('Fetching channel with ID:', channelId); // Log channel ID
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
-          console.log("Channel data loaded:", this.channel); // Log the channel data
-          if (this.channel && this.user) {
+          console.log('Channel data loaded:', this.channel); // Log channel data
+
+          // Check if the user is blacklisted
+          if (this.channel.blacklist.includes(this.user!.id)) {
+            console.warn('User is banned from this channel'); // Log warning
+            this.router.navigate(['/dashboard']); // Redirect to dashboard
+          } else {
+            // Check if the user is a member of the group
             this.groupService
-              .isMember(this.channel.groupId, this.user.id)
+              .isMember(this.channel.groupId, this.user!.id)
               .subscribe({
                 next: (isMember: boolean) => {
                   if (!isMember) {
-                    console.error('User is not part of group');
+                    console.error('User is not part of the group');
                     this.router.navigate(['/dashboard']);
                   }
                 },
@@ -65,7 +71,6 @@ export class ChannelsComponent implements OnInit {
       });
     }
   }
-  
 
   deleteChannel(): void {
     if (
@@ -86,13 +91,13 @@ export class ChannelsComponent implements OnInit {
 
   joinChannel(): void {
     const userId = this.authService.getUser()?.id;
-    console.log('Preparing to join channel with userId:', userId); // Log the userId
-  
+    console.log('Preparing to join channel with userId:', userId); // Log userId
+
     if (this.channel && userId) {
-      console.log('Sending request to join channel:', this.channel.id); // Log the channel ID
+      console.log('Sending request to join channel:', this.channel.id); // Log channel ID
       this.channelService.joinChannel(this.channel.id, userId).subscribe({
         next: (response) => {
-          console.log('Join channel response:', response); // Log the response message
+          console.log('Join channel response:', response); // Log response message
           if (response.message === 'User joined the channel successfully') {
             this.reloadChannel(); // Re-fetch the channel data
           }
@@ -103,14 +108,12 @@ export class ChannelsComponent implements OnInit {
       });
     }
   }
-  
-  
 
   reloadChannel(): void {
     if (this.channel) {
       this.channelService.getChannelById(this.channel.id).subscribe({
         next: (updatedChannel: Channel) => {
-          console.log('Channel reloaded:', updatedChannel); // Log the reloaded channel data
+          console.log('Channel reloaded:', updatedChannel); // Log reloaded channel data
           this.channel = updatedChannel;
         },
         error: (err) => {
@@ -119,7 +122,20 @@ export class ChannelsComponent implements OnInit {
       });
     }
   }
-  
+
+  banUser(userId: string): void {
+    if (this.channel && (this.isGroupAdmin() || this.isSuperAdmin())) {
+      this.channelService.banUser(this.channel.id, userId).subscribe({
+        next: (response) => {
+          console.log(response.message);
+          this.reloadChannel(); // Reload the channel to reflect the changes
+        },
+        error: (err) => {
+          console.error('Error banning user', err);
+        },
+      });
+    }
+  }
 
   isSuperAdmin(): boolean {
     return this.authService.isSuperAdmin();
@@ -132,18 +148,4 @@ export class ChannelsComponent implements OnInit {
   isChatUser(): boolean {
     return this.authService.isChatUser();
   }
-
-  // addMember() {
-  //   if (this.channel && this.newMemberId.trim()) {
-  //     this.channelService.addMember(this.channel.id, this.newMemberId).subscribe({
-  //       next: () => {
-  //         console.log('Member added successfully');
-  //         this.newMemberId = '';
-  //       },
-  //       error: (err: any) => {
-  //         console.error('Error adding member:', err.message);
-  //       },
-  //     });
-  //   }
-  // }
 }

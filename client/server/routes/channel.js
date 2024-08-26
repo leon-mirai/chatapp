@@ -1,4 +1,6 @@
+const userService = require("../services/userService");
 const channelService = require("../services/channelService");
+const groupService = require("../services/groupService");
 
 const route = (app) => {
   // Get all channels
@@ -112,18 +114,6 @@ const route = (app) => {
     }
   });
 
-  // Add a user to a channel
-  // app.post("/api/channels/:channelId/members", (req, res) => {
-  //   try {
-  //     const channelId = req.params.channelId.trim();
-  //     const { userId } = req.body;
-  //     const response = channelService.addUserToChannel(channelId, userId);
-  //     res.status(200).json(response);
-  //   } catch (error) {
-  //     res.status(500).json({ message: "Failed to add user to channel", error });
-  //   }
-  // });
-
   // User joins a channel
   app.post("/api/channels/:channelId/join", (req, res) => {
     try {
@@ -162,16 +152,27 @@ const route = (app) => {
 
   // Ban a user from a channel
   app.post("/api/channels/:channelId/ban", (req, res) => {
-    try {
-      const channelId = req.params.channelId.trim();
-      const { userId } = req.body;
-      const response = channelService.banUserFromChannel(channelId, userId);
-      res.status(200).json(response);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to ban user from channel", error });
+    const { channelId } = req.params;
+    const { userId } = req.body;
+    let channels = channelService.readChannels();
+    let channel = channels.find((channel) => channel.id === channelId);
+
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
     }
+
+    // Check if the user is already banned
+    if (channel.blacklist.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "User is already banned from this channel" });
+    }
+
+    // Add the user to the blacklist
+    channel.blacklist.push(userId);
+    channelService.writeChannels(channels);
+
+    res.status(200).json({ message: "User banned successfully" });
   });
 
   // Check if a user is a member of a channel
