@@ -21,7 +21,6 @@ export class GroupsComponent implements OnInit {
   channels: Channel[] = [];
   newMemberId: string = '';
   newChannelName: string = '';
-  availableGroups: Group[] = []; // Initialized as an empty array
   userId: string | null = null;
 
   constructor(
@@ -34,24 +33,6 @@ export class GroupsComponent implements OnInit {
 
   ngOnInit(): void {
     this.userId = this.authService.getUser()?.id ?? null;
-
-    if (this.userId) {
-      // Fetch all groups
-      this.groupService.getAllGroups().subscribe({
-        next: (groups: Group[]) => {
-          // Filter groups where the user is not a member and hasn't requested to join
-          this.availableGroups = groups.filter(
-            (group) =>
-              !group.members.includes(this.userId!) &&
-              !group.joinRequests.includes(this.userId!)
-          );
-          console.log('Available groups:', this.availableGroups);
-        },
-        error: (err: any) => {
-          console.error('Error fetching all groups:', err.message);
-        },
-      });
-    }
 
     const groupId = this.route.snapshot.params['id'];
     if (groupId) {
@@ -75,61 +56,8 @@ export class GroupsComponent implements OnInit {
     }
   }
 
-  // New computed property to check if there are join requests
-  // get hasJoinRequests(): boolean {
-  //   return this.group?.joinRequests?.length > 0 || false;
-  // }
-
-  get hasJoinRequests(): boolean {
+  hasJoinRequests(): boolean {
     return !!(this.group && this.group.joinRequests && this.group.joinRequests.length > 0);
-  }
-  
-
-  requestToJoin(groupId: string): void {
-    if (!this.userId) return;
-
-    this.groupService.requestToJoinGroup(groupId, this.userId).subscribe({
-      next: () => {
-        this.availableGroups = this.availableGroups.filter(
-          (group) => group.id !== groupId
-        );
-      },
-      error: (err: any) => {
-        console.error('Error requesting to join group:', err.message);
-      },
-    });
-  }
-
-  approveRequest(userId: string): void {
-    if (this.group) {
-      this.groupService.approveRequest(this.group.id, userId).subscribe({
-        next: () => {
-          console.log(`User ${userId} approved to join the group.`);
-          this.group!.joinRequests = this.group!.joinRequests.filter(
-            (id) => id !== userId
-          );
-        },
-        error: (err: any) => {
-          console.error('Error approving join request:', err.message);
-        },
-      });
-    }
-  }
-
-  rejectRequest(userId: string): void {
-    if (this.group) {
-      this.groupService.rejectRequest(this.group.id, userId).subscribe({
-        next: () => {
-          console.log(`User ${userId}'s request rejected.`);
-          this.group!.joinRequests = this.group!.joinRequests.filter(
-            (id) => id !== userId
-          );
-        },
-        error: (err: any) => {
-          console.error('Error rejecting join request:', err.message);
-        },
-      });
-    }
   }
 
   addMember() {
@@ -171,6 +99,38 @@ export class GroupsComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Error adding channel:', err.message);
+        },
+      });
+    }
+  }
+
+  approveRequest(userId: string): void {
+    if (this.group) {
+      this.groupService.approveRequest(this.group.id, userId).subscribe({
+        next: () => {
+          console.log(`User ${userId} approved to join the group.`);
+          this.group!.joinRequests = this.group!.joinRequests.filter(
+            (id) => id !== userId
+          );
+        },
+        error: (err: any) => {
+          console.error('Error approving join request:', err.message);
+        },
+      });
+    }
+  }
+
+  rejectRequest(userId: string): void {
+    if (this.group) {
+      this.groupService.rejectRequest(this.group.id, userId).subscribe({
+        next: () => {
+          console.log(`User ${userId}'s request rejected.`);
+          this.group!.joinRequests = this.group!.joinRequests.filter(
+            (id) => id !== userId
+          );
+        },
+        error: (err: any) => {
+          console.error('Error rejecting join request:', err.message);
         },
       });
     }

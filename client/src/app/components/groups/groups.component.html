@@ -38,13 +38,13 @@
     </div>
 
     <!-- Join Requests Section -->
-    <div *ngIf="isSuperAdmin() || isGroupAdmin() && hasJoinRequests" class="col-md-6">
+    <div *ngIf="isSuperAdmin() || (isGroupAdmin() && hasJoinRequests())" class="col-md-6">
       <div class="card">
         <div class="card-header">
           <h2>Join Requests</h2>
         </div>
         <div class="card-body">
-          <ul *ngIf="hasJoinRequests; else noRequests" class="list-group">
+          <ul *ngIf="hasJoinRequests(); else noRequests" class="list-group">
             <li *ngFor="let userId of group?.joinRequests" class="list-group-item d-flex justify-content-between align-items-center">
               {{ userId }}
               <div>
@@ -55,28 +55,6 @@
           </ul>
           <ng-template #noRequests>
             <p class="text-muted">No join requests at the moment.</p>
-          </ng-template>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Available Groups Section -->
-  <div class="row mt-4">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <h2>Available Groups</h2>
-        </div>
-        <div class="card-body">
-          <ul class="list-group" *ngIf="availableGroups && availableGroups.length > 0; else noGroupsAvailable">
-            <li *ngFor="let group of availableGroups" class="list-group-item d-flex justify-content-between align-items-center">
-              {{ group.name }}
-              <button class="btn btn-primary btn-sm" (click)="requestToJoin(group.id)">Request to Join</button>
-            </li>
-          </ul>
-          <ng-template #noGroupsAvailable>
-            <p class="text-muted">No groups available to join.</p>
           </ng-template>
         </div>
       </div>

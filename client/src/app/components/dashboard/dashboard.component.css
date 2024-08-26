@@ -1,12 +1,58 @@
+/* Center the text and elements for a cleaner UI */
+h1, h2, h3 {
+  text-align: center;
+}
+
 .container {
-    max-width: 800px;
-  }
-  
-  .card {
-    border-radius: 8px;
-  }
-  
-  .card-header {
-    font-weight: bold;
-  }
-  
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.btn {
+  margin: 5px 0;
+}
+
+input.form-control {
+  margin-bottom: 10px;
+}
+
+ul.list-group {
+  margin-top: 10px;
+}
+
+ul.list-group li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button {
+  margin-left: 10px;
+}
+
+/* Footer Buttons */
+.logout-delete-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.logout-delete-container button {
+  margin: 5px;
+}

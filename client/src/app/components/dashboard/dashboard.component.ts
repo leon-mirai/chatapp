@@ -19,6 +19,7 @@ import { UserService } from '../../services/user.service';
 export class DashboardComponent implements OnInit {
   user: any = null;
   groups: Group[] = [];
+  availableGroups: Group[] = []; // Added to hold available groups
   users: User[] = []; // Define the users array
   newGroupName: string = '';
   newUsername: string = ''; // For new user creation
@@ -42,6 +43,7 @@ export class DashboardComponent implements OnInit {
       this.user = JSON.parse(userData);
     }
     this.loadGroups();
+    this.loadAvailableGroups(); // Load available groups
 
     if (this.isSuperAdmin()) {
       this.loadUsers(); // Load users if the user is a SuperAdmin
@@ -66,6 +68,24 @@ export class DashboardComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error fetching groups:', err);
+        },
+      });
+    }
+  }
+
+  loadAvailableGroups(): void {
+    if (this.user) {
+      console.log('User ID:', this.user.id); // Log user ID
+      this.groupService.getAllGroups().subscribe({
+        next: (groups: Group[]) => {
+          console.log('All groups received:', groups);
+          this.availableGroups = groups.filter(
+            (group) => !group.members.includes(this.user.id)
+          );
+          console.log('Filtered available groups:', this.availableGroups);
+        },
+        error: (err) => {
+          console.error('Error fetching available groups:', err.message);
         },
       });
     }
@@ -208,6 +228,21 @@ export class DashboardComponent implements OnInit {
       this.promotionMessage =
         'Please provide a valid user ID and select a role.';
     }
+  }
+
+  requestToJoin(groupId: string): void {
+    if (!this.user.id) return;
+
+    this.groupService.requestToJoinGroup(groupId, this.user.id).subscribe({
+      next: () => {
+        this.availableGroups = this.availableGroups.filter(
+          (group) => group.id !== groupId
+        );
+      },
+      error: (err: any) => {
+        console.error('Error requesting to join group:', err.message);
+      },
+    });
   }
 
   logout(): void {
