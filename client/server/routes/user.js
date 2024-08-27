@@ -66,7 +66,30 @@ const route = (app) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Proceed to delete the user
+      // 1. Remove the user from all groups
+      let groups = groupService.readGroups();
+      groups = groups.map((group) => {
+        // Remove user from group members and admins
+        group.members = group.members.filter((memberId) => memberId !== userId);
+        group.admins = group.admins.filter((adminId) => adminId !== userId);
+        group.joinRequests = group.joinRequests.filter(
+          (joinRequest) => joinRequest !== userId
+        );
+        return group;
+      });
+      groupService.writeGroups(groups);
+
+      // 2. Remove the user from all channels
+      let channels = channelService.readChannels();
+      channels = channels.map((channel) => {
+        channel.members = channel.members.filter(
+          (memberId) => memberId !== userId
+        );
+        return channel;
+      });
+      channelService.writeChannels(channels);
+
+      // 3. Delete the user from the users array
       users = users.filter((user) => user.id !== userId);
       userService.writeUsers(users);
 
@@ -208,37 +231,42 @@ const route = (app) => {
   );
 
   // Promote a user to GroupAdmin or SuperAdmin
-app.post("/api/users/:userId/promote", (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { newRole } = req.body; // "GroupAdmin" or "SuperAdmin"
+  app.post("/api/users/:userId/promote", (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { newRole } = req.body; // "GroupAdmin" or "SuperAdmin"
 
-    // Read all users
-    let users = userService.readUsers();
-    const user = users.find((user) => user.id === userId);
+      // Read all users
+      let users = userService.readUsers();
+      const user = users.find((user) => user.id === userId);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if the user already has the role
+      if (user.roles.includes(newRole)) {
+        return res
+          .status(400)
+          .json({ message: `User is already a ${newRole}` });
+      }
+
+      // Add the new role to the user's roles
+      user.roles.push(newRole);
+
+      // Persist the updated user data
+      userService.writeUsers(users);
+
+      res
+        .status(200)
+        .json({ message: `User promoted to ${newRole} successfully` });
+    } catch (error) {
+      console.error("Error promoting user:", error);
+      res
+        .status(500)
+        .json({ message: "An error occurred while promoting the user" });
     }
-
-    // Check if the user already has the role
-    if (user.roles.includes(newRole)) {
-      return res.status(400).json({ message: `User is already a ${newRole}` });
-    }
-
-    // Add the new role to the user's roles
-    user.roles.push(newRole);
-
-    // Persist the updated user data
-    userService.writeUsers(users);
-
-    res.status(200).json({ message: `User promoted to ${newRole} successfully` });
-  } catch (error) {
-    console.error("Error promoting user:", error);
-    res.status(500).json({ message: "An error occurred while promoting the user" });
-  }
-});
-
+  });
 };
 
 module.exports = { route };

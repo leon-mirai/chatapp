@@ -211,7 +211,7 @@ Sure, here's the content converted to Markdown format for a README.MD file:
 - GroupService: Handles group-related actions
 - ChannelService: Handles channel-related actions
 - UserService: Handles user-related actions
-### Models
+
 
 ### Routes
 - /login

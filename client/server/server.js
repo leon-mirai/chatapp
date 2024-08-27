@@ -15,17 +15,19 @@ app.use(express.static(uiPath));
 const login = require("./routes/api-login.js");
 const user = require("./routes/user.js");
 const group = require("./routes/group.js");
-const channel = require("./routes/channel.js");  // Add the channel routes
+const channel = require("./routes/channel.js"); // Add the channel routes
 
 // Use the routes
 login.route(app);
 user.route(app);
 group.route(app);
-channel.route(app);  // Register the channel routes
+channel.route(app); // Register the channel routes
 
 // Catch-all to serve the Angular frontend
 app.get("*", function (request, response) {
-  response.sendFile(path.resolve(__dirname, "../dist/client/browser/index.html"));
+  response.sendFile(
+    path.resolve(__dirname, "../dist/client/browser/index.html")
+  );
 });
 
 // Start the server
