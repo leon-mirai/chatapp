@@ -1,5 +1,5 @@
 # Table of Contents
-1. [Data Structures](#hi)
+1. [Data Structures](#datastructures)
 
 
 
@@ -82,7 +82,7 @@ Repository structure:
 ├── docs/           # Additional documentation
 └── README.md
 
-## Data Structures
+## Data Structures <a name="datastructures"</a>
 Javascript Array and Object objects were used to store information about:
 - Groups
 - Channel
