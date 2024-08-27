@@ -1,14 +1,3 @@
-# Table of Contents
-1. [Data Structures](#datastructures)
-
-
-
-
-
-
-
-
-
 # chatapp
 # Text/Video Chat App
 ## Phase 1
