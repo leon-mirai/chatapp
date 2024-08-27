@@ -1,5 +1,5 @@
 # Table of Contents
-1. [Phase 1](#hi)
+1. [Data Structures](#hi)
 
 
 
