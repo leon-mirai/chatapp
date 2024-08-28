@@ -65,7 +65,7 @@ client/ (Angular frontend code):
 The version control strategy was to commit frequently. Specifically, a commit was made whenever a new feature was added,
 fixed, or improved. The main branches I worked with are:
 1. main (this is the final product)
-2. chatapp (this is where development occurs and where features are added)
+2. dev (this is where development occurs and where features are added)
 3. chatappv2 (this is another branch for testing out new developments)
 
 

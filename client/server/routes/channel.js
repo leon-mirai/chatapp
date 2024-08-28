@@ -3,7 +3,7 @@ const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
 const route = (app) => {
-  // Get all channels
+  // get all channels
   app.get("/api/channels", (req, res) => {
     try {
       const channels = channelService.readChannels();
@@ -13,7 +13,7 @@ const route = (app) => {
     }
   });
 
-  // Get channels by group ID
+  // get channels by group ID
   app.get("/api/channels/group/:groupId", (req, res) => {
     try {
       const groupId = req.params.groupId.trim();
@@ -29,7 +29,7 @@ const route = (app) => {
     }
   });
 
-  // Get a channel by ID
+  // gget a channel by ID
   app.get("/api/channels/:channelId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
@@ -46,7 +46,7 @@ const route = (app) => {
     }
   });
 
-  // Create a new channel
+  // ceate a new channel
   app.post("/api/channels", (req, res) => {
     try {
       const newChannel = req.body;
@@ -62,7 +62,7 @@ const route = (app) => {
     }
   });
 
-  // Update a channel by ID
+  // pdate a channel by ID
   app.put("/api/channels/:channelId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
@@ -87,7 +87,7 @@ const route = (app) => {
     }
   });
 
-  // Delete a channel by ID
+  // Del a channel by ID
   app.delete("/api/channels/:channelId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
@@ -97,12 +97,10 @@ const route = (app) => {
       );
 
       if (channelExists) {
-        // Filter out the channel from the list
+        // filter out the channel from the list
         channels = channels.filter((channel) => channel.id !== channelId);
 
-        // TODO: Add cleanup for related data, such as messages or other linked entities
-
-        // Write the updated channels list
+        // rite the updated channels list
         channelService.writeChannels(channels);
 
         res.status(200).json({ message: "Channel deleted successfully" });
@@ -114,18 +112,18 @@ const route = (app) => {
     }
   });
 
-  // User joins a channel
+  // user joins a channel
   app.post("/api/channels/:channelId/join", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
       const { userId } = req.body;
 
-      // Validate userId
+      // validate userId
       if (!userId || typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ message: "Invalid userId" });
       }
 
-      // Call the service to join the channel
+      // call the service to join the channel
       const response = channelService.joinChannel(channelId, userId);
 
       res.status(200).json(response);
@@ -136,7 +134,7 @@ const route = (app) => {
     }
   });
 
-  // Remove a user from a channel
+  // Rrreemove a user from a channel
   app.delete("/api/channels/:channelId/members/:userId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
@@ -150,7 +148,7 @@ const route = (app) => {
     }
   });
 
-  // Ban a user from a channel
+  // ban a user from a channel
   app.post("/api/channels/:channelId/ban", (req, res) => {
     const { channelId } = req.params;
     const { userId } = req.body;
@@ -161,21 +159,21 @@ const route = (app) => {
       return res.status(404).json({ message: "Channel not found" });
     }
 
-    // Check if the user is already banned
+    // is user already banned
     if (channel.blacklist.includes(userId)) {
       return res
         .status(400)
         .json({ message: "User is already banned from this channel" });
     }
 
-    // Add the user to the blacklist
+    // add the user to the blacklist
     channel.blacklist.push(userId);
     channelService.writeChannels(channels);
 
     res.status(200).json({ message: "User banned successfully" });
   });
 
-  // Check if a user is a member of a channel
+  // check if a user is a member of a channel
   app.get("/api/channels/:channelId/members/:userId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();

@@ -6,10 +6,10 @@ const groupsPath = path.join(__dirname, '../data/groups.json');
 function readGroups() {
   try {
     const groupsData = fs.readFileSync(groupsPath, 'utf-8');
-    return JSON.parse(groupsData || '[]');  // Fallback to an empty array if the file is empty
+    return JSON.parse(groupsData || '[]');  // fallback to an empty array if the file is empty
   } catch (error) {
     console.error('Error reading groups file:', error);
-    return [];  // Return an empty array if there's an error reading the file
+    return [];  // return an empty array if there's an error reading the file
   }
 }
 

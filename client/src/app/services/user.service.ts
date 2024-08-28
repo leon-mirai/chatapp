@@ -12,25 +12,25 @@ export class UserService {
 
   constructor(private http: HttpClient, private idService: IdService) {}
 
-  // Fetch all users from the backend
+  // fetch all users from the backend
   getUsers(): Observable<User[]> {
     console.log('Fetching users from the backend...');
     return this.http.get<User[]>(this.apiUrl);
   }
 
-  // Fetch a specific user by ID from the backend
+  // fetch a specific user by ID from the backend
   getUserById(userId: string): Observable<User> {
     console.log(`Fetching user with ID: ${userId}`);
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
-  // Update a user on the backend
+  // update a user on the backend
   updateUser(user: User): Observable<any> {
     console.log(`Updating user with ID: ${user.id}`);
     return this.http.put(`${this.apiUrl}/${user.id}`, user);
   }
 
-  // Add a new user to the backend
+  // add a new user to the backend
   addUser(username: string, email: string): Observable<any> {
     console.log(`Attempting to add user: ${username}`);
     return new Observable((observer) => {
@@ -46,7 +46,7 @@ export class UserService {
     });
   }
 
-  // Process the user creation flow
+  // process the user creation flow
   private processUserCreation(
     users: User[],
     username: string,
@@ -72,7 +72,7 @@ export class UserService {
     }
   }
 
-  // Create a new user object
+  // create a new user object
   private createNewUser(username: string, email: string): User {
     return {
       id: this.idService.generateId(username),
@@ -85,21 +85,21 @@ export class UserService {
     };
   }
 
-  // Send success response to observer
+  // send success response to observer
   private sendSuccess(observer: any, newUser: User): void {
     console.log('Success response sent for user:', newUser);
     observer.next({ success: true, user: newUser });
     observer.complete();
   }
 
-  // Send error response to observer
+  // send error response to observer
   private sendError(observer: any, message: string): void {
     console.log('Error response sent:', message);
     observer.next({ success: false, message });
     observer.complete();
   }
 
-  // Handle errors during HTTP requests
+  // handle errors during HTTP requests
   private handleError(message: string, observer: any, error: any): void {
     console.error(message, error);
     observer.next({ success: false, message });

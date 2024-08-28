@@ -19,7 +19,6 @@ export class ChannelService {
     return this.http.get<Channel>(`${this.apiUrl}/${channelId}`);
   }
 
-  // Add this method to fetch channels by groupId
   getChannelsByGroupId(groupId: string): Observable<Channel[]> {
     const url = `${this.apiUrl}/group/${groupId}`;
     return this.http.get<Channel[]>(url);
@@ -35,8 +34,8 @@ export class ChannelService {
   }
 
   joinChannel(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/join`; // Use backticks here
-    console.log('Sending POST request to:', url); // Log the URL for verification
+    const url = `${this.apiUrl}/${channelId}/join`; 
+    console.log('Sending POST request to:', url); // log the URL for verification
     return this.http.post(url, { userId });
   }
 

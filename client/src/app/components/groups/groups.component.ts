@@ -39,7 +39,7 @@ export class GroupsComponent implements OnInit {
       this.groupService.getGroupById(groupId).subscribe({
         next: (group: Group) => {
           this.group = group;
-          // Fetch channels by groupId
+          // fetch channels by groupId
           this.channelService.getChannelsByGroupId(groupId).subscribe({
             next: (channels: Channel[]) => {
               this.channels = channels;

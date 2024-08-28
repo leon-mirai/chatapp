@@ -37,7 +37,7 @@ function isUserInGroup(groupId, userId) {
   const group = groups.find((group) => group.id === groupId);
   if (!group) {
     console.error(`Group with ID ${groupId} not found.`);
-    return false; // Group not found
+    return false; // group not found
   }
   return group.members.includes(userId);
 }
@@ -50,7 +50,7 @@ function joinChannel(channelId, userId) {
     throw new Error("Channel not found");
   }
 
-  // Validate if the user is in the group associated with the channel
+  // validate if the user is in the group associated with the channel
   if (!isUserInGroup(channel.groupId, userId)) {
     throw new Error("User is not a member of the group");
   }
@@ -58,7 +58,7 @@ function joinChannel(channelId, userId) {
   if (!channel.members.includes(userId)) {
     channel.members.push(userId);
     writeChannels(channels);
-    console.log(`User ${userId} successfully joined channel ${channelId}`); // Log the success
+    console.log(`User ${userId} successfully joined channel ${channelId}`); // log the success
     return { message: "User joined the channel successfully" };
   } else {
     console.log(`User ${userId} is already a member of channel ${channelId}`);

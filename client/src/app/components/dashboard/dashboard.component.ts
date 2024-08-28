@@ -19,14 +19,14 @@ import { UserService } from '../../services/user.service';
 export class DashboardComponent implements OnInit {
   user: any = null;
   groups: Group[] = [];
-  availableGroups: Group[] = []; // Added to hold available groups
-  users: User[] = []; // Define the users array
+  availableGroups: Group[] = []; 
+  users: User[] = []; // define the users array
   newGroupName: string = '';
-  newUsername: string = ''; // For new user creation
-  newUserEmail: string = ''; // For new user creation
-  createUserMessage: string = ''; // To display success/error messages
+  newUsername: string = ''; // for new user creation
+  newUserEmail: string = ''; // for new user creation
+  createUserMessage: string = ''; // to display success/error messages
   promotionUserId: string = '';
-  promotionRole: string = 'GroupAdmin'; // Default to GroupAdmin
+  promotionRole: string = 'GroupAdmin'; // default to GroupAdmin
   promotionMessage: string = '';
 
   constructor(
@@ -43,10 +43,10 @@ export class DashboardComponent implements OnInit {
       this.user = JSON.parse(userData);
     }
     this.loadGroups();
-    this.loadAvailableGroups(); // Load available groups
+    this.loadAvailableGroups(); // load available groups
 
     if (this.isSuperAdmin()) {
-      this.loadUsers(); // Load users if the user is a SuperAdmin
+      this.loadUsers(); // load users if the user is a SuperAdmin
     }
   }
 
@@ -75,7 +75,7 @@ export class DashboardComponent implements OnInit {
 
   loadAvailableGroups(): void {
     if (this.user) {
-      console.log('User ID:', this.user.id); // Log user ID
+      console.log('User ID:', this.user.id); // log user ID
       this.groupService.getAllGroups().subscribe({
         next: (groups: Group[]) => {
           console.log('All groups received:', groups);
@@ -94,7 +94,7 @@ export class DashboardComponent implements OnInit {
   loadUsers(): void {
     this.userService.getUsers().subscribe({
       next: (users) => {
-        this.users = users; // Populate the users array
+        this.users = users; // populate the users array
       },
       error: (err) => {
         console.error('Error fetching users:', err);
@@ -110,7 +110,7 @@ export class DashboardComponent implements OnInit {
             this.createUserMessage = `User '${this.newUsername}' created successfully!`;
             this.newUsername = '';
             this.newUserEmail = '';
-            this.loadUsers(); // Reload the user list after creating a new user
+            this.loadUsers(); // reload the user list after creating a new user
           } else {
             this.createUserMessage = `Error: ${response.message}`;
           }
@@ -132,7 +132,7 @@ export class DashboardComponent implements OnInit {
     ) {
       this.userService.deleteUser(userId).subscribe({
         next: () => {
-          // Remove the user from the UI after successful deletion
+          // remove the user from the UI after successful deletion
           this.users = this.users.filter((user) => user.id !== userId);
           console.log('User deleted successfully');
         },
@@ -218,7 +218,7 @@ export class DashboardComponent implements OnInit {
         .subscribe({
           next: (response: any) => {
             this.promotionMessage = response.message;
-            this.promotionUserId = ''; // Clear input field
+            this.promotionUserId = '';
           },
           error: (err: any) => {
             this.promotionMessage = `Failed to promote user: ${err.message}`;

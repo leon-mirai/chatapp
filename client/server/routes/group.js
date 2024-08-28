@@ -3,13 +3,13 @@ const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
 const route = (app) => {
-  // Get every single group that exists
+  // get every single group that exists
   app.get("/api/groups", (req, res) => {
     const groups = groupService.readGroups(); //read all groups
     res.status(200).json(groups);
   });
 
-  // Get all groups for the specific user
+  // get all groups for the specific user
   app.get("/api/groups", (req, res) => {
     const userId = req.query.userId; // Get the userId from the query parameter
     const groups = groupService.readGroups(); // Read all groups
@@ -17,7 +17,7 @@ const route = (app) => {
     res.status(200).json(userGroups); // Return the filtered groups
   });
 
-  // Get a group by ID
+  // get a group by ID
   app.get("/api/groups/:groupId", (req, res) => {
     const { groupId } = req.params;
     const groups = groupService.readGroups();
@@ -30,19 +30,19 @@ const route = (app) => {
     }
   });
 
-  // Create a new group
+  // create a new group
   app.post("/api/groups", (req, res) => {
     const newGroup = req.body;
     const groups = groupService.readGroups();
 
-    // Add the new group and save to file
+    // add the new group and save to file
     groups.push(newGroup);
     groupService.writeGroups(groups);
 
     res.status(201).json(newGroup);
   });
 
-  // Update a group by ID
+  // update a group by ID
   app.put("/api/groups/:groupId", (req, res) => {
     const { groupId } = req.params;
     const updatedGroup = req.body;
@@ -58,28 +58,28 @@ const route = (app) => {
     }
   });
 
-  // Delete a group by ID
+  // delete a group by ID
   app.delete("/api/groups/:groupId", (req, res) => {
     try {
       const { groupId } = req.params;
       let groups = groupService.readGroups();
 
-      // Check if the group exists
+      // check if the group exists
       const groupExists = groups.some((group) => group.id === groupId);
 
       if (!groupExists) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // 1. Delete all channels associated with this group
+      // 1. delete all channels associated with this group
       let channels = channelService.readChannels();
       channels = channels.filter((channel) => channel.groupId !== groupId);
       channelService.writeChannels(channels);
 
-      // 2. Remove the group reference from all users
+      // 2. remove the group reference from all users
       let users = userService.readUsers();
       users = users.map((user) => {
-        // Remove the group reference from the user's groups
+        // remove the group reference from the user's groups
         user.groups = user.groups.filter(
           (groupIdInUser) => groupIdInUser !== groupId
         );
@@ -87,7 +87,7 @@ const route = (app) => {
       });
       userService.writeUsers(users);
 
-      // 3. Delete the group from the groups array
+      // 3. delete the group from the groups array
       groups = groups.filter((group) => group.id !== groupId);
       groupService.writeGroups(groups);
 
@@ -99,7 +99,7 @@ const route = (app) => {
     }
   });
 
-  // Add a member to a group
+  // add a member to a group
   app.post("/api/groups/:groupId/members", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -121,7 +121,7 @@ const route = (app) => {
     }
   });
 
-  // Remove a member from a group
+  // remove a member from a group
   app.delete("/api/groups/:groupId/members/:userId", (req, res) => {
     const { groupId, userId } = req.params;
     const groups = groupService.readGroups();
@@ -136,17 +136,17 @@ const route = (app) => {
     }
   });
 
-  // Add an admin to a group and update the user's role
+  // add an admin to a group and update the user's role
   app.post("/api/groups/:groupId/admins", (req, res) => {
     try {
       const { groupId } = req.params;
       const { userId } = req.body;
 
-      // Read all groups
+      // read all groups
       const groups = groupService.readGroups();
       const group = groups.find((group) => group.id === groupId);
 
-      // Read all users to check if the user exists
+      //read all users to check if the user exists
       let users = userService.readUsers();
       const user = users.find((user) => user.id === userId);
 
@@ -164,15 +164,15 @@ const route = (app) => {
           .json({ message: "User is already an admin of the group" });
       }
 
-      // Add user to the admins array
+      // add user to the admins array
       group.admins.push(userId);
 
-      // Update the user's roles to include "GroupAdmin" if not already present
+      // update the user's roles to include "GroupAdmin" if not already present
       if (!user.roles.includes("GroupAdmin")) {
         user.roles.push("GroupAdmin");
       }
 
-      // Persist the changes to the groups and users
+      // persist the changes to the groups and users
       groupService.writeGroups(groups);
       userService.writeUsers(users);
 
@@ -188,7 +188,7 @@ const route = (app) => {
     }
   });
 
-  // Remove an admin from a group
+  // remove an admin from a group
   app.delete("/api/groups/:groupId/admins/:userId", (req, res) => {
     const { groupId, userId } = req.params;
     const groups = groupService.readGroups();
@@ -203,7 +203,7 @@ const route = (app) => {
     }
   });
 
-  // Check if a user is a member of a group
+  // check if a user is a member of a group
   app.get("/api/groups/:groupId/members/:userId", (req, res) => {
     const { groupId, userId } = req.params;
     const groups = groupService.readGroups();
@@ -217,7 +217,7 @@ const route = (app) => {
     }
   });
 
-  // Check if a user is an admin of a group
+  // check if a user is an admin of a group
   app.get("/api/groups/:groupId/admins/:userId", (req, res) => {
     const { groupId, userId } = req.params;
     const groups = groupService.readGroups();

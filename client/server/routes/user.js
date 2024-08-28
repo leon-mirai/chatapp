@@ -3,13 +3,13 @@ const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
 
 const route = (app) => {
-  // Get all users
+  // get all users
   app.get("/api/users", (req, res) => {
     const users = userService.readUsers();
     res.status(200).json(users);
   });
 
-  // Get user by ID
+  // get user by ID
   app.get("/api/users/:userId", (req, res) => {
     const userId = req.params.userId.trim();
     const users = userService.readUsers();
@@ -22,23 +22,23 @@ const route = (app) => {
     }
   });
 
-  // Create a new user
+  // create a new user
   app.post("/api/users", (req, res) => {
     const newUser = req.body;
     const users = userService.readUsers();
 
-    // Check if username already exists
+    // chec if username   exists
     if (users.find((user) => user.username === newUser.username)) {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    // Add the new user
+    // add the new user
     users.push(newUser);
     userService.writeUsers(users);
     res.status(201).json(newUser);
   });
 
-  // Update a user
+  // udate a user
   app.put("/api/users/:userId", (req, res) => {
     const userId = req.params.userId.trim();
     const updatedUser = req.body;
@@ -54,22 +54,22 @@ const route = (app) => {
     }
   });
 
-  // Delete user (Self-Deletion) THIS IS VERY PRIMITIVE Doesn't account for cascade deletion
+  // self-delete
   app.delete("/api/users/:userId", (req, res) => {
     try {
       const userId = req.params.userId.trim();
       let users = userService.readUsers();
 
-      // Check if the user exists
+      // check if the user exists
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 1. Remove the user from all groups
+      // 1. remove the user from all groups
       let groups = groupService.readGroups();
       groups = groups.map((group) => {
-        // Remove user from group members and admins
+        // remove user from group members and admins
         group.members = group.members.filter((memberId) => memberId !== userId);
         group.admins = group.admins.filter((adminId) => adminId !== userId);
         group.joinRequests = group.joinRequests.filter(
@@ -79,7 +79,7 @@ const route = (app) => {
       });
       groupService.writeGroups(groups);
 
-      // 2. Remove the user from all channels
+      // 2. remove the user from all channels
       let channels = channelService.readChannels();
       channels = channels.map((channel) => {
         channel.members = channel.members.filter(
@@ -89,7 +89,7 @@ const route = (app) => {
       });
       channelService.writeChannels(channels);
 
-      // 3. Delete the user from the users array
+      // 3. delete the user from the users array
       users = users.filter((user) => user.id !== userId);
       userService.writeUsers(users);
 
@@ -102,27 +102,28 @@ const route = (app) => {
   });
 
   app.delete("/api/users/:userId/delete-user", (req, res) => {
+    // delete users 
     try {
       const { userId } = req.params;
       let users = userService.readUsers();
 
-      // Check if the user exists
+      // check if the user exists
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 1. Remove the user from all groups
+      // 1. remove the user from all groups
       let groups = groupService.readGroups();
       groups = groups.map((group) => {
-        // Remove user from group members and admins
+        // remove user from group members and admins
         group.members = group.members.filter((memberId) => memberId !== userId);
         group.admins = group.admins.filter((adminId) => adminId !== userId);
         return group;
       });
       groupService.writeGroups(groups);
 
-      // 2. Remove the user from all channels
+      // 2. remove the user from all channels
       let channels = channelService.readChannels();
       channels = channels.map((channel) => {
         channel.members = channel.members.filter(
@@ -132,7 +133,7 @@ const route = (app) => {
       });
       channelService.writeChannels(channels);
 
-      // 3. Delete the user from the users array
+      // 3. delete the user from the users array
       users = users.filter((user) => user.id !== userId);
       userService.writeUsers(users);
 
@@ -144,39 +145,39 @@ const route = (app) => {
     }
   });
 
-  // Leave a group
+  // leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", (req, res) => {
     try {
       const userId = req.params.userId.trim();
       const groupId = req.params.groupId.trim();
 
-      // Fetch users and groups
+      // fetch users and groups
       let users = userService.readUsers();
       let groups = groupService.readGroups();
       let channels = channelService.readChannels();
 
-      // Find the user
+      // find the user
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Find the group
+      //find the group
       const group = groups.find((group) => group.id === groupId);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // Remove the group from the user's groups array
+      // remove the group from the user's groups array
       user.groups = user.groups.filter((group) => group !== groupId);
 
-      // Remove the user from the group's members array
+      // remove the user from the group's members array
       group.members = group.members.filter((memberId) => memberId !== userId);
 
-      // If the user is an admin, remove them from the admins array
+      // if the user is an admin, remove them from the admins array
       group.admins = group.admins.filter((adminId) => adminId !== userId);
 
-      // Update channels to remove the user from any channels in this group
+      // update channels to remove the user from any channels in this group
       channels = channels.map((channel) => {
         if (channel.groupId === groupId) {
           channel.members = channel.members.filter(
@@ -186,7 +187,7 @@ const route = (app) => {
         return channel;
       });
 
-      // Write updates back to the files
+      // write updates back to the files
       userService.writeUsers(users);
       groupService.writeGroups(groups);
       channelService.writeChannels(channels);
@@ -202,7 +203,7 @@ const route = (app) => {
     }
   });
 
-  // Register interest in a group
+  // register interest in a group
   app.post(
     "/api/users/:userId/groups/:groupId/register-interest",
     (req, res) => {
@@ -230,13 +231,13 @@ const route = (app) => {
     }
   );
 
-  // Promote a user to GroupAdmin or SuperAdmin
+  // promote a user to GAdmin or SAdmin
   app.post("/api/users/:userId/promote", (req, res) => {
     try {
       const { userId } = req.params;
       const { newRole } = req.body; // "GroupAdmin" or "SuperAdmin"
 
-      // Read all users
+      // read all users
       let users = userService.readUsers();
       const user = users.find((user) => user.id === userId);
 
@@ -244,17 +245,17 @@ const route = (app) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if the user already has the role
+      // check if the user already has the role
       if (user.roles.includes(newRole)) {
         return res
           .status(400)
           .json({ message: `User is already a ${newRole}` });
       }
 
-      // Add the new role to the user's roles
+      // add the new role to the user's roles
       user.roles.push(newRole);
 
-      // Persist the updated user data
+      // persist the updated user data
       userService.writeUsers(users);
 
       res

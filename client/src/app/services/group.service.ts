@@ -48,7 +48,6 @@ export class GroupService {
     return this.http.delete(url);
   }
 
-  // Method to check if a user is a member of a group
   isMember(groupId: string, userId: string): Observable<boolean> {
     return this.getGroupById(groupId).pipe(
       map((group) => (group ? group.members.includes(userId) : false))
