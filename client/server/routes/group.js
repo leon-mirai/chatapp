@@ -43,7 +43,7 @@ const route = (app) => {
   });
 
   // update a group by ID
-  app.put("/api/groups/:groupId", (req, res) => {
+  app.put("/api/groups/:groupId", groupService.checkGroupAdmin, (req, res) => {
     const { groupId } = req.params;
     const updatedGroup = req.body;
     const groups = groupService.readGroups();

@@ -3,7 +3,7 @@
     "id": "1111",
     "username": "user1",
     "email": "user1@gmail.com",
-    "roles": ["ChatUser"],
+    "roles": ["ChatUser", "GroupAdmin"],
     "groups": ["group1"],
     "password": "123",
     "valid": true

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { GroupService } from '../../services/group.service';
 import { Group } from '../../models/group.model';
-import { User } from '../../models/user.model'; // Import the User model
+import { User } from '../../models/user.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -19,14 +19,13 @@ import { UserService } from '../../services/user.service';
 export class DashboardComponent implements OnInit {
   user: any = null;
   groups: Group[] = [];
-  availableGroups: Group[] = []; 
-  users: User[] = []; // define the users array
+  availableGroups: Group[] = [];
+  users: User[] = [];
+  pendingUsers: User[] = []; // Add this line to store pending user requests
   newGroupName: string = '';
-  newUsername: string = ''; // for new user creation
-  newUserEmail: string = ''; // for new user creation
-  createUserMessage: string = ''; // to display success/error messages
+  createUserMessage: string = '';
   promotionUserId: string = '';
-  promotionRole: string = 'GroupAdmin'; // default to GroupAdmin
+  promotionRole: string = 'GroupAdmin';
   promotionMessage: string = '';
 
   constructor(
@@ -43,10 +42,49 @@ export class DashboardComponent implements OnInit {
       this.user = JSON.parse(userData);
     }
     this.loadGroups();
-    this.loadAvailableGroups(); // load available groups
+    this.loadAvailableGroups();
 
     if (this.isSuperAdmin()) {
-      this.loadUsers(); // load users if the user is a SuperAdmin
+      this.loadUsers();
+      this.loadPendingUsers(); // Load pending account requests
+    }
+
+    console.log('User data:', this.user);
+    console.log('isChatUser():', this.isChatUser());
+    console.log('isSuperAdmin():', this.isSuperAdmin());
+    console.log('isGroupAdmin():', this.isGroupAdmin());
+  }
+
+  loadPendingUsers(): void {
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.pendingUsers = users.filter((user) => !user.valid); // Only get users with 'valid: false'
+      },
+      error: (err) => {
+        console.error('Error fetching pending users:', err);
+      },
+    });
+  }
+
+  completeRegistration(pendingUser: User): void {
+    if (pendingUser.username && pendingUser.email) {
+      this.userService
+        .completeRegistration(
+          pendingUser.id,
+          pendingUser.username,
+          pendingUser.email
+        )
+        .subscribe({
+          next: () => {
+            this.createUserMessage = `Account for ${pendingUser.username} completed successfully!`;
+            this.loadPendingUsers(); // Reload the pending users list
+          },
+          error: (err: any) => {
+            this.createUserMessage = `Failed to complete registration: ${err.message}`;
+          },
+        });
+    } else {
+      this.createUserMessage = 'Please assign both a username and email.';
     }
   }
 
@@ -55,12 +93,14 @@ export class DashboardComponent implements OnInit {
       this.groupService.getGroups(this.user.id).subscribe({
         next: (groups) => {
           if (this.isSuperAdmin()) {
-            this.groups = groups;
-          } else if (this.isGroupAdmin()) {
+            this.groups = groups; // SuperAdmin sees all groups
+          } else if (this.isGroupAdmin() && !this.isSuperAdmin()) {
+            // Filter groups where the user is both an admin and a member
             this.groups = groups.filter((group) =>
               group.members.includes(this.user.id)
             );
           } else if (this.isChatUser()) {
+            // ChatUser sees only groups they are a member of
             this.groups = groups.filter((group) =>
               group.members.includes(this.user.id)
             );
@@ -75,14 +115,12 @@ export class DashboardComponent implements OnInit {
 
   loadAvailableGroups(): void {
     if (this.user) {
-      console.log('User ID:', this.user.id); // log user ID
       this.groupService.getAllGroups().subscribe({
         next: (groups: Group[]) => {
-          console.log('All groups received:', groups);
           this.availableGroups = groups.filter(
             (group) => !group.members.includes(this.user.id)
           );
-          console.log('Filtered available groups:', this.availableGroups);
+          console.log('Available Groups:', this.availableGroups);
         },
         error: (err) => {
           console.error('Error fetching available groups:', err.message);
@@ -94,34 +132,12 @@ export class DashboardComponent implements OnInit {
   loadUsers(): void {
     this.userService.getUsers().subscribe({
       next: (users) => {
-        this.users = users; // populate the users array
+        this.users = users;
       },
       error: (err) => {
         console.error('Error fetching users:', err);
       },
     });
-  }
-
-  createUser(): void {
-    if (this.newUsername.trim() && this.newUserEmail.trim()) {
-      this.userService.addUser(this.newUsername, this.newUserEmail).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.createUserMessage = `User '${this.newUsername}' created successfully!`;
-            this.newUsername = '';
-            this.newUserEmail = '';
-            this.loadUsers(); // reload the user list after creating a new user
-          } else {
-            this.createUserMessage = `Error: ${response.message}`;
-          }
-        },
-        error: (err) => {
-          this.createUserMessage = `Failed to create user: ${err.message}`;
-        },
-      });
-    } else {
-      this.createUserMessage = 'Please provide both a username and email.';
-    }
   }
 
   deleteUser(userId: string): void {
@@ -132,7 +148,6 @@ export class DashboardComponent implements OnInit {
     ) {
       this.userService.deleteUser(userId).subscribe({
         next: () => {
-          // remove the user from the UI after successful deletion
           this.users = this.users.filter((user) => user.id !== userId);
           console.log('User deleted successfully');
         },

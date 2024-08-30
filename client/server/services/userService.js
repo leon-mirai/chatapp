@@ -3,6 +3,15 @@ const path = require("path");
 
 const usersPath = path.join(__dirname, "../data/users.json");
 
+const generateUserId = () => {
+  const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
 function readUsers() {
   try {
     const usersData = fs.readFileSync(usersPath, "utf-8");
@@ -24,4 +33,5 @@ function writeUsers(users) {
 module.exports = {
   readUsers,
   writeUsers,
+  generateUserId,
 };

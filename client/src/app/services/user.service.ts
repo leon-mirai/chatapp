@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { User } from '../models/user.model';
-import { IdService } from './id.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,116 +9,81 @@ import { IdService } from './id.service';
 export class UserService {
   private apiUrl = 'http://localhost:3000/api/users';
 
-  constructor(private http: HttpClient, private idService: IdService) {}
+  constructor(private http: HttpClient) {}
 
-  // fetch all users from the backend
+  // Fetch all users from the backend
   getUsers(): Observable<User[]> {
     console.log('Fetching users from the backend...');
     return this.http.get<User[]>(this.apiUrl);
   }
 
-  // fetch a specific user by ID from the backend
+  // Fetch a specific user by ID from the backend
   getUserById(userId: string): Observable<User> {
     console.log(`Fetching user with ID: ${userId}`);
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
-  // update a user on the backend
+  requestUserCreation(): Observable<any> {
+    console.log('Requesting new user account creation...');
+    const newUser = {
+      id: this.generateId(),  // Ensure ID is the first key
+      username: '',
+      email: '',
+      roles: ['ChatUser'],
+      groups: [],
+      password: '123',
+      valid: false,
+    };
+    return this.http.post(`${this.apiUrl}`, newUser);
+  }
+  
+  private generateId(): string {
+    return Math.random().toString(36).slice(2, 6).toUpperCase();
+  }
+  
+
+  addUserRequest(): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, {});
+  }
+
+  // SuperAdmin completes the registration process for a user
+  completeRegistration(userId: string, username: string, email: string): Observable<any> {
+    console.log(`Completing registration for user with ID: ${userId}`);
+    const updatedDetails = {
+      username,
+      email,
+      valid: true,
+    };
+    return this.http.put(`${this.apiUrl}/${userId}/complete-registration`, updatedDetails);
+  }
+
+  // Update a user on the backend
   updateUser(user: User): Observable<any> {
     console.log(`Updating user with ID: ${user.id}`);
     return this.http.put(`${this.apiUrl}/${user.id}`, user);
   }
 
-  // add a new user to the backend
-  addUser(username: string, email: string): Observable<any> {
-    console.log(`Attempting to add user: ${username}`);
-    return new Observable((observer) => {
-      this.getUsers().subscribe({
-        next: (users) => {
-          console.log('Users fetched:', users);
-          this.processUserCreation(users, username, email, observer);
-        },
-        error: (error) => {
-          this.handleError('Failed to fetch users', observer, error);
-        },
-      });
-    });
-  }
-
-  // process the user creation flow
-  private processUserCreation(
-    users: User[],
-    username: string,
-    email: string,
-    observer: any
-  ): void {
-    const existingUser = users.find((user) => user.username === username);
-    if (existingUser) {
-      console.log('Username already exists:', username);
-      this.sendError(observer, 'Username already exists');
-    } else {
-      const newUser = this.createNewUser(username, email);
-      console.log('Creating new user:', newUser);
-      this.http.post<User>(this.apiUrl, newUser).subscribe({
-        next: () => {
-          console.log('User added successfully:', newUser);
-          this.sendSuccess(observer, newUser);
-        },
-        error: (error) => {
-          this.handleError('Failed to add user', observer, error);
-        },
-      });
-    }
-  }
-
-  // create a new user object
-  private createNewUser(username: string, email: string): User {
-    return {
-      id: this.idService.generateId(username),
-      username,
-      email,
-      roles: ['ChatUser'],
-      groups: [],
-      password: '123',
-      valid: true,
-    };
-  }
-
-  // send success response to observer
-  private sendSuccess(observer: any, newUser: User): void {
-    console.log('Success response sent for user:', newUser);
-    observer.next({ success: true, user: newUser });
-    observer.complete();
-  }
-
-  // send error response to observer
-  private sendError(observer: any, message: string): void {
-    console.log('Error response sent:', message);
-    observer.next({ success: false, message });
-    observer.complete();
-  }
-
-  // handle errors during HTTP requests
-  private handleError(message: string, observer: any, error: any): void {
-    console.error(message, error);
-    observer.next({ success: false, message });
-    observer.complete();
-  }
-
+  // Self-delete user account
   selfDelete(userId: string): Observable<any> {
+    console.log(`Self-deleting user with ID: ${userId}`);
     return this.http.delete(`${this.apiUrl}/${userId}`);
   }
 
+  // Delete a user by SuperAdmin
   deleteUser(userId: string): Observable<any> {
+    console.log(`Deleting user with ID: ${userId} by SuperAdmin`);
     return this.http.delete(`${this.apiUrl}/${userId}/delete-user`);
   }
 
+  // Leave a group
   leaveGroup(userId: string, groupId: string): Observable<any> {
-    const url = `${this.apiUrl}/${userId}/groups/${groupId}/leave`;
-    return this.http.post(url, {}); // Send an empty body
+    console.log(`User with ID: ${userId} leaving group with ID: ${groupId}`);
+    return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`, {}); // Send an empty body
   }
 
+  // Promote a user to a new role (e.g., GroupAdmin or SuperAdmin)
   promoteUser(userId: string, newRole: string): Observable<any> {
+    console.log(`Promoting user with ID: ${userId} to role: ${newRole}`);
     return this.http.post(`${this.apiUrl}/${userId}/promote`, { newRole });
   }
 }

@@ -3,13 +3,13 @@ const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
 
 const route = (app) => {
-  // get all users
+  // Get all users
   app.get("/api/users", (req, res) => {
     const users = userService.readUsers();
     res.status(200).json(users);
   });
 
-  // get user by ID
+  // Get user by ID
   app.get("/api/users/:userId", (req, res) => {
     const userId = req.params.userId.trim();
     const users = userService.readUsers();
@@ -22,23 +22,65 @@ const route = (app) => {
     }
   });
 
-  // create a new user
+  // User requests account creation (initial request with minimal details)
   app.post("/api/users", (req, res) => {
-    const newUser = req.body;
+    const newUser = {
+      ...req.body,
+      id: userService.generateUserId(),
+      username: "",
+      email: "",
+      roles: ["ChatUser"],
+      groups: [],
+      password: "123",
+      valid: false, // invalid until registered
+    };
+
     const users = userService.readUsers();
-
-    // chec if username   exists
-    if (users.find((user) => user.username === newUser.username)) {
-      return res.status(400).json({ message: "Username already exists" });
-    }
-
-    // add the new user
     users.push(newUser);
     userService.writeUsers(users);
-    res.status(201).json(newUser);
+    res.status(201).json({ message: "Account request created", user: newUser });
   });
 
-  // udate a user
+  // SuperAdmin completes user registration
+  app.put("/api/users/:userId/complete-registration", (req, res) => {
+    const { userId } = req.params;
+    const { username, email } = req.body;
+    const users = userService.readUsers();
+    const userIndex = users.findIndex((user) => user.id === userId);
+
+    if (userIndex !== -1) {
+      // Check for existing username or email
+      const existingUser = users.find(
+        (user) =>
+          (user.username === username || user.email === email) &&
+          user.id !== userId
+      );
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ message: "Username or email already exists" });
+      }
+
+      // Complete registration and mark as valid
+      users[userIndex] = {
+        ...users[userIndex],
+        username,
+        email,
+        valid: true,
+      };
+      userService.writeUsers(users);
+      res
+        .status(200)
+        .json({
+          message: "User registration completed",
+          user: users[userIndex],
+        });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  });
+
+  // Update user details
   app.put("/api/users/:userId", (req, res) => {
     const userId = req.params.userId.trim();
     const updatedUser = req.body;
@@ -46,30 +88,28 @@ const route = (app) => {
     const userIndex = users.findIndex((user) => user.id === String(userId));
 
     if (userIndex !== -1) {
-      users[userIndex] = updatedUser;
+      users[userIndex] = { ...users[userIndex], ...updatedUser };
       userService.writeUsers(users);
-      res.status(200).json(updatedUser);
+      res.status(200).json(users[userIndex]);
     } else {
       res.status(404).json({ message: "User not found" });
     }
   });
 
-  // self-delete
+  // Self-delete a user account
   app.delete("/api/users/:userId", (req, res) => {
     try {
       const userId = req.params.userId.trim();
       let users = userService.readUsers();
 
-      // check if the user exists
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 1. remove the user from all groups
+      // Remove user from all groups and channels
       let groups = groupService.readGroups();
       groups = groups.map((group) => {
-        // remove user from group members and admins
         group.members = group.members.filter((memberId) => memberId !== userId);
         group.admins = group.admins.filter((adminId) => adminId !== userId);
         group.joinRequests = group.joinRequests.filter(
@@ -79,7 +119,6 @@ const route = (app) => {
       });
       groupService.writeGroups(groups);
 
-      // 2. remove the user from all channels
       let channels = channelService.readChannels();
       channels = channels.map((channel) => {
         channel.members = channel.members.filter(
@@ -89,7 +128,7 @@ const route = (app) => {
       });
       channelService.writeChannels(channels);
 
-      // 3. delete the user from the users array
+      // Delete the user from the users array
       users = users.filter((user) => user.id !== userId);
       userService.writeUsers(users);
 
@@ -101,29 +140,26 @@ const route = (app) => {
     }
   });
 
+  // Delete user (admin-initiated deletion)
   app.delete("/api/users/:userId/delete-user", (req, res) => {
-    // delete users 
     try {
       const { userId } = req.params;
       let users = userService.readUsers();
 
-      // check if the user exists
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 1. remove the user from all groups
+      // Remove user from all groups and channels
       let groups = groupService.readGroups();
       groups = groups.map((group) => {
-        // remove user from group members and admins
         group.members = group.members.filter((memberId) => memberId !== userId);
         group.admins = group.admins.filter((adminId) => adminId !== userId);
         return group;
       });
       groupService.writeGroups(groups);
 
-      // 2. remove the user from all channels
       let channels = channelService.readChannels();
       channels = channels.map((channel) => {
         channel.members = channel.members.filter(
@@ -133,7 +169,7 @@ const route = (app) => {
       });
       channelService.writeChannels(channels);
 
-      // 3. delete the user from the users array
+      // Delete the user from the users array
       users = users.filter((user) => user.id !== userId);
       userService.writeUsers(users);
 
@@ -145,39 +181,34 @@ const route = (app) => {
     }
   });
 
-  // leave a group
+  // Leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", (req, res) => {
     try {
       const userId = req.params.userId.trim();
       const groupId = req.params.groupId.trim();
 
-      // fetch users and groups
       let users = userService.readUsers();
       let groups = groupService.readGroups();
       let channels = channelService.readChannels();
 
-      // find the user
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      //find the group
       const group = groups.find((group) => group.id === groupId);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // remove the group from the user's groups array
+      // Remove group reference from user
       user.groups = user.groups.filter((group) => group !== groupId);
 
-      // remove the user from the group's members array
+      // Remove user from group members and admins
       group.members = group.members.filter((memberId) => memberId !== userId);
-
-      // if the user is an admin, remove them from the admins array
       group.admins = group.admins.filter((adminId) => adminId !== userId);
 
-      // update channels to remove the user from any channels in this group
+      // Update channels to remove the user from any channels in this group
       channels = channels.map((channel) => {
         if (channel.groupId === groupId) {
           channel.members = channel.members.filter(
@@ -187,23 +218,24 @@ const route = (app) => {
         return channel;
       });
 
-      // write updates back to the files
+      // Write updates back to the files
       userService.writeUsers(users);
       groupService.writeGroups(groups);
       channelService.writeChannels(channels);
 
-      res.status(200).json({
-        message: "Left the group and removed from channels successfully",
-      });
+      res
+        .status(200)
+        .json({
+          message: "Left the group and removed from channels successfully",
+        });
     } catch (error) {
-      res.status(500).json({
-        message: "Failed to leave group",
-        error: error.message,
-      });
+      res
+        .status(500)
+        .json({ message: "Failed to leave group", error: error.message });
     }
   });
 
-  // register interest in a group
+  // Register interest in a group
   app.post(
     "/api/users/:userId/groups/:groupId/register-interest",
     (req, res) => {
@@ -231,13 +263,12 @@ const route = (app) => {
     }
   );
 
-  // promote a user to GAdmin or SAdmin
+  // Promote a user to GroupAdmin or SuperAdmin
   app.post("/api/users/:userId/promote", (req, res) => {
     try {
       const { userId } = req.params;
-      const { newRole } = req.body; // "GroupAdmin" or "SuperAdmin"
+      const { newRole } = req.body;
 
-      // read all users
       let users = userService.readUsers();
       const user = users.find((user) => user.id === userId);
 
@@ -245,17 +276,17 @@ const route = (app) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // check if the user already has the role
+      // Check if the user already has the role
       if (user.roles.includes(newRole)) {
         return res
           .status(400)
           .json({ message: `User is already a ${newRole}` });
       }
 
-      // add the new role to the user's roles
+      // Add the new role to the user's roles
       user.roles.push(newRole);
 
-      // persist the updated user data
+      // Persist the updated user data
       userService.writeUsers(users);
 
       res

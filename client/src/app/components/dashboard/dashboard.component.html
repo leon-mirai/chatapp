@@ -5,9 +5,11 @@
     <h2 class="text-center">Welcome, {{ user?.username }}</h2>
   </div>
 
-  <!-- SuperAdmin or GroupAdmin View -->
+  <!-- GroupAdmin and SuperAdmin View -->
   <div *ngIf="isSuperAdmin() || isGroupAdmin()">
-    <h3 class="text-center">{{ isSuperAdmin() ? 'SuperAdmin Panel' : 'GroupAdmin Panel' }}</h3>
+    <h3 class="text-center">
+      {{ isSuperAdmin() ? "SuperAdmin Panel" : "GroupAdmin Panel" }}
+    </h3>
 
     <div class="card my-4">
       <div class="card-header text-center">
@@ -15,9 +17,15 @@
       </div>
       <div class="card-body">
         <div class="input-group">
-          <input [(ngModel)]="newGroupName" class="form-control" placeholder="Enter group name" />
+          <input
+            [(ngModel)]="newGroupName"
+            class="form-control"
+            placeholder="Enter group name"
+          />
           <div class="input-group-append">
-            <button class="btn btn-primary" (click)="createGroup()">Create Group</button>
+            <button class="btn btn-primary" (click)="createGroup()">
+              Create Group
+            </button>
           </div>
         </div>
       </div>
@@ -35,8 +43,15 @@
           >
             {{ group.name }}
             <div>
-              <a [routerLink]="['/groups', group.id]" class="btn btn-link">Manage group</a>
-              <button (click)="deleteGroup(group.id)" class="btn btn-danger btn-sm">Delete Group</button>
+              <a [routerLink]="['/groups', group.id]" class="btn btn-link">
+                Manage group
+              </a>
+              <button
+                (click)="deleteGroup(group.id)"
+                class="btn btn-danger btn-sm"
+              >
+                Delete Group
+              </button>
             </div>
           </li>
         </ul>
@@ -45,18 +60,41 @@
 
     <!-- SuperAdmin Specific Section -->
     <div *ngIf="isSuperAdmin()">
+      <!-- Pending Account Requests -->
       <div class="card my-4">
         <div class="card-header text-center">
-          <h2>Create a New User</h2>
+          <h2>Pending Account Requests</h2>
         </div>
         <div class="card-body">
-          <input [(ngModel)]="newUsername" class="form-control mb-2" placeholder="Enter username" />
-          <input [(ngModel)]="newUserEmail" class="form-control mb-2" placeholder="Enter email" />
-          <button class="btn btn-primary" (click)="createUser()">Create User</button>
-          <p *ngIf="createUserMessage" class="mt-2">{{ createUserMessage }}</p>
+          <ul class="list-group">
+            <li
+              *ngFor="let pendingUser of pendingUsers"
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <input
+                  [(ngModel)]="pendingUser.username"
+                  placeholder="Assign username"
+                  class="form-control mb-2"
+                />
+                <input
+                  [(ngModel)]="pendingUser.email"
+                  placeholder="Assign email"
+                  class="form-control mb-2"
+                />
+              </div>
+              <button
+                (click)="completeRegistration(pendingUser)"
+                class="btn btn-success btn-sm"
+              >
+                Complete Registration
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
 
+      <!-- Manage Users -->
       <div class="card my-4">
         <div class="card-header text-center">
           <h2>Manage Users</h2>
@@ -68,24 +106,38 @@
               class="list-group-item d-flex justify-content-between align-items-center"
             >
               {{ user.username }} ({{ user.email }})
-              <button (click)="deleteUser(user.id)" class="btn btn-danger btn-sm">Delete User</button>
+              <button
+                (click)="deleteUser(user.id)"
+                class="btn btn-danger btn-sm"
+              >
+                Delete User
+              </button>
             </li>
           </ul>
         </div>
       </div>
 
+      <!-- Promote User -->
       <div class="card my-4">
         <div class="card-header text-center">
           <h2>Promote User</h2>
         </div>
         <div class="card-body">
-          <input [(ngModel)]="promotionUserId" class="form-control mb-2" placeholder="Enter User ID" />
+          <input
+            [(ngModel)]="promotionUserId"
+            class="form-control mb-2"
+            placeholder="Enter User ID"
+          />
           <select [(ngModel)]="promotionRole" class="form-control mb-2">
             <option value="GroupAdmin">Promote to GroupAdmin</option>
             <option value="SuperAdmin">Promote to SuperAdmin</option>
           </select>
-          <button class="btn btn-primary" (click)="promoteUser()">Promote User</button>
-          <p *ngIf="promotionMessage" class="mt-2">{{ promotionMessage }}</p>
+          <button class="btn btn-primary" (click)="promoteUser()">
+            Promote User
+          </button>
+          <p *ngIf="promotionMessage" class="mt-2">
+            {{ promotionMessage }}
+          </p>
         </div>
       </div>
     </div>
@@ -98,11 +150,21 @@
     </div>
     <div class="card-body">
       <ul class="list-group">
-        <li *ngFor="let group of groups" class="list-group-item d-flex justify-content-between align-items-center">
+        <li
+          *ngFor="let group of groups"
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
           {{ group.name }}
           <div>
-            <a [routerLink]="['/groups', group.id]" class="btn btn-link">View Group</a>
-            <button (click)="leaveGroup(group.id)" class="btn btn-warning btn-sm">Leave Group</button>
+            <a [routerLink]="['/groups', group.id]" class="btn btn-link">
+              View Group
+            </a>
+            <button
+              (click)="leaveGroup(group.id)"
+              class="btn btn-warning btn-sm"
+            >
+              Leave Group
+            </button>
           </div>
         </li>
       </ul>
@@ -115,10 +177,21 @@
       <h2>Available Groups</h2>
     </div>
     <div class="card-body">
-      <ul class="list-group" *ngIf="availableGroups && availableGroups.length > 0; else noGroupsAvailable">
-        <li *ngFor="let group of availableGroups" class="list-group-item d-flex justify-content-between align-items-center">
+      <ul
+        class="list-group"
+        *ngIf="availableGroups && availableGroups.length > 0; else noGroupsAvailable"
+      >
+        <li
+          *ngFor="let group of availableGroups"
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
           {{ group.name }}
-          <button (click)="requestToJoin(group.id)" class="btn btn-primary btn-sm">Request to Join</button>
+          <button
+            (click)="requestToJoin(group.id)"
+            class="btn btn-primary btn-sm"
+          >
+            Request to Join
+          </button>
         </li>
       </ul>
       <ng-template #noGroupsAvailable>

@@ -1,4 +1,3 @@
-// routes/api-login
 const users = require("../data/users");
 
 const route = (app) => {
@@ -17,8 +16,6 @@ const route = (app) => {
             email: user.email,
             roles: user.roles,
             groups: user.groups,
-            password: user.password,
-            valid: user.valid,
           },
         });
       } else {
