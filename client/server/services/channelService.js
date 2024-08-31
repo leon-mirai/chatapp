@@ -58,7 +58,7 @@ function joinChannel(channelId, userId) {
   if (!channel.members.includes(userId)) {
     channel.members.push(userId);
     writeChannels(channels);
-    console.log(`User ${userId} successfully joined channel ${channelId}`); // log the success
+    console.log(`User ${userId} successfully joined channel ${channelId}`); 
     return { message: "User joined the channel successfully" };
   } else {
     console.log(`User ${userId} is already a member of channel ${channelId}`);

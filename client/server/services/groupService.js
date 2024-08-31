@@ -22,21 +22,21 @@ function writeGroups(groups) {
 }
 
 function checkGroupAdmin(req, res, next) {
-  const userId = req.user.id;  // Assuming req.user contains the authenticated user's data
-  const groupId = req.params.groupId;  // Assuming the groupId is passed in the request parameters
+  const userId = req.user.id;  // assuming req.user contains the authenticated user's data
+  const groupId = req.params.groupId;  // assuming the groupId is passed in the request parameters
 
-  // Fetch the group from the database
+  // fetch the group from the database
   Group.findById(groupId, (err, group) => {
     if (err || !group) {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // Check if the user is an admin of the group
+    // check if the user is an admin of the group
     if (!group.admins.includes(userId)) {
       return res.status(403).json({ message: "You are not authorized to manage this group" });
     }
 
-    // User is authorized, proceed to the next middleware or route handler
+    // user is authorized, go to the next middleware or route handler
     next();
   });
 }

@@ -11,10 +11,10 @@ const route = (app) => {
 
   // get all groups for the specific user
   app.get("/api/groups", (req, res) => {
-    const userId = req.query.userId; // Get the userId from the query parameter
-    const groups = groupService.readGroups(); // Read all groups
-    const userGroups = groups.filter((group) => group.members.includes(userId)); // Filter groups by membership
-    res.status(200).json(userGroups); // Return the filtered groups
+    const userId = req.query.userId; // get the userId from the query parameter
+    const groups = groupService.readGroups(); // read all groups
+    const userGroups = groups.filter((group) => group.members.includes(userId)); // filter groups by membership
+    res.status(200).json(userGroups); // return the filtered groups
   });
 
   // get a group by ID
@@ -242,7 +242,7 @@ const route = (app) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // Check if the user is already a member
+    // check if the user is already a member
     if (group.members.includes(userId)) {
       return res
         .status(400)
@@ -256,14 +256,14 @@ const route = (app) => {
         .json({ message: "User has already requested to join the group" });
     }
 
-    // Add user to join requests
+    // add user to join requests
     group.joinRequests.push(userId);
     groupService.writeGroups(groups);
 
     res.status(200).json({ message: "Join request sent successfully" });
   });
 
-  // Approve a join request
+  // approve a join request
   app.post("/api/groups/:groupId/approve-join", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -274,14 +274,14 @@ const route = (app) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // Check if the user is in join requests
+    // check if the user is in join requests
     if (!group.joinRequests.includes(userId)) {
       return res
         .status(400)
         .json({ message: "User did not request to join the group" });
     }
 
-    // Add user to members and remove from join requests
+    // add user to members and remove from join requests
     group.members.push(userId);
     group.joinRequests = group.joinRequests.filter((id) => id !== userId);
     groupService.writeGroups(groups);
@@ -289,7 +289,7 @@ const route = (app) => {
     res.status(200).json({ message: "User approved to join the group" });
   });
 
-  // Reject a join request
+  // reject a join request
   app.post("/api/groups/:groupId/reject-join", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -300,14 +300,14 @@ const route = (app) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // Check if the user is in join requests
+    // check if the user is in join requests
     if (!group.joinRequests.includes(userId)) {
       return res
         .status(400)
         .json({ message: "User did not request to join the group" });
     }
 
-    // Remove user from join requests
+    // remove user from join requests
     group.joinRequests = group.joinRequests.filter((id) => id !== userId);
     groupService.writeGroups(groups);
 

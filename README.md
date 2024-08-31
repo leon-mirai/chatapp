@@ -156,14 +156,115 @@ For Phase 2, the user's data is stored used mongoDB.
     - `401: { message: "Invalid username or password" } or { message: "User account is not valid" }`
   - **Description:** Authenticates a user based on the provided email and password.
 
-### Channels
+### Users Routes
+
+- **GET /api/users**
+
+  - **Return Values:**
+    - `200: Returns a list of all users`
+  - **Description:** Retrieves all users from the system.
+
+- **GET /api/users/:userId**
+
+  - **Parameters:** `userId` in the URL
+  - **Return Values:**
+    - `200: Returns the user with the specified ID`
+    - `404: { message: "User not found" }`
+  - **Description:** Retrieves a user by their ID.
+
+- **POST /api/users**
+
+  - **Body:**
+    - `username` (optional, string)
+    - `email` (optional, string)
+    - `password` (optional, string)
+    - Additional properties as required
+  - **Return Values:**
+    - `201: { message: "Account request created", user: newUser }`
+  - **Description:** Creates a new user account request with minimal details. The account is not valid until registered.
+
+- **PUT /api/users/:userId/complete-registration**
+
+  - **Parameters:** `userId` in the URL
+  - **Body:**
+    - `username` (required, string)
+    - `email` (required, string)
+  - **Return Values:**
+    - `200: { message: "User registration completed", user: updatedUser }`
+    - `400: { message: "Username or email already exists" }`
+    - `404: { message: "User not found" }`
+  - **Description:** Completes the registration process for a user by assigning a username and email.
+
+- **PUT /api/users/:userId**
+
+  - **Parameters:** `userId` in the URL
+  - **Body:** JSON object with updated user details
+  - **Return Values:**
+    - `200: Returns the updated user`
+    - `404: { message: "User not found" }`
+  - **Description:** Updates the details of an existing user.
+
+- **DELETE /api/users/:userId**
+
+  - **Parameters:** `userId` in the URL
+  - **Return Values:**
+    - `200: { message: "User deleted successfully" }`
+    - `404: { message: "User not found" }`
+    - `500: { message: "Failed to delete user", error: error.message }`
+  - **Description:** Allows a user to self-delete their account. The user is removed from all groups and channels before deletion.
+
+- **DELETE /api/users/:userId/delete-user**
+
+  - **Parameters:** `userId` in the URL
+  - **Return Values:**
+    - `200: { message: "User deleted successfully" }`
+    - `404: { message: "User not found" }`
+    - `500: { message: "Failed to delete user", error: error.message }`
+  - **Description:** Allows an admin to delete a user account. The user is removed from all groups and channels before deletion.
+
+- **POST /api/users/:userId/groups/:groupId/leave**
+
+  - **Parameters:**
+    - `userId` in the URL
+    - `groupId` in the URL
+  - **Return Values:**
+    - `200: { message: "Left the group and removed from channels successfully" }`
+    - `404: { message: "User not found" }`
+    - `404: { message: "Group not found" }`
+    - `500: { message: "Failed to leave group", error: error.message }`
+  - **Description:** Allows a user to leave a group. The user is also removed from any channels within the group.
+
+- **POST /api/users/:userId/groups/:groupId/register-interest**
+
+  - **Parameters:**
+    - `userId` in the URL
+    - `groupId` in the URL
+  - **Return Values:**
+    - `200: { message: "Interest registered successfully" }`
+    - `400: { message: "Already registered interest in this group" }`
+    - `404: { message: "User not found" }`
+  - **Description:** Registers a user's interest in joining a group.
+
+- **POST /api/users/:userId/promote**
+
+  - **Parameters:** `userId` in the URL
+  - **Body:**
+    - `newRole` (required, string) - The new role to assign to the user (e.g., `GroupAdmin`, `SuperAdmin`)
+  - **Return Values:**
+    - `200: { message: "User promoted to {newRole} successfully" }`
+    - `400: { message: "User is already a {newRole}" }`
+    - `404: { message: "User not found" }`
+    - `500: { message: "An error occurred while promoting the user" }`
+  - **Description:** Promotes a user to `GroupAdmin` or `SuperAdmin`.
+
+### Channels Routes
 
 - **GET /api/channels**
 
   - **Return Values:**
     - `200: Returns a list of all channels`
     - `500: { message: "Failed to retrieve channels", error }`
-  - **Description:** Retrieves all available channels.
+  - **Description:** Retrieves all available channels from the system.
 
 - **GET /api/channels/group/:groupId**
 
@@ -177,27 +278,33 @@ For Phase 2, the user's data is stored used mongoDB.
 
   - **Parameters:** `channelId` in the URL
   - **Return Values:**
-    - `200: Returns the details of the specified channel`
+    - `200: Returns the channel with the specified ID`
     - `404: { message: "Channel not found" }`
     - `500: { message: "Failed to retrieve channel", error }`
-  - **Description:** Retrieves details of a specific channel by ID.
+  - **Description:** Retrieves a channel by its ID.
 
 - **POST /api/channels**
 
-  - **Parameters:** New channel data in the request body
+  - **Body:**
+    - `id` (required, string) - Channel's unique identifier
+    - `name` (required, string) - Name of the channel
+    - `groupId` (required, string) - ID of the group to which the channel belongs
+    - `members` (optional, array) - Initial members of the channel
+    - `blacklist` (optional, array) - List of banned user IDs
   - **Return Values:**
-    - `201: Returns the newly created channel`
+    - `201: { message: "Channel created successfully", channel: newChannel }`
     - `500: { message: "Failed to create channel", error }`
-  - **Description:** Creates a new channel in the system.
+  - **Description:** Creates a new channel and associates it with a group.
 
 - **PUT /api/channels/:channelId**
 
-  - **Parameters:** `channelId` in the URL, updated channel data in the request body
+  - **Parameters:** `channelId` in the URL
+  - **Body:** JSON object with updated channel details
   - **Return Values:**
     - `200: Returns the updated channel`
     - `404: { message: "Channel not found" }`
     - `500: { message: "Failed to update channel", error }`
-  - **Description:** Updates the details of an existing channel.
+  - **Description:** Updates the details of an existing channel by its ID.
 
 - **DELETE /api/channels/:channelId**
 
@@ -210,23 +317,32 @@ For Phase 2, the user's data is stored used mongoDB.
 
 - **POST /api/channels/:channelId/join**
 
-  - **Parameters:** `channelId` in the URL, `{ userId: string }` in the request body
+  - **Parameters:** `channelId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user joining the channel
   - **Return Values:**
-    - `200: Confirmation of joining the channel`
+    - `200: { message: "User joined the channel successfully" }`
+    - `400: { message: "User is already a member of the channel" }`
+    - `404: { message: "Channel not found" }`
     - `500: { message: "Failed to join the channel", error: error.message }`
-  - **Description:** Adds a user to the specified channel.
+  - **Description:** Adds a user to the specified channel if they are a member of the group associated with the channel.
 
 - **DELETE /api/channels/:channelId/members/:userId**
 
-  - **Parameters:** `channelId` and `userId` in the URL
+  - **Parameters:**
+    - `channelId` in the URL
+    - `userId` in the URL
   - **Return Values:**
-    - `200: Confirmation of user removal`
+    - `200: { message: "User removed from channel successfully" }`
+    - `404: { message: "Channel not found" }`
     - `500: { message: "Failed to remove user from channel", error }`
-  - **Description:** Removes a user from a specific channel.
+  - **Description:** Removes a user from the specified channel.
 
 - **POST /api/channels/:channelId/ban**
 
-  - **Parameters:** `channelId` in the URL, `{ userId: string }` in the request body
+  - **Parameters:** `channelId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user to be banned
   - **Return Values:**
     - `200: { message: "User banned successfully" }`
     - `400: { message: "User is already banned from this channel" }`
@@ -234,114 +350,164 @@ For Phase 2, the user's data is stored used mongoDB.
   - **Description:** Bans a user from a specific channel.
 
 - **GET /api/channels/:channelId/members/:userId**
-  - **Parameters:** `channelId` and `userId` in the URL
+
+  - **Parameters:**
+    - `channelId` in the URL
+    - `userId` in the URL
   - **Return Values:**
-    - `200: { isMember: boolean }`
+    - `200: { isMember: true }` or `200: { isMember: false }`
     - `500: { message: "Failed to check if user is in channel", error }`
   - **Description:** Checks if a user is a member of a specific channel.
 
-### Groups
+### Groups Routes
 
-**GET /api/groups**
+- **GET /api/groups**
 
-- **Return Values:**
-  - `200: Returns a list of all groups`
-- **Description:** Retrieves all available groups.
+  - **Return Values:**
+    - `200: Returns a list of all groups`
+  - **Description:** Retrieves all groups in the system.
 
-**GET /api/groups/:groupId**
+- **GET /api/groups?userId=:userId**
 
-- **Parameters:** `groupId` in the URL
-- **Return Values:**
-  - `200: Returns the details of the specified group`
-  - `404: { message: "Group not found" }`
-- **Description:** Retrieves details of a specific group by ID.
+  - **Parameters:** `userId` in the query string
+  - **Return Values:**
+    - `200: Returns a list of groups that the user is a member of`
+  - **Description:** Retrieves all groups that a specific user is a member of.
 
-**POST /api/groups**
+- **GET /api/groups/:groupId**
 
-- **Parameters:** New group data in the request body
-- **Return Values:**
-  - `201: Returns the newly created group`
-  - `500: { message: "Failed to create group", error }`
-- **Description:** Creates a new group in the system.
+  - **Parameters:** `groupId` in the URL
+  - **Return Values:**
+    - `200: Returns the group with the specified ID`
+    - `404: { message: "Group not found" }`
+  - **Description:** Retrieves a specific group by its ID.
 
-**PUT /api/groups/:groupId**
+- **POST /api/groups**
 
-- **Parameters:** `groupId` in the URL, updated group data in the request body
-- **Return Values:**
-  - `200: Returns the updated group`
-  - `404: { message: "Group not found" }`
-  - `500: { message: "Failed to update group", error }`
-- **Description:** Updates the details of an existing group.
+  - **Body:**
+    - `id` (required, string) - Group's unique identifier
+    - `name` (required, string) - Name of the group
+    - `admins` (optional, array) - Initial admins of the group
+    - `members` (optional, array) - Initial members of the group
+    - `joinRequests` (optional, array) - List of pending join requests
+  - **Return Values:**
+    - `201: Returns the newly created group`
+  - **Description:** Creates a new group.
 
-**DELETE /api/groups/:groupId**
+- **PUT /api/groups/:groupId**
 
-- **Parameters:** `groupId` in the URL
-- **Return Values:**
-  - `200: { message: "Group deleted successfully" }`
-  - `404: { message: "Group not found" }`
-  - `500: { message: "Failed to delete group", error }`
-- **Description:** Deletes a group by its ID.
+  - **Parameters:** `groupId` in the URL
+  - **Body:** JSON object with updated group details
+  - **Return Values:**
+    - `200: Returns the updated group`
+    - `404: { message: "Group not found" }`
+  - **Description:** Updates the details of an existing group.
 
-**POST /api/groups/:groupId/members**
+- **DELETE /api/groups/:groupId**
 
-- **Parameters:** `groupId` in the URL, `{ userId: string }` in the request body
-- **Return Values:**
-  - `200: { message: "Member added successfully" }`
-  - `404: { message: "Group not found" }`
-  - `400: { message: "User is already a member of the group" }`
-- **Description:** Adds a user as a member of the specified group.
+  - **Parameters:** `groupId` in the URL
+  - **Return Values:**
+    - `200: { message: "Group deleted successfully" }`
+    - `404: { message: "Group not found" }`
+    - `500: { message: "Failed to delete group", error: error.message }`
+  - **Description:** Deletes a group by its ID, removes the group from all users, and deletes all associated channels.
 
-**DELETE /api/groups/:groupId/members/:userId**
+- **POST /api/groups/:groupId/members**
 
-- **Parameters:** `groupId` and `userId` in the URL
-- **Return Values:**
-  - `200: { message: "Member removed successfully" }`
-  - `404: { message: "Group not found" }`
-- **Description:** Removes a user from a specific group.
+  - **Parameters:** `groupId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user to add as a member
+  - **Return Values:**
+    - `200: { message: "Member added successfully" }`
+    - `400: { message: "User is already a member of the group" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Adds a member to the group.
 
-**POST /api/groups/:groupId/admins**
+- **DELETE /api/groups/:groupId/members/:userId**
 
-- **Parameters:** `groupId` in the URL, `{ userId: string }` in the request body
-- **Return Values:**
-  - `200: { message: "Admin added successfully and user promoted to GroupAdmin role" }`
-  - `404: { message: "Group not found" }`
-  - `400: { message: "User is already an admin of the group" }`
-- **Description:** Promotes a user to GroupAdmin in the specified group.
+  - **Parameters:**
+    - `groupId` in the URL
+    - `userId` in the URL
+  - **Return Values:**
+    - `200: { message: "Member removed successfully" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Removes a member from the group.
 
-**DELETE /api/groups/:groupId/admins/:userId**
+- **POST /api/groups/:groupId/admins**
 
-- **Parameters:** `groupId` and `userId` in the URL
-- **Return Values:**
-  - `200: { message: "Admin removed successfully" }`
-  - `404: { message: "Group not found" }`
-- **Description:** Removes a user from the admin list of a specific group.
+  - **Parameters:** `groupId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user to promote to admin
+  - **Return Values:**
+    - `200: { message: "Admin added successfully and user promoted to GroupAdmin role" }`
+    - `400: { message: "User is already an admin of the group" }`
+    - `404: { message: "Group not found" }`
+    - `404: { message: "User not found" }`
+  - **Description:** Adds an admin to the group and updates the user's role to `GroupAdmin`.
 
-**POST /api/groups/:groupId/request-join**
+- **DELETE /api/groups/:groupId/admins/:userId**
 
-- **Parameters:** `groupId` in the URL, `{ userId: string }` in the request body
-- **Return Values:**
-  - `200: { message: "Join request sent successfully" }`
-  - `404: { message: "Group not found" }`
-  - `400: { message: "User is already a member of the group" } or { message: "User has already requested to join the group" }`
-- **Description:** Allows a user to request to join a group.
+  - **Parameters:**
+    - `groupId` in the URL
+    - `userId` in the URL
+  - **Return Values:**
+    - `200: { message: "Admin removed successfully" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Removes an admin from the group.
 
-**POST /api/groups/:groupId/approve-join**
+- **GET /api/groups/:groupId/members/:userId**
 
-- **Parameters:** `groupId` in the URL, `{ userId: string }` in the request body
-- **Return Values:**
-  - `200: { message: "User approved to join the group" }`
-  - `404: { message: "Group not found" }`
-  - `400: { message: "User did not request to join the group" }`
-- **Description:** Approves a user's request to join a group.
+  - **Parameters:**
+    - `groupId` in the URL
+    - `userId` in the URL
+  - **Return Values:**
+    - `200: { isMember: true }` or `200: { isMember: false }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Checks if a user is a member of a specific group.
 
-**POST /api/groups/:groupId/reject-join**
+- **GET /api/groups/:groupId/admins/:userId**
 
-- **Parameters:** `groupId` in the URL, `{ userId: string }` in the request body
-- **Return Values:**
-  - `200: { message: "User's join request rejected" }`
-  - `404: { message: "Group not found" }`
-  - `400: { message: "User did not request to join the group" }`
-- **Description:** Rejects a user's request to join a group.
+  - **Parameters:**
+    - `groupId` in the URL
+    - `userId` in the URL
+  - **Return Values:**
+    - `200: { isAdmin: true }` or `200: { isAdmin: false }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Checks if a user is an admin of a specific group.
+
+- **POST /api/groups/:groupId/request-join**
+
+  - **Parameters:** `groupId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user requesting to join
+  - **Return Values:**
+    - `200: { message: "Join request sent successfully" }`
+    - `400: { message: "User is already a member of the group" }`
+    - `400: { message: "User has already requested to join the group" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Sends a join request for a user to join a specific group.
+
+- **POST /api/groups/:groupId/approve-join**
+
+  - **Parameters:** `groupId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user whose request is being approved
+  - **Return Values:**
+    - `200: { message: "User approved to join the group" }`
+    - `400: { message: "User did not request to join the group" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Approves a user's request to join a specific group.
+
+- **POST /api/groups/:groupId/reject-join**
+
+  - **Parameters:** `groupId` in the URL
+  - **Body:**
+    - `userId` (required, string) - ID of the user whose request is being rejected
+  - **Return Values:**
+    - `200: { message: "User's join request rejected" }`
+    - `400: { message: "User did not request to join the group" }`
+    - `404: { message: "Group not found" }`
+  - **Description:** Rejects a user's request to join a specific group.
 
 ## Angular Architecture
 
@@ -356,6 +522,9 @@ Components represent the building blocks of the user interface (UI). They are re
 - **group**: Shows the group name, members, channels, and actions to create channels, add/remove members, or accept/reject requests (for SuperAdmin/GroupAdmin).
 - **dashboard**: Displays available groups based on the user's role. It provides options to request joining groups, manage accounts, logout, and leave groups (for ChatUsers) or create/manage groups (for GroupAdmin).
 
+Also, the lifecycle hook ngOnInit is used to initialise data by fetching them from the backend. Additionally, CommonModules and FormModules were used to manage
+states and views by using *ngIf and *ngForOf.
+
 ### Services
 
 Services are reusable classes that encapsulate application logic and data access. They are injected into components to provide functionalities. Here are some core services:
@@ -365,7 +534,7 @@ Services are reusable classes that encapsulate application logic and data access
 - **ChannelService**: Handles channel-related actions like creating, managing, and retrieving channels.
 - **UserService**: Handles user-related actions like creating, updating, and retrieving user information.
 - **IdService**: Generates unique IDs for entities.
-- **AuthGuard**: Protects routes from unauthorised users by checking if a valid user is logged in.
+- **AuthGuard**: Protects routes from unauthorised users by checking if a valid user is logged in. This works by implementing AuthGuard onto specific routes.
 
 ### Models
 

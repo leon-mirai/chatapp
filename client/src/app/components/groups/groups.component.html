@@ -5,7 +5,7 @@
     </div>
   </div>
 
-  <!-- Members Section -->
+  <!-- meber section -->
   <div class="row mt-4">
     <div class="col-md-6">
       <div class="card">
@@ -19,7 +19,7 @@
             </li>
           </ul>
 
-          <!-- Add Members (Only for SuperAdmin and GroupAdmin who is an admin of the group) -->
+          <!-- addm embers (only for SuperAdmin and GroupAdmin who isn admin of the group) -->
           <div *ngIf="isGroupAdmin(group)" class="mt-3">
             <div class="input-group">
               <input
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <!-- Join Requests Section -->
+    <!-- join requests -->
     <div *ngIf="isGroupAdmin(group) && hasJoinRequests()" class="col-md-6">
       <div class="card">
         <div class="card-header">
@@ -75,7 +75,7 @@
             </li>
           </ul>
 
-          <!-- Create Channels (Only for SuperAdmin and GroupAdmin who is an admin of the group) -->
+          <!-- create channels (only for SuperAdmin and GroupAdmin who an admin of the group) -->
           <div *ngIf="isGroupAdmin(group)" class="mt-3">
             <div class="input-group">
               <input

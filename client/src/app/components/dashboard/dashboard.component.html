@@ -8,7 +8,7 @@
     </p>
   </div>
 
-  <!-- GroupAdmin and SuperAdmin View -->
+  <!-- group/superadmin view -->
   <div *ngIf="isSuperAdmin() || isGroupAdmin()">
     <h3 class="text-center">
       {{ isSuperAdmin() ? "SuperAdmin Panel" : "GroupAdmin Panel" }}
@@ -66,9 +66,9 @@
       </div>
     </div>
 
-    <!-- SuperAdmin Specific Section -->
+    <!-- superadmin only section -->
     <div *ngIf="isSuperAdmin()">
-      <!-- Pending Account Requests -->
+      <!-- pending requests-->
       <div class="card my-4">
         <div class="card-header text-center">
           <h2>Pending Account Requests</h2>
@@ -102,7 +102,7 @@
         </div>
       </div>
 
-      <!-- Manage Users -->
+      <!-- user management -->
       <div class="card my-4">
         <div class="card-header text-center">
           <h2>Manage Users</h2>
@@ -125,7 +125,7 @@
         </div>
       </div>
 
-      <!-- Promote User -->
+      <!-- promot user -->
       <div class="card my-4">
         <div class="card-header text-center">
           <h2>Promote User</h2>
@@ -151,7 +151,7 @@
     </div>
   </div>
 
-  <!-- ChatUser View -->
+  <!-- chatuser View -->
   <div *ngIf="isChatUser() && !isSuperAdmin() && !isGroupAdmin()" class="card my-4">
     <div class="card-header text-center">
       <h2>Your Groups</h2>
@@ -179,7 +179,7 @@
     </div>
   </div>
 
-  <!-- Available Groups Section -->
+  <!-- avaiable groupss -->
   <div class="card my-4">
     <div class="card-header text-center">
       <h2>Available Groups</h2>
@@ -208,7 +208,7 @@
     </div>
   </div>
 
-  <!-- Logout and Self-Delete Buttons -->
+  <!-- logout delete own account -->
   <div class="text-center mt-4">
     <button class="btn btn-secondary" (click)="logout()">Logout</button>
     <button class="btn btn-danger ml-2" (click)="selfDelete()">Delete My Account</button>

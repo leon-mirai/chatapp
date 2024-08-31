@@ -85,7 +85,7 @@
   },
   {
     "id": "6666",
-    "username": "superadmin1",
+    "username": "super",
     "email": "superadmin1@gmail.com",
     "roles": [
       "SuperAdmin"

@@ -11,13 +11,13 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  // Fetch all users from the backend
+  // fetch all users from the backend
   getUsers(): Observable<User[]> {
     console.log('Fetching users from the backend...');
     return this.http.get<User[]>(this.apiUrl);
   }
 
-  // Fetch a specific user by ID from the backend
+  // fetch a specific user by ID from the backend
   getUserById(userId: string): Observable<User> {
     console.log(`Fetching user with ID: ${userId}`);
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
@@ -26,7 +26,7 @@ export class UserService {
   requestUserCreation(): Observable<any> {
     console.log('Requesting new user account creation...');
     const newUser = {
-      id: this.generateId(),  // Ensure ID is the first key
+      id: this.generateId(),  
       username: '',
       email: '',
       roles: ['ChatUser'],
@@ -57,31 +57,31 @@ export class UserService {
     return this.http.put(`${this.apiUrl}/${userId}/complete-registration`, updatedDetails);
   }
 
-  // Update a user on the backend
+  // update a user on the backend
   updateUser(user: User): Observable<any> {
     console.log(`Updating user with ID: ${user.id}`);
     return this.http.put(`${this.apiUrl}/${user.id}`, user);
   }
 
-  // Self-delete user account
+  // seslf-delete user account
   selfDelete(userId: string): Observable<any> {
     console.log(`Self-deleting user with ID: ${userId}`);
     return this.http.delete(`${this.apiUrl}/${userId}`);
   }
 
-  // Delete a user by SuperAdmin
+  // delete a user by SuperAdmin
   deleteUser(userId: string): Observable<any> {
     console.log(`Deleting user with ID: ${userId} by SuperAdmin`);
     return this.http.delete(`${this.apiUrl}/${userId}/delete-user`);
   }
 
-  // Leave a group
+  // leave a group
   leaveGroup(userId: string, groupId: string): Observable<any> {
     console.log(`User with ID: ${userId} leaving group with ID: ${groupId}`);
     return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`, {}); // Send an empty body
   }
 
-  // Promote a user to a new role (e.g., GroupAdmin or SuperAdmin)
+  // promote a user to a new role (e.g., GroupAdmin or SuperAdmin)
   promoteUser(userId: string, newRole: string): Observable<any> {
     console.log(`Promoting user with ID: ${userId} to role: ${newRole}`);
     return this.http.post(`${this.apiUrl}/${userId}/promote`, { newRole });
