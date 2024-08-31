@@ -29,25 +29,25 @@ export class ChannelsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('Component initialized'); 
+    console.log('Component initialized');
     const userData = localStorage.getItem('user');
     if (userData) {
       this.user = JSON.parse(userData);
-      console.log('User data loaded:', this.user); 
+      console.log('User data loaded:', this.user);
     }
 
     const channelId = this.route.snapshot.params['id'];
     if (channelId && this.user) {
-      console.log('Fetching channel with ID:', channelId); 
+      console.log('Fetching channel with ID:', channelId);
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
-          console.log('Channel data loaded:', this.channel); 
+          console.log('Channel data loaded:', this.channel);
 
           // check if the user is blacklisted
           if (this.channel.blacklist.includes(this.user!.id)) {
-            console.warn('User is banned from this channel'); 
-            this.router.navigate(['/dashboard']); 
+            console.warn('User is banned from this channel');
+            this.router.navigate(['/dashboard']);
           } else {
             // check if the user is a member of the group
             this.groupService
@@ -142,7 +142,19 @@ export class ChannelsComponent implements OnInit {
   }
 
   isGroupAdmin(): boolean {
-    return this.authService.isGroupAdmin();
+    if (!this.channel || !this.user) {
+      return false;
+    }
+
+    let isAdmin = false;
+
+    this.groupService.getGroupById(this.channel.groupId).subscribe({
+      next: (group) => {
+        isAdmin = group.admins.includes(this.user!.id);
+      },
+    });
+
+    return isAdmin;
   }
 
   isChatUser(): boolean {

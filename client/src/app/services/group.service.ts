@@ -58,5 +58,12 @@ export class GroupService {
     const url = `${this.apiUrl}/${groupId}/members`;
     return this.http.post(url, { userId });
   }
+
+  isUserAdminOfGroup(groupId: string, userId: string): Observable<boolean> {
+    return this.getGroupById(groupId).pipe(
+      map(group => group.admins.includes(userId))
+    );
+  }
+  
   
 }

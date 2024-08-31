@@ -140,9 +140,13 @@ export class GroupsComponent implements OnInit {
     return this.authService.isSuperAdmin();
   }
 
-  isGroupAdmin(): boolean {
-    return this.authService.isGroupAdmin();
+  isGroupAdmin(group: Group | null = null): boolean {
+    if (!group) {
+      return false;
+    }
+    return this.authService.isSuperAdmin() || group.admins.includes(this.userId ?? '');
   }
+  
 
   isChatUser(): boolean {
     return this.authService.isChatUser();

@@ -21,7 +21,7 @@ export class DashboardComponent implements OnInit {
   groups: Group[] = [];
   availableGroups: Group[] = [];
   users: User[] = [];
-  pendingUsers: User[] = []; // Add this line to store pending user requests
+  pendingUsers: User[] = [];
   newGroupName: string = '';
   createUserMessage: string = '';
   promotionUserId: string = '';
@@ -46,7 +46,7 @@ export class DashboardComponent implements OnInit {
 
     if (this.isSuperAdmin()) {
       this.loadUsers();
-      this.loadPendingUsers(); // Load pending account requests
+      this.loadPendingUsers();
     }
 
     console.log('User data:', this.user);
@@ -58,7 +58,7 @@ export class DashboardComponent implements OnInit {
   loadPendingUsers(): void {
     this.userService.getUsers().subscribe({
       next: (users) => {
-        this.pendingUsers = users.filter((user) => !user.valid); // Only get users with 'valid: false'
+        this.pendingUsers = users.filter((user) => !user.valid);
       },
       error: (err) => {
         console.error('Error fetching pending users:', err);
@@ -77,7 +77,7 @@ export class DashboardComponent implements OnInit {
         .subscribe({
           next: () => {
             this.createUserMessage = `Account for ${pendingUser.username} completed successfully!`;
-            this.loadPendingUsers(); // Reload the pending users list
+            this.loadPendingUsers();
           },
           error: (err: any) => {
             this.createUserMessage = `Failed to complete registration: ${err.message}`;
@@ -93,14 +93,12 @@ export class DashboardComponent implements OnInit {
       this.groupService.getGroups(this.user.id).subscribe({
         next: (groups) => {
           if (this.isSuperAdmin()) {
-            this.groups = groups; // SuperAdmin sees all groups
+            this.groups = groups;
           } else if (this.isGroupAdmin() && !this.isSuperAdmin()) {
-            // Filter groups where the user is both an admin and a member
             this.groups = groups.filter((group) =>
               group.members.includes(this.user.id)
             );
           } else if (this.isChatUser()) {
-            // ChatUser sees only groups they are a member of
             this.groups = groups.filter((group) =>
               group.members.includes(this.user.id)
             );
@@ -268,8 +266,12 @@ export class DashboardComponent implements OnInit {
     return this.user && this.user.roles.includes('SuperAdmin');
   }
 
-  isGroupAdmin(): boolean {
-    return this.user && this.user.roles.includes('GroupAdmin');
+  isGroupAdmin(group: Group | null = null): boolean {
+    if (!group) {
+      return this.user?.roles.includes('GroupAdmin') ?? false;
+    }
+
+    return group.admins.includes(this.user?.id ?? '');
   }
 
   isChatUser(): boolean {

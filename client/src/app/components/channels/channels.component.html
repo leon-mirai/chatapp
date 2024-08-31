@@ -6,7 +6,7 @@
   </div>
 
   <div class="row mt-4">
-    <!-- Ban a User Section -->
+    <!--ban -->
     <div *ngIf="isGroupAdmin() || isSuperAdmin()" class="col-md-6">
       <div class="card">
         <div class="card-header">
@@ -14,16 +14,21 @@
         </div>
         <div class="card-body">
           <ul class="list-group">
-            <li *ngFor="let member of channel?.members" class="list-group-item d-flex justify-content-between align-items-center">
+            <li
+              *ngFor="let member of channel?.members"
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
               {{ member }}
-              <button (click)="banUser(member)" class="btn btn-danger btn-sm">Ban User</button>
+              <button (click)="banUser(member)" class="btn btn-danger btn-sm">
+                Ban User
+              </button>
             </li>
           </ul>
         </div>
       </div>
     </div>
 
-    <!-- Members Section -->
+    <!-- members Section -->
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
@@ -35,16 +40,22 @@
               {{ member }}
             </li>
           </ul>
-          <button (click)="joinChannel()" class="btn btn-primary mt-3">Join Channel</button>
+          <button (click)="joinChannel()" class="btn btn-primary mt-3">
+            Join Channel
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Delete Channel Button -->
+  <!-- delete Channel button -->
   <div class="row mt-4">
     <div class="col-md-12 text-center">
-      <button *ngIf="isSuperAdmin() || isGroupAdmin()" (click)="deleteChannel()" class="btn btn-danger">
+      <button
+        *ngIf="isSuperAdmin() || isGroupAdmin()"
+        (click)="deleteChannel()"
+        class="btn btn-danger"
+      >
         Delete Channel
       </button>
     </div>

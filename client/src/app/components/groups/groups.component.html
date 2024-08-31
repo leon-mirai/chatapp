@@ -19,8 +19,8 @@
             </li>
           </ul>
 
-          <!-- Add Members (Only for SuperAdmin and GroupAdmin) -->
-          <div *ngIf="isSuperAdmin() || isGroupAdmin()" class="mt-3">
+          <!-- Add Members (Only for SuperAdmin and GroupAdmin who is an admin of the group) -->
+          <div *ngIf="isGroupAdmin(group)" class="mt-3">
             <div class="input-group">
               <input
                 type="text"
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Join Requests Section -->
-    <div *ngIf="isSuperAdmin() || (isGroupAdmin() && hasJoinRequests())" class="col-md-6">
+    <div *ngIf="isGroupAdmin(group) && hasJoinRequests()" class="col-md-6">
       <div class="card">
         <div class="card-header">
           <h2>Join Requests</h2>
@@ -75,8 +75,8 @@
             </li>
           </ul>
 
-          <!-- Create Channels (Only for SuperAdmin and GroupAdmin) -->
-          <div *ngIf="isSuperAdmin() || isGroupAdmin()" class="mt-3">
+          <!-- Create Channels (Only for SuperAdmin and GroupAdmin who is an admin of the group) -->
+          <div *ngIf="isGroupAdmin(group)" class="mt-3">
             <div class="input-group">
               <input
                 type="text"
