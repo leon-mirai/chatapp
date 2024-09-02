@@ -1,1 +1,19 @@
+<div class="navbar-container">
+  <div class="navbar" (click)="toggleNav()">
+    <span>☰ Menu</span>
+  </div>
+
+  <div class="nav-content" [class.hidden]="navHidden">
+    <nav>
+      <ul>
+        <li><a routerLink="/">Login</a></li>
+        <li><a routerLink="/dashboard">Dashboard</a></li>
+      </ul>
+    </nav>
+
+    <button (click)="goBack()">Back</button>
+    <button (click)="goForward()">Forward</button>
+  </div>
+</div>
+
 <router-outlet></router-outlet>

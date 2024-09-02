@@ -60,29 +60,40 @@ client/ (Angular frontend code):
     - main.ts // Angular bootstrap file
     - styles.css // Global application styles
 - server/ (Node.js backend code):
-  - data/ // JSON data storage (users, groups, channels) (consider database for production)
+  - data/ // JSON data storage (users, groups, channels)
   - routes/ // API route handlers (login, user, group, channel)
   - services/ // Business logic and data manipulation services
   - server.js // Node.js server entry point
 - README.md // Documentation file
 - .gitignore // Specifies files ignored by Git
 
-## Version Control Strategy
+### Version Control Strategy
 
-The version control strategy was to commit frequently. Specifically, a commit was made whenever a new feature was added,
-fixed, or improved. The main branches I worked with are:
+The update frequency was whenever a new feature was added, a bug was fixed, or when updating features. The
+merge strategy was to update the main, whenever a checkpoint was reached. For example, when login funcitonality
+was made, it was tested on the dev branches then merged when bugs were fixed.
 
-1. main (this is the final product)
+The main branches I worked with are:
+
+1. main (this is the stable version)
 2. dev (this is where development occurs and where features are added)
 3. dev2 (this is another branch for testing out new developments)
 
 ## Data Structures
 
-The application uses the following data structures to represent users, groups, and channels:
+The application uses the following data structures to represent users, groups, and channels. These structures are
+essential fro both the client and server sides of the application, enabling consistent data management and
+communication across the system.
 
 - Javascript/TypeScript Arrays: These were used for storing iterables like a list of users, groups, or channels
-- JSON Objects (Backend): used to represent user, group, and channel data structures
-- Typescript Classes (Frontend): used to model users with typing e.g. **User, Groups, Channels**
+- JSON Objects (Backend): represents user, groups, and channel data on server side. Used for read/write, and sending API responses
+- Typescript Classes (Frontend): These classes model the app's data entities with strict typing for code quality
+
+Client-side: Data is stored in Angular services as models. These services handle API requests and update the UI based on
+the data retrieved from the server
+Server-side: Data is stored in JSON files. The server-side services use CRUD to ensure data is up-to-date. It is served
+through RESTful API endpoints.
+Login: The data structure to store login details used local storage. This was used for session tokens and authentication.
 
 A **User** is an entity that interacts with the app. It has different roles such as ChatUser, GroupAdmin, and SuperAdmin.
 Each user is associated with one or more groups.
@@ -144,8 +155,6 @@ For Phase 1, the user's data is stored using localStorage, which also acts as an
 For Phase 2, the user's data is stored used mongoDB.
 
 ## Rest API
-
-## API Routes
 
 ### Authentication
 
@@ -580,3 +589,102 @@ class User {
   ) {}
 }
 ```
+
+### Routes
+
+1. Default Route (`path: ''`)
+
+- Component: LoginComponent
+- Description: This is the default route that users are directed to
+  when they first access the app. It loads the login page.
+
+2. Dashboard Route (`path: 'dashboard'`)
+
+- Component: DashboardComponent
+- Description: This route loads the dashboard page. Can only be accessed by valid users
+
+3. Groups Route (`path: 'groups/:id'`)
+
+- Component: GroupsComponent
+- Description: This route loads a specific group's page based on id parameter.
+
+4. Channels Route (`path: 'channels/:id'`)
+
+- Component: ChannelsComponent
+- Description: This route loads a specific channel's page based on the id parameter.
+
+5. Wildcard Route (`path: '**dashboard**'`)
+
+- Redirect: redirects to the login page (`path: ''`)
+- Description: The wildcard route is a catch-all for any undefined routes and redirects users to
+  login page
+
+## Node.js Server Architecture
+
+### Modules
+- Express: primary web framework used to create the server and manage routing
+- CORS: Middleware that allows cross-origin resource sharing, allowing server to handle requests from 
+different origins
+- File system (`fs`): Native module used for reading/writing JSON files for data storage
+- Path: Native module used to work with file and directory paths
+
+### Files
+1. `server.js`
+- Purpose: Entry point of the Node.js app. It creates the Express server, sets up middleware,
+and listens on a specific port. Import and use route modules for handling API requests.
+2. `routes/` Directory
+- Purpose: This directory cotains route handling modules that define the RESTful API endpoints
+- Files:
+  - `api-login.js`: Handles user authentication (login)
+  - `user.js`: Fetches user-related actions
+  - `group.js`: Manages group-related functions like making channels, adding/removing members
+   `channel.js`: Handles channel-related operations like joining
+3. `services/` Directory
+- Purpose: Contains service modules that handle reading/writing data into JSON files for each
+data structure
+- Files: 
+  - `userService.js`: generates userId, read/writes JSON data for user
+  - `channelService.js`: read/write channel data
+  - `groupService.js`: read/writes for group JSON data
+
+### Functions
+Each service module exports functions that are used for interacting with data. They perform  actions like:
+- Reading data
+- Writing data
+- CRUD operations
+- Validation
+
+### Global Variables
+Global variables were minimised. The application uses modules to encapsulate data and state management. The const file path that was used was 
+`const uiPath = path.join(__dirname, "../dist/client/browser");`
+This is used to serve the backend data to the front end through the dist directory.
+
+### Middleware
+The server uses Express middleware for tasks such as:
+- JSON Parsing: Automatically parsing JSON bodies in incoming requests using `express.json()`
+- CORS: Allowing cross-origin requests using a CORS middleware
+
+## Client-Server Interaction
+1. HTTP Requests: Angular front-end sends HTTP requests to Node.js server to perform
+CRUD operations on data structures like users, groups, and channels
+2. Data exchange: the server processes the requests, interacts with the JSON files and 
+sends back appropriate response
+3. UI update: Angular application then updates teh UI based on response received from server
+
+Client-side Angular Components:
+- LoginComponent: Sends user details to server for authentication. Upon success, the valid attribute of the user is checked (and create a session) and stored in client's local storage for further requests. Also you can request to make an account.
+- DashboardComponent: After user logs in, the component requests data related to the user's permissions. This component retrieves group details such as members and available groups. The SuperAdmin has the following permissions:
+  - Assign details to account request
+  - Delete users
+  - Promote users
+  - Has all permissions of GroupAdmin
+Group Admin has the following permissions:
+  - Manage/Delete own group
+  - Create group
+All permissions:
+  - Delete account
+  - Logout
+- GroupsComponent: When a user selects a group, this component retrieves the group's details, such as its members and related channels. Adnubs cab add nenbersm create channels, or manage join requests.
+- ChannelsComponent: Displays the contents of a channel such as messages and participants. Users can
+join or leave channels, and admins can ban users from channel or delete the channel
+
