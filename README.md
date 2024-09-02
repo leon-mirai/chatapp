@@ -74,7 +74,7 @@ fixed, or improved. The main branches I worked with are:
 
 1. main (this is the final product)
 2. dev (this is where development occurs and where features are added)
-3. chatappv2 (this is another branch for testing out new developments)
+3. dev2 (this is another branch for testing out new developments)
 
 ## Data Structures
 
