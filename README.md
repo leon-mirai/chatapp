@@ -666,10 +666,18 @@ The server uses Express middleware for tasks such as:
 
 ## Client-Server Interaction
 1. HTTP Requests: Angular front-end sends HTTP requests to Node.js server to perform
-CRUD operations on data structures like users, groups, and channels
+CRUD operations on data structures like users, groups, and channels. These requests include:
+- GET: to fetch data from server such as user details, group info, or channel messages
+- POST: used to create new entities like users, groups, or channels
+- PUT: used to update existing entities such as updating group details
+- DELETE: used to remove entities like users, groups, or channels
 2. Data exchange: the server processes the requests, interacts with the JSON files and 
 sends back appropriate response
-3. UI update: Angular application then updates teh UI based on response received from server
+3. UI update: Angular app responds to server by updating UI dynamically. Components use Angular services to
+fetch data from server and then display the data in the UI. 
+- Example: After user logs in, DashboardComponent requests data related to user's role. For a SuperAdmin, it retrieves all
+users, groups, and channels, allowing the admin to manage the system.
+- For GroupComponent, when new data about group members is received, the list displayed in the UI is updated.
 
 Client-side Angular Components:
 - LoginComponent: Sends user details to server for authentication. Upon success, the valid attribute of the user is checked (and create a session) and stored in client's local storage for further requests. Also you can request to make an account.
