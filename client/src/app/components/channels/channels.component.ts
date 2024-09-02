@@ -17,8 +17,8 @@ import { AuthService } from '../../services/auth.service';
 })
 export class ChannelsComponent implements OnInit {
   channel: Channel | undefined;
-  newMemberId: string = '';
   user: User | null = null;
+  isAdminOfGroup: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -29,43 +29,28 @@ export class ChannelsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('Component initialized');
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      this.user = JSON.parse(userData);
-      console.log('User data loaded:', this.user);
-    }
-
+    this.user = this.authService.getUser();
     const channelId = this.route.snapshot.params['id'];
+
     if (channelId && this.user) {
-      console.log('Fetching channel with ID:', channelId);
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
-          console.log('Channel data loaded:', this.channel);
 
-          // check if the user is blacklisted
           if (this.channel.blacklist.includes(this.user!.id)) {
-            console.warn('User is banned from this channel');
             this.router.navigate(['/dashboard']);
           } else {
-            // check if the user is a member of the group
-            this.groupService
-              .isMember(this.channel.groupId, this.user!.id)
-              .subscribe({
-                next: (isMember: boolean) => {
-                  if (!isMember) {
-                    console.error('User is not part of the group');
-                    this.router.navigate(['/dashboard']);
-                  }
-                },
-                error: (err: any) => {
-                  console.error('Error checking membership:', err.message);
-                },
-              });
+            this.groupService.getGroupById(this.channel.groupId).subscribe({
+              next: (group) => {
+                this.isAdminOfGroup = group.admins.includes(this.user!.id);
+              },
+              error: (err) => {
+                console.error('Error checking group admin:', err.message);
+              },
+            });
           }
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('Error fetching channel:', err.message);
         },
       });
@@ -79,8 +64,7 @@ export class ChannelsComponent implements OnInit {
     ) {
       this.channelService.deleteChannel(this.channel.id).subscribe({
         next: () => {
-          console.log('Channel deleted successfully');
-          this.router.navigate(['/dashboard']); // navigate to a different page after deletion
+          this.router.navigate(['/dashboard']);
         },
         error: (err) => {
           console.error('Error deleting channel:', err.message);
@@ -91,15 +75,12 @@ export class ChannelsComponent implements OnInit {
 
   joinChannel(): void {
     const userId = this.authService.getUser()?.id;
-    console.log('Preparing to join channel with userId:', userId); // log userId
 
     if (this.channel && userId) {
-      console.log('Sending request to join channel:', this.channel.id); // log channel ID
       this.channelService.joinChannel(this.channel.id, userId).subscribe({
         next: (response) => {
-          console.log('Join channel response:', response); // log response message
           if (response.message === 'User joined the channel successfully') {
-            this.reloadChannel(); // re-fetch the channel data
+            this.reloadChannel();
           }
         },
         error: (err) => {
@@ -113,7 +94,6 @@ export class ChannelsComponent implements OnInit {
     if (this.channel) {
       this.channelService.getChannelById(this.channel.id).subscribe({
         next: (updatedChannel: Channel) => {
-          console.log('Channel reloaded:', updatedChannel); // llog reloaded channel data
           this.channel = updatedChannel;
         },
         error: (err) => {
@@ -124,11 +104,10 @@ export class ChannelsComponent implements OnInit {
   }
 
   banUser(userId: string): void {
-    if (this.channel && (this.isGroupAdmin() || this.isSuperAdmin())) {
+    if (this.channel && (this.isAdminOfGroup || this.isSuperAdmin())) {
       this.channelService.banUser(this.channel.id, userId).subscribe({
         next: (response) => {
-          console.log(response.message);
-          this.reloadChannel(); // reload the channel to reflect the changes
+          this.reloadChannel();
         },
         error: (err) => {
           console.error('Error banning user', err);
@@ -142,19 +121,7 @@ export class ChannelsComponent implements OnInit {
   }
 
   isGroupAdmin(): boolean {
-    if (!this.channel || !this.user) {
-      return false;
-    }
-
-    let isAdmin = false;
-
-    this.groupService.getGroupById(this.channel.groupId).subscribe({
-      next: (group) => {
-        isAdmin = group.admins.includes(this.user!.id);
-      },
-    });
-
-    return isAdmin;
+    return this.isAdminOfGroup;
   }
 
   isChatUser(): boolean {

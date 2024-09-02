@@ -39,15 +39,7 @@ export class GroupsComponent implements OnInit {
       this.groupService.getGroupById(groupId).subscribe({
         next: (group: Group) => {
           this.group = group;
-          // fetch channels by groupId
-          this.channelService.getChannelsByGroupId(groupId).subscribe({
-            next: (channels: Channel[]) => {
-              this.channels = channels;
-            },
-            error: (err: any) => {
-              console.error('Error fetching channels:', err.message);
-            },
-          });
+          this.fetchChannels(groupId);
         },
         error: (err: any) => {
           console.error('Error fetching group:', err.message);
@@ -56,12 +48,23 @@ export class GroupsComponent implements OnInit {
     }
   }
 
+  fetchChannels(groupId: string): void {
+    this.channelService.getChannelsByGroupId(groupId).subscribe({
+      next: (channels: Channel[]) => {
+        this.channels = channels;
+      },
+      error: (err: any) => {
+        console.error('Error fetching channels:', err.message);
+      },
+    });
+  }
+
   hasJoinRequests(): boolean {
     return !!(this.group && this.group.joinRequests && this.group.joinRequests.length > 0);
   }
 
   addMember() {
-    if ((this.isSuperAdmin() || this.isGroupAdmin()) && this.group) {
+    if (this.group && this.isGroupAdmin(this.group)) {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
@@ -76,16 +79,12 @@ export class GroupsComponent implements OnInit {
         },
       });
     } else {
-      console.error('Group does not exist.');
+      console.error('Group does not exist or user lacks permission.');
     }
   }
 
   createChannel() {
-    if (
-      (this.isSuperAdmin() || this.isGroupAdmin()) &&
-      this.group &&
-      this.newChannelName.trim()
-    ) {
+    if (this.group && this.isGroupAdmin(this.group) && this.newChannelName.trim()) {
       const newChannelId = this.idService.generateId(this.newChannelName);
       const newChannel = new Channel(
         newChannelId,
@@ -101,11 +100,13 @@ export class GroupsComponent implements OnInit {
           console.error('Error adding channel:', err.message);
         },
       });
+    } else {
+      console.error('User lacks permission or channel name is empty.');
     }
   }
 
   approveRequest(userId: string): void {
-    if (this.group) {
+    if (this.group && this.isGroupAdmin(this.group)) {
       this.groupService.approveRequest(this.group.id, userId).subscribe({
         next: () => {
           console.log(`User ${userId} approved to join the group.`);
@@ -121,7 +122,7 @@ export class GroupsComponent implements OnInit {
   }
 
   rejectRequest(userId: string): void {
-    if (this.group) {
+    if (this.group && this.isGroupAdmin(this.group)) {
       this.groupService.rejectRequest(this.group.id, userId).subscribe({
         next: () => {
           console.log(`User ${userId}'s request rejected.`);
@@ -140,13 +141,12 @@ export class GroupsComponent implements OnInit {
     return this.authService.isSuperAdmin();
   }
 
-  isGroupAdmin(group: Group | null = null): boolean {
-    if (!group) {
+  isGroupAdmin(group: Group | undefined): boolean {
+    if (!group || !this.userId) {
       return false;
     }
-    return this.authService.isSuperAdmin() || group.admins.includes(this.userId ?? '');
+    return this.authService.isSuperAdmin() || group.admins.includes(this.userId);
   }
-  
 
   isChatUser(): boolean {
     return this.authService.isChatUser();

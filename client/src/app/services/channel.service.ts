@@ -35,7 +35,7 @@ export class ChannelService {
 
   joinChannel(channelId: string, userId: string): Observable<any> {
     const url = `${this.apiUrl}/${channelId}/join`; 
-    console.log('Sending POST request to:', url); // log the URL for verification
+    console.log('Sending POST request to:', url);
     return this.http.post(url, { userId });
   }
 

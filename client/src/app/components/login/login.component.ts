@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { UserService } from '../../services/user.service';  // Import UserService
+import { UserService } from '../../services/user.service'; 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -15,16 +15,16 @@ import { Router } from '@angular/router';
 export class LoginComponent {
   email: string = '';
   password: string = '';
-  errorMessage: string = '';  // To store error messages
-  requestMessage: string = '';  // To store request messages
+  errorMessage: string = '';  
+  requestMessage: string = ''; 
 
   constructor(
     private authService: AuthService,
-    private userService: UserService,  // Inject UserService
+    private userService: UserService,  
     private router: Router
   ) {}
 
-  // Method to handle login form submission
+  // login submission form
   onSubmit() {
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
@@ -41,7 +41,7 @@ export class LoginComponent {
     });
   }
 
-  // Method to handle user account request
+  
   requestAccount() {
     this.userService.requestUserCreation().subscribe({
       next: (response) => {

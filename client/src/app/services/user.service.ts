@@ -78,7 +78,7 @@ export class UserService {
   // leave a group
   leaveGroup(userId: string, groupId: string): Observable<any> {
     console.log(`User with ID: ${userId} leaving group with ID: ${groupId}`);
-    return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`, {}); // Send an empty body
+    return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`, {});
   }
 
   // promote a user to a new role (e.g., GroupAdmin or SuperAdmin)
