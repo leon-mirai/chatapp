@@ -6,9 +6,9 @@
           <h3>Login</h3>
         </div>
         <div class="card-body">
-          <!-- Form for login -->
+          <!-- form for login -->
           <form (ngSubmit)="onSubmit()">
-            <!-- Email input field -->
+            <!-- email  -->
             <div class="form-group mb-3">
               <label for="email">Email:</label>
               <input
@@ -20,7 +20,7 @@
                 required
               />
             </div>
-            <!-- Password input field -->
+            <!-- password fieldd -->
             <div class="form-group mb-3">
               <label for="password">Password:</label>
               <input
@@ -32,11 +32,11 @@
                 required
               />
             </div>
-            <!-- Error message display -->
+            <!-- error display -->
             <div *ngIf="errorMessage" class="alert alert-danger">
               {{ errorMessage }}
             </div>
-            <!-- Login button -->
+            <!-- login button -->
             <div class="d-grid">
               <button type="submit" class="btn btn-primary btn-block">
                 Login
@@ -44,14 +44,14 @@
             </div>
           </form>
 
-          <!-- Request account button -->
+          <!-- request account button -->
           <div class="text-center mt-3">
             <button (click)="requestAccount()" class="btn btn-secondary">
               Request an Account
             </button>
           </div>
 
-          <!-- Request message display -->
+          <!--   request message display -->
           <div *ngIf="requestMessage" class="alert alert-info mt-3">
             {{ requestMessage }}
           </div>

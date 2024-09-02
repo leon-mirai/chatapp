@@ -20,7 +20,7 @@ import { Location } from '@angular/common';
 })
 export class AppComponent {
   title = 'client';
-  navHidden: boolean = true; // State for the collapsible menu
+  navHidden: boolean = true; 
 
   constructor(private location: Location) {}
 
@@ -32,7 +32,7 @@ export class AppComponent {
     this.location.forward();
   }
 
-  // Toggle navigation visibility
+
   toggleNav(): void {
     this.navHidden = !this.navHidden;
   }
