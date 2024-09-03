@@ -110,7 +110,7 @@ export class ChannelsComponent implements OnInit {
           this.reloadChannel();
         },
         error: (err) => {
-          console.error('Error banning user', err);
+          console.error('error banning user', err);
         },
       });
     }

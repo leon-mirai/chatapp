@@ -32,9 +32,10 @@ export class GroupsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // optional chaining to not check nullish, nullish coalescing operator returns null
     this.userId = this.authService.getUser()?.id ?? null;
 
-    const groupId = this.route.snapshot.params['id'];
+    const groupId = this.route.snapshot.params['id']; // synchronously get groupId
     if (groupId) {
       this.groupService.getGroupById(groupId).subscribe({
         next: (group: Group) => {

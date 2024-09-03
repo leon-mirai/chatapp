@@ -133,13 +133,13 @@ const route = (app) => {
     const user = users.find((user) => user.id === userId);
 
     if (group && user) {
-      // Remove user from group's member list
+      // rmove user from group's member list
       group.members = group.members.filter((member) => member !== userId);
 
-      // Remove groupId from user's group array
+      // Rm groupId from user's group array
       user.groups = user.groups.filter((group) => group !== groupId);
 
-      // Remove user from all channels within the group
+      // rm user from all channels within the group
       channels.forEach((channel) => {
         if (channel.groupId === groupId) {
           channel.members = channel.members.filter(
@@ -148,7 +148,7 @@ const route = (app) => {
         }
       });
 
-      // Save the updated data back to the files
+      // avee the updated data back to the files
       groupService.writeGroups(groups);
       userService.writeUsers(users);
       channelService.writeChannels(channels);
