@@ -13,7 +13,6 @@ import { Location } from '@angular/common';
     RouterLink,
     LoginComponent,
     DashboardComponent,
-    ProfileComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -32,7 +31,7 @@ export class AppComponent {
     this.location.forward();
   }
 
-
+  // toggling navbar 
   toggleNav(): void {
     this.navHidden = !this.navHidden;
   }

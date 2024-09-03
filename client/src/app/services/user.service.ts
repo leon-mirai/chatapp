@@ -13,8 +13,9 @@ export class UserService {
 
   // fetch all users from the backend
   getUsers(): Observable<User[]> {
+    // returns Observable that gives User Array object
     console.log('Fetching users from the backend...');
-    return this.http.get<User[]>(this.apiUrl);
+    return this.http.get<User[]>(this.apiUrl); // return user array. make url to api endpoint to get data
   }
 
   // fetch a specific user by ID from the backend
@@ -26,7 +27,7 @@ export class UserService {
   requestUserCreation(): Observable<any> {
     console.log('Requesting new user account creation...');
     const newUser = {
-      id: this.generateId(),  
+      id: this.generateId(),
       username: '',
       email: '',
       roles: ['ChatUser'],
@@ -36,25 +37,31 @@ export class UserService {
     };
     return this.http.post(`${this.apiUrl}`, newUser);
   }
-  
+
   private generateId(): string {
     return Math.random().toString(36).slice(2, 6).toUpperCase();
   }
-  
 
   addUserRequest(): Observable<any> {
     return this.http.post(`${this.apiUrl}`, {});
   }
 
   // superAdmin completes the registration process for a user
-  completeRegistration(userId: string, username: string, email: string): Observable<any> {
+  completeRegistration(
+    userId: string,
+    username: string,
+    email: string
+  ): Observable<any> {
     console.log(`Completing registration for user with ID: ${userId}`);
     const updatedDetails = {
       username,
       email,
       valid: true,
     };
-    return this.http.put(`${this.apiUrl}/${userId}/complete-registration`, updatedDetails);
+    return this.http.put(
+      `${this.apiUrl}/${userId}/complete-registration`,
+      updatedDetails
+    );
   }
 
   // update a user on the backend
@@ -78,7 +85,10 @@ export class UserService {
   // leave a group
   leaveGroup(userId: string, groupId: string): Observable<any> {
     console.log(`User with ID: ${userId} leaving group with ID: ${groupId}`);
-    return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`, {});
+    return this.http.post(
+      `${this.apiUrl}/${userId}/groups/${groupId}/leave`,
+      {}
+    );
   }
 
   // promote a user to a new role (e.g., GroupAdmin or SuperAdmin)

@@ -1,11 +1,11 @@
-/* Container for the navbar */
+/* container for the navbar */
 .navbar-container {
     position: relative;
     width: 100%;
     margin-bottom: 20px;
   }
   
-  /* The collapsible navbar bar */
+  /* the collapsible navbar bar */
   .navbar {
     background-color: #007bff;
     color: white;
@@ -16,7 +16,7 @@
     border-radius: 5px;
   }
   
-  /* The content that will be shown/hidden */
+  /* the content that will be shown/hidden */
   .nav-content {
     padding: 10px;
     background-color: #f8f9fa;
@@ -28,7 +28,10 @@
     display: none;
   }
   
-  /* Styling for navigation links */
+  /* styling for navigation links
+  remove default list styling
+  flex is used to align listen items horizontall with gap
+  */
   nav ul {
     list-style-type: none;
     padding: 0;
@@ -36,22 +39,24 @@
     gap: 15px;
   }
   
+  /* makes each line inline */
   nav ul li {
     display: inline;
   }
   
+  /* remove underline and make text bold.  */
   nav ul li a {
     text-decoration: none;
     color: #007bff;
     font-weight: bold;
     font-size: 16px;
   }
-  
+  /* also hover to get bold */
   nav ul li a:hover {
     text-decoration: underline;
   }
   
-  /* Styling for buttons */
+  /* styling buttons */
   button {
     background-color: #007bff;
     color: white;
@@ -63,15 +68,15 @@
     margin-right: 10px;
     margin-top: 10px;
   }
-  
+  /*  change colorr when hover */
   button:hover {
     background-color: #0056b3;
   }
-  
+  /* change colour when clicked */
   button:active {
     background-color: #004085;
   }
-  
+  /* change colour when clicked */
   button:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
