@@ -98,7 +98,18 @@
     "valid": true
   },
   {
-    "id": "QX08",
+    "id": "wq8d",
+    "username": "",
+    "email": "",
+    "roles": [
+      "ChatUser"
+    ],
+    "groups": [],
+    "password": "123",
+    "valid": false
+  },
+  {
+    "id": "FdTI",
     "username": "",
     "email": "",
     "roles": [

@@ -59,8 +59,35 @@ export class GroupsComponent implements OnInit {
     });
   }
 
+  removeMember(memberId: string): void {
+    if (!this.group) {
+      console.error('Group is undefined');
+      return;
+    }
+
+    const groupId = this.group.id; // store the group ID in a variable
+
+    this.groupService.removeUserFromGroup(groupId, memberId).subscribe({
+      next: () => {
+        // remove the user from the group's members list locally
+        this.group!.members = this.group!.members.filter(
+          (member) => member !== memberId
+        );
+        // refresh the channels in case the user was removed from any
+        this.fetchChannels(groupId); // use the stored group ID
+      },
+      error: (err) => {
+        console.error('Error removing member:', err.message);
+      },
+    });
+  }
+
   hasJoinRequests(): boolean {
-    return !!(this.group && this.group.joinRequests && this.group.joinRequests.length > 0);
+    return !!(
+      this.group &&
+      this.group.joinRequests &&
+      this.group.joinRequests.length > 0
+    );
   }
 
   addMember() {
@@ -84,7 +111,11 @@ export class GroupsComponent implements OnInit {
   }
 
   createChannel() {
-    if (this.group && this.isGroupAdmin(this.group) && this.newChannelName.trim()) {
+    if (
+      this.group &&
+      this.isGroupAdmin(this.group) &&
+      this.newChannelName.trim()
+    ) {
       const newChannelId = this.idService.generateId(this.newChannelName);
       const newChannel = new Channel(
         newChannelId,
@@ -145,7 +176,9 @@ export class GroupsComponent implements OnInit {
     if (!group || !this.userId) {
       return false;
     }
-    return this.authService.isSuperAdmin() || group.admins.includes(this.userId);
+    return (
+      this.authService.isSuperAdmin() || group.admins.includes(this.userId)
+    );
   }
 
   isChatUser(): boolean {

@@ -46,7 +46,7 @@ export class UserService {
     return this.http.post(`${this.apiUrl}`, {});
   }
 
-  // SuperAdmin completes the registration process for a user
+  // superAdmin completes the registration process for a user
   completeRegistration(userId: string, username: string, email: string): Observable<any> {
     console.log(`Completing registration for user with ID: ${userId}`);
     const updatedDetails = {

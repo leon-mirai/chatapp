@@ -61,9 +61,12 @@ export class GroupService {
 
   isUserAdminOfGroup(groupId: string, userId: string): Observable<boolean> {
     return this.getGroupById(groupId).pipe(
-      map(group => group.admins.includes(userId))
+      map((group) => group.admins.includes(userId))
     );
   }
-  
-  
+
+  removeUserFromGroup(groupId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${groupId}/members/${userId}`;
+    return this.http.delete(url);
+  }
 }

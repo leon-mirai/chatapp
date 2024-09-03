@@ -121,18 +121,43 @@ const route = (app) => {
     }
   });
 
-  // remove a member from a group
   app.delete("/api/groups/:groupId/members/:userId", (req, res) => {
     const { groupId, userId } = req.params;
-    const groups = groupService.readGroups();
-    const group = groups.find((group) => group.id === groupId);
 
-    if (group) {
+    // Get all groups, users, and channels
+    const groups = groupService.readGroups();
+    const users = userService.readUsers();
+    const channels = channelService.readChannels();
+
+    const group = groups.find((group) => group.id === groupId);
+    const user = users.find((user) => user.id === userId);
+
+    if (group && user) {
+      // Remove user from group's member list
       group.members = group.members.filter((member) => member !== userId);
+
+      // Remove groupId from user's group array
+      user.groups = user.groups.filter((group) => group !== groupId);
+
+      // Remove user from all channels within the group
+      channels.forEach((channel) => {
+        if (channel.groupId === groupId) {
+          channel.members = channel.members.filter(
+            (member) => member !== userId
+          );
+        }
+      });
+
+      // Save the updated data back to the files
       groupService.writeGroups(groups);
-      res.status(200).json({ message: "Member removed successfully" });
+      userService.writeUsers(users);
+      channelService.writeChannels(channels);
+
+      res
+        .status(200)
+        .json({ message: "Member removed and cascade deletion successful" });
     } else {
-      res.status(404).json({ message: "Group not found" });
+      res.status(404).json({ message: "Group or User not found" });
     }
   });
 
