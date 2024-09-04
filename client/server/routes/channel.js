@@ -52,16 +52,25 @@ const route = (app) => {
       const newChannel = req.body;
       const channels = channelService.readChannels();
 
-      // add the new channel and save to file
+      // Add the new channel to the channels list and save it
       channels.push(newChannel);
       channelService.writeChannels(channels);
+
+      // Update the corresponding group by adding the new channel's ID
+      const groups = groupService.readGroups();
+      const group = groups.find((group) => group.id === newChannel.groupId);
+
+      if (group) {
+        // Add the channel ID to the group's channels array
+        group.channels.push(newChannel.id);
+        groupService.writeGroups(groups); // Save the updated group list
+      }
 
       res.status(201).json(newChannel);
     } catch (error) {
       res.status(500).json({ message: "Failed to create channel", error });
     }
   });
-
   // pdate a channel by ID
   app.put("/api/channels/:channelId", (req, res) => {
     try {
