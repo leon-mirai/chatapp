@@ -23,6 +23,7 @@ export class GroupsComponent implements OnInit {
   newMemberId: string = '';
   newChannelName: string = '';
   userId: string | null = null;
+  userCache: { [key: string]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -60,6 +61,28 @@ export class GroupsComponent implements OnInit {
         console.error('Error fetching channels:', err.message);
       },
     });
+  }
+
+  getUserName(memberId: string): string {
+    // If the username is already cached, return it
+    if (this.userCache[memberId]) {
+      return this.userCache[memberId];
+    }
+
+    // Fetch the user from the user service
+    this.userService.getUserById(memberId).subscribe({
+      next: (user) => {
+        if (user) {
+          this.userCache[memberId] = user.username; // Cache the username
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching user:', err.message);
+      },
+    });
+
+    // Return userId as a fallback while we fetch the username
+    return memberId;
   }
 
   removeMember(memberId: string): void {
@@ -121,7 +144,7 @@ export class GroupsComponent implements OnInit {
         error: (err: any) => {
           console.error('Error checking user existence:', err.message);
           alert('Error checking user existence');
-        }
+        },
       });
     } else {
       console.error('Group does not exist or user lacks permission.');
