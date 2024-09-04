@@ -187,8 +187,8 @@ export class DashboardComponent implements OnInit {
 
       this.groupService.addGroup(newGroup).subscribe({
         next: (group) => {
-          this.groups.push(group);
-          this.newGroupName = '';
+          this.groups.push(group); // Add the new group to the list
+          this.newGroupName = ''; // Clear the input field
         },
         error: (err) => {
           console.error('Error creating group:', err);

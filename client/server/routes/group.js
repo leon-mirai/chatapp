@@ -31,16 +31,28 @@ const route = (app) => {
   });
 
   // create a new group
-  app.post("/api/groups", (req, res) => {
-    const newGroup = req.body;
-    const groups = groupService.readGroups();
+app.post("/api/groups", (req, res) => {
+  const newGroup = req.body;
+  const groups = groupService.readGroups();
+  const users = userService.readUsers();
 
-    // add the new group and save to file
-    groups.push(newGroup);
-    groupService.writeGroups(groups);
+  // Add the new group to the list
+  groups.push(newGroup);
+  groupService.writeGroups(groups); // Save the updated groups
+
+  // Find the user who created the group and update their groups array
+  const adminUser = users.find((user) => user.id === newGroup.admins[0]);
+
+  if (adminUser) {
+    adminUser.groups.push(newGroup.id); // Add the new group ID to the user's groups
+    userService.writeUsers(users);      // Save the updated users
 
     res.status(201).json(newGroup);
-  });
+  } else {
+    res.status(404).json({ message: "Admin user not found" });
+  }
+});
+
 
   // update a group by ID
   app.put("/api/groups/:groupId", groupService.checkGroupAdmin, (req, res) => {
