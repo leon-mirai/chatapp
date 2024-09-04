@@ -52,7 +52,7 @@ const route = (app) => {
       const newChannel = req.body;
       const channels = channelService.readChannels();
 
-      // Add the new channel and save to file
+      // add the new channel and save to file
       channels.push(newChannel);
       channelService.writeChannels(channels);
 
