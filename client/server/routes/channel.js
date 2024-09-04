@@ -116,7 +116,7 @@ const route = (app) => {
         res.status(404).json({ message: "Channel not found" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete channel", error });
+      res.status(500).json({ message: "failed to delete channel", error });
     }
   });
 
