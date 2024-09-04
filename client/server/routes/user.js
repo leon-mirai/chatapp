@@ -185,31 +185,31 @@ const route = (app) => {
       const userId = req.params.userId.trim();
       const groupId = req.params.groupId.trim();
 
-      // Load all data
+      // lLoad all data
       let users = userService.readUsers();
       let groups = groupService.readGroups();
       let channels = channelService.readChannels();
 
-      // Find user
+      // find user
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Find group
+      // find group
       const group = groups.find((group) => group.id === groupId);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // Remove group reference from user's group list
+      // remove group reference from user's group list
       user.groups = user.groups.filter((gId) => gId !== groupId);
 
-      // Remove user from group's member and admin lists
+      // remove user from group's member and admin lists
       group.members = group.members.filter((memberId) => memberId !== userId);
       group.admins = group.admins.filter((adminId) => adminId !== userId);
 
-      // Update channels: remove the user from any channels in this group
+      // update channels: remove the user from any channels in this group
       channels = channels.map((channel) => {
         if (channel.groupId === groupId) {
           channel.members = channel.members.filter(

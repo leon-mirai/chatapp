@@ -127,7 +127,7 @@ const route = (app) => {
       const channelId = req.params.channelId.trim();
       const { userId } = req.body;
 
-      // Validate userId
+      //vlidate userId
       if (!userId || typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ message: "Invalid userId" });
       }
@@ -139,18 +139,18 @@ const route = (app) => {
         return res.status(404).json({ message: "Channel not found" });
       }
 
-      // Check if the user has already requested to join
+      //check if the user has already requested to join
       if (channel.joinRequests && channel.joinRequests.includes(userId)) {
         return res
           .status(400)
           .json({ message: "User has already requested to join the channel" });
       }
 
-      // Add user to join requests
+      // ad user to join requests
       channel.joinRequests = channel.joinRequests || [];
       channel.joinRequests.push(userId);
 
-      // Save the updated channels list
+      // save the updated channels list
       channelService.writeChannels(channels);
 
       res.status(200).json({ message: "Join request sent successfully" });
@@ -162,7 +162,7 @@ const route = (app) => {
     }
   });
 
-  // Admin approves or rejects a join request
+  //adin approves or rejects a join request
   app.post("/api/channels/:channelId/approve-join", (req, res) => {
     const { channelId } = req.params;
     const { userId } = req.body;
@@ -176,11 +176,11 @@ const route = (app) => {
     }
 
     if (approve) {
-      // Approve the user
+      // approved the user
       channel.members.push(userId);
     }
 
-    // Remove the user from the joinRequests array
+    // rm the user from the joinRequests array
     channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
 
     channelService.writeChannels(channels);

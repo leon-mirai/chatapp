@@ -36,16 +36,16 @@ const route = (app) => {
     const groups = groupService.readGroups();
     const users = userService.readUsers();
 
-    // Add the new group to the list
+    //aad the new group to the list
     groups.push(newGroup);
-    groupService.writeGroups(groups); // Save the updated groups
+    groupService.writeGroups(groups); //save
 
-    // Find the user who created the group and update their groups array
+    // find the user who created the group and udpate their groups array
     const adminUser = users.find((user) => user.id === newGroup.admins[0]);
 
     if (adminUser) {
-      adminUser.groups.push(newGroup.id); // Add the new group ID to the user's groups
-      userService.writeUsers(users); // Save the updated users
+      adminUser.groups.push(newGroup.id); // add the new group ID to the user's groups
+      userService.writeUsers(users); 
 
       res.status(201).json(newGroup);
     } else {
@@ -110,12 +110,12 @@ const route = (app) => {
     }
   });
 
-  // Add a member to a group and update the user's groups array
+  // add a member to a group and update the user's groups array
   app.post("/api/groups/:groupId/members", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
 
-    // Read all groups and users
+    // read all groups and users
     const groups = groupService.readGroups();
     const users = userService.readUsers();
 
@@ -130,20 +130,20 @@ const route = (app) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Add the user to the group members if not already present
+    // add the user to the group members if not already present
     if (!group.members.includes(userId)) {
       group.members.push(userId);
-      groupService.writeGroups(groups); // Update the groups file
+      groupService.writeGroups(groups); 
     } else {
       return res
         .status(400)
         .json({ message: "User is already a member of the group" });
     }
 
-    // Add the group to the user's groups array if not already present
+    // add group to the user's groups array if not already present
     if (!user.groups.includes(groupId)) {
       user.groups.push(groupId);
-      userService.writeUsers(users); // Update the users file
+      userService.writeUsers(users); 
     }
 
     res
@@ -323,7 +323,7 @@ const route = (app) => {
     const { groupId } = req.params;
     const { userId } = req.body;
 
-    // Read all groups and users
+    // read all groups and users
     const groups = groupService.readGroups();
     const users = userService.readUsers();
 
@@ -338,22 +338,22 @@ const route = (app) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user is in join requests
+    // check if the user is in join requests
     if (!group.joinRequests.includes(userId)) {
       return res
         .status(400)
         .json({ message: "User did not request to join the group" });
     }
 
-    // Add the user to members and remove from join requests
+    // push the user to members and remove from join requests
     group.members.push(userId);
     group.joinRequests = group.joinRequests.filter((id) => id !== userId);
-    groupService.writeGroups(groups); // Update the group in the groups.json file
+    groupService.writeGroups(groups); // update the group in the groups.json file
 
-    // Add the group to the user's groups array if not already present
+    // add the group to the user's groups array if not already present
     if (!user.groups.includes(groupId)) {
       user.groups.push(groupId);
-      userService.writeUsers(users); // Update the users.json file
+      userService.writeUsers(users); 
     }
 
     res

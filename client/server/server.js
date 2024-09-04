@@ -21,9 +21,9 @@ const channel = require("./routes/channel.js");
 login.route(app);
 user.route(app);
 group.route(app);
-channel.route(app); 
+channel.route(app);
 
-// catch-all to serve the Angular 
+// catch-all to serve the Angular
 app.get("*", function (request, response) {
   response.sendFile(
     path.resolve(__dirname, "../dist/client/browser/index.html")
