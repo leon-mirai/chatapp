@@ -7,7 +7,7 @@ This repository uses the MEAN stack (MongoDB, Express, Angular, Node.js) along w
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone [https://github.com/leon-mirai/chatapp.git](https://github.com/leon-mirai/chatapp.git)
+   git clone https://github.com/leon-mirai/chatapp.git
    ```
 
 ## Prerequisites
