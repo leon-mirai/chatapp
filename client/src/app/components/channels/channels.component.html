@@ -18,7 +18,7 @@
               *ngFor="let member of channel?.members"
               class="list-group-item d-flex justify-content-between align-items-center"
             >
-              {{ member }}
+              {{ getUserName(member) }} (ID: {{ member }})
               <button (click)="banUser(member)" class="btn btn-danger btn-sm">
                 Ban User
               </button>
@@ -37,7 +37,7 @@
         <div class="card-body">
           <ul class="list-group">
             <li *ngFor="let member of channel?.members" class="list-group-item d-flex justify-content-between align-items-center">
-              {{ member }}
+              {{ getUserName(member) }} (ID: {{ member }})
               <div *ngIf="isGroupAdmin() || isSuperAdmin()">
                 <button (click)="removeMember(member)" class="btn btn-danger btn-sm">
                   Remove User
@@ -52,44 +52,41 @@
       </div>
     </div>
     
-
-  <!-- delete -->
-  <div class="row mt-4">
-    <div class="col-md-12 text-center">
-      <button
-        *ngIf="isSuperAdmin() || isGroupAdmin()"
-        (click)="deleteChannel()"
-        class="btn btn-danger"
-      >
-        Delete Channel
-      </button>
+    <!-- delete -->
+    <div class="row mt-4">
+      <div class="col-md-12 text-center">
+        <button
+          *ngIf="isSuperAdmin() || isGroupAdmin()"
+          (click)="deleteChannel()"
+          class="btn btn-danger"
+        >
+          Delete Channel
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- chat box section -->
-  <div class="row mt-4">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <h3>Chat</h3>
-        </div>
-        <div class="card-body" style="height: 300px; border: 1px solid #ccc; padding: 10px;">
-          <!-- this is the chat box where messages will appear -->
-          <div class="chat-box" style="height: 100%; overflow-y: auto;">
-            <p>Chat messages will appear here...</p>
+    <!-- chat box section -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Chat</h3>
           </div>
-        </div>
-        <div class="card-footer">
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Type your message..."
-            />
-            <div class="input-group-append">
-              <button class="btn btn-primary">
-                Send
-              </button>
+          <div class="card-body" style="height: 300px; border: 1px solid #ccc; padding: 10px;">
+            <div class="chat-box" style="height: 100%; overflow-y: auto;">
+              <p>Chat messages will appear here...</p>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Type your message..."
+              />
+              <div class="input-group-append">
+                <button class="btn btn-primary">Send</button>
+              </div>
             </div>
           </div>
         </div>

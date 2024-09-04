@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-channels',
@@ -19,13 +20,15 @@ export class ChannelsComponent implements OnInit {
   channel: Channel | undefined;
   user: User | null = null;
   isAdminOfGroup: boolean = false;
+  userCache: { [key: string]: string } = {};  // Cache for user names
 
   constructor(
     private route: ActivatedRoute,
     private channelService: ChannelService,
     private groupService: GroupService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +58,25 @@ export class ChannelsComponent implements OnInit {
         },
       });
     }
+  }
+
+  getUserName(userId: string): string {
+    if (this.userCache[userId]) {
+      return this.userCache[userId];
+    }
+
+    this.userService.getUserById(userId).subscribe({
+      next: (user) => {
+        if (user) {
+          this.userCache[userId] = user.username;  // Cache the username
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching user:', err.message);
+      }
+    });
+
+    return userId;  // Return ID if username is not fetched yet
   }
 
   deleteChannel(): void {
