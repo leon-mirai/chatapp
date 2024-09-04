@@ -64,12 +64,12 @@
   },
   {
     "id": "wq8d",
-    "username": "",
-    "email": "",
+    "username": "bob",
+    "email": "bob@gmail.com",
     "roles": ["ChatUser"],
-    "groups": [],
+    "groups": ["group1"],
     "password": "123",
-    "valid": false
+    "valid": true
   },
   {
     "id": "FdTI",

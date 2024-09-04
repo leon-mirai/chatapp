@@ -318,30 +318,47 @@ const route = (app) => {
     res.status(200).json({ message: "Join request sent successfully" });
   });
 
-  // approve a join request
+  // approve a join request and update the user's groups array
   app.post("/api/groups/:groupId/approve-join", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
+
+    // Read all groups and users
     const groups = groupService.readGroups();
+    const users = userService.readUsers();
+
     const group = groups.find((group) => group.id === groupId);
+    const user = users.find((user) => user.id === userId);
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // check if the user is in join requests
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user is in join requests
     if (!group.joinRequests.includes(userId)) {
       return res
         .status(400)
         .json({ message: "User did not request to join the group" });
     }
 
-    // add user to members and remove from join requests
+    // Add the user to members and remove from join requests
     group.members.push(userId);
     group.joinRequests = group.joinRequests.filter((id) => id !== userId);
-    groupService.writeGroups(groups);
+    groupService.writeGroups(groups); // Update the group in the groups.json file
 
-    res.status(200).json({ message: "User approved to join the group" });
+    // Add the group to the user's groups array if not already present
+    if (!user.groups.includes(groupId)) {
+      user.groups.push(groupId);
+      userService.writeUsers(users); // Update the users.json file
+    }
+
+    res
+      .status(200)
+      .json({ message: "User approved to join the group and user updated" });
   });
 
   // reject a join request
