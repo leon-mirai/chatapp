@@ -52,7 +52,7 @@ const route = (app) => {
       const newChannel = req.body;
       const channels = channelService.readChannels();
 
-      // Add the new channel and save to file
+      // add the new channel and save to file
       channels.push(newChannel);
       channelService.writeChannels(channels);
 
@@ -134,7 +134,7 @@ const route = (app) => {
     }
   });
 
-  // Rrreemove a user from a channel
+  // rremove a user from a channel
   app.delete("/api/channels/:channelId/members/:userId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();

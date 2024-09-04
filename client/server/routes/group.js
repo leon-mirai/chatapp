@@ -124,7 +124,7 @@ const route = (app) => {
   app.delete("/api/groups/:groupId/members/:userId", (req, res) => {
     const { groupId, userId } = req.params;
 
-    // Get all groups, users, and channels
+    // get all groups, users, and channels
     const groups = groupService.readGroups();
     const users = userService.readUsers();
     const channels = channelService.readChannels();

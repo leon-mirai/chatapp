@@ -34,7 +34,7 @@ export class ChannelService {
   }
 
   joinChannel(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/join`; 
+    const url = `${this.apiUrl}/${channelId}/join`;
     console.log('Sending POST request to:', url);
     return this.http.post(url, { userId });
   }
@@ -42,5 +42,10 @@ export class ChannelService {
   banUser(channelId: string, userId: string): Observable<any> {
     const url = `${this.apiUrl}/${channelId}/ban`;
     return this.http.post(url, { userId });
+  }
+
+  removeUserFromChannel(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/members/${userId}`;
+    return this.http.delete(url);
   }
 }

@@ -69,12 +69,10 @@ const route = (app) => {
         valid: true,
       };
       userService.writeUsers(users);
-      res
-        .status(200)
-        .json({
-          message: "User registration completed",
-          user: users[userIndex],
-        });
+      res.status(200).json({
+        message: "User registration completed",
+        user: users[userIndex],
+      });
     } else {
       res.status(404).json({ message: "User not found" });
     }
@@ -223,11 +221,9 @@ const route = (app) => {
       groupService.writeGroups(groups);
       channelService.writeChannels(channels);
 
-      res
-        .status(200)
-        .json({
-          message: "Left the group and removed from channels successfully",
-        });
+      res.status(200).json({
+        message: "Left the group and removed from channels successfully",
+      });
     } catch (error) {
       res
         .status(500)

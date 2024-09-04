@@ -116,6 +116,24 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
+  removeMember(userId: string): void {
+    if (this.channel && (this.isGroupAdmin() || this.isSuperAdmin())) {
+      this.channelService
+        .removeUserFromChannel(this.channel.id, userId)
+        .subscribe({
+          next: () => {
+            this.channel!.members = this.channel!.members.filter(
+              (member) => member !== userId
+            );
+            console.log(`User ${userId} removed from channel.`);
+          },
+          error: (err) => {
+            console.error('Error removing user from channel:', err.message);
+          },
+        });
+    }
+  }
+
   isSuperAdmin(): boolean {
     return this.authService.isSuperAdmin();
   }

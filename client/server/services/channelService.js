@@ -58,7 +58,7 @@ function joinChannel(channelId, userId) {
   if (!channel.members.includes(userId)) {
     channel.members.push(userId);
     writeChannels(channels);
-    console.log(`User ${userId} successfully joined channel ${channelId}`); 
+    console.log(`User ${userId} successfully joined channel ${channelId}`);
     return { message: "User joined the channel successfully" };
   } else {
     console.log(`User ${userId} is already a member of channel ${channelId}`);
@@ -66,6 +66,20 @@ function joinChannel(channelId, userId) {
   }
 }
 
+function removeUserFromChannel(channelId, userId) {
+  const channels = readChannels();
+  const channel = channels.find((ch) => ch.id === channelId);
+
+  if (!channel) {
+    throw new Error("Channel not found");
+  }
+
+  channel.members = channel.members.filter((member) => member !== userId);
+
+  writeChannels(channels);
+
+  return { message: "User removed from channel successfully", success: true };
+}
 
 module.exports = {
   readChannels,
@@ -73,4 +87,5 @@ module.exports = {
   joinChannel,
   readGroups,
   isUserInGroup,
+  removeUserFromChannel,
 };
