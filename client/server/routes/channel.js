@@ -134,7 +134,7 @@ const route = (app) => {
     }
   });
 
-  // Rrreemove a user from a channel
+  // rremove a user from a channel
   app.delete("/api/channels/:channelId/members/:userId", (req, res) => {
     try {
       const channelId = req.params.channelId.trim();
