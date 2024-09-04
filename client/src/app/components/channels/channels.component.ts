@@ -20,7 +20,7 @@ export class ChannelsComponent implements OnInit {
   channel: Channel | undefined;
   user: User | null = null;
   isAdminOfGroup: boolean = false;
-  userCache: { [key: string]: string } = {}; // Cache for user names
+  userCache: { [key: string]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -68,7 +68,7 @@ export class ChannelsComponent implements OnInit {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         if (user) {
-          this.userCache[userId] = user.username; // Cache the username
+          this.userCache[userId] = user.username;
         }
       },
       error: (err) => {
@@ -76,7 +76,7 @@ export class ChannelsComponent implements OnInit {
       },
     });
 
-    return userId; // Return ID if username is not fetched yet
+    return userId;
   }
 
   deleteChannel(): void {
@@ -99,7 +99,6 @@ export class ChannelsComponent implements OnInit {
     const userId = this.authService.getUser()?.id;
 
     if (this.channel && userId) {
-      // Send a request to join the channel
       this.channelService
         .requestJoinChannel(this.channel.id, userId)
         .subscribe({
@@ -121,7 +120,7 @@ export class ChannelsComponent implements OnInit {
         .approveJoinRequest(this.channel.id, userId, approve)
         .subscribe({
           next: () => {
-            this.reloadChannel(); // Refresh channel details after approval/rejection
+            this.reloadChannel();
           },
           error: (err) => {
             console.error(

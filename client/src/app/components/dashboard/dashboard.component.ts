@@ -187,8 +187,8 @@ export class DashboardComponent implements OnInit {
 
       this.groupService.addGroup(newGroup).subscribe({
         next: (group) => {
-          this.groups.push(group); // Add the new group to the list
-          this.newGroupName = ''; // Clear the input field
+          this.groups.push(group); 
+          this.newGroupName = ''; 
         },
         error: (err) => {
           console.error('Error creating group:', err);
@@ -214,7 +214,7 @@ export class DashboardComponent implements OnInit {
     if (this.user && confirm('Are you sure you want to leave this group?')) {
       this.userService.leaveGroup(this.user.id, groupId).subscribe({
         next: () => {
-          // Remove the group from the user's list of groups
+          // remove the group from the user's list of groups
           this.groups = this.groups.filter((group) => group.id !== groupId);
           console.log('Left group successfully');
         },

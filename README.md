@@ -147,6 +147,7 @@ channel belongs to a specific group and can have its own set of members, along w
   "name": "General Discussion",
   "groupId": "group1",
   "members": ["2222", "9999", "6666", "1111"],
+  "joinRequests": ["3333"],
   "blacklist": ["1111"]
 }
 ```
@@ -368,6 +369,26 @@ For Phase 2, the user's data is stored used mongoDB.
     - `500: { message: "Failed to check if user is in channel", error }`
   - **Description:** Checks if a user is a member of a specific channel.
 
+  - **POST /api/channels/request-join**
+
+    - **Parameters:**
+      - `channelId` in the URL
+    - **Return Values**
+      - `200: { message: "Join request sent successfully" }`
+      - `400: { message: "Invalid user Id " }`
+      - `400: { message: "user has already requested to join the channel"}`
+      - `404: {message: "channel not found" }`
+    - **Description:** Allows a user to request to join a specific channel
+
+  - **POST /api/channels/approve-join**
+    - **Parameters:**
+      - `channelId` in the URL
+    - **Return Values**
+      - `200: { message: "User approved" }`
+      - `200: { message: "Join request rejected " }`
+      - `400: { message: " Channel not found "}`
+    - **Description:** Approves or rejects a user's request to join a channel. Only channel administrators are allowed to approve or reject join requests.
+
 ### Groups Routes
 
 - **GET /api/groups**
@@ -571,6 +592,7 @@ export class Channel {
     public name: string, // name of the channel
     public groupId: string, // ID of the group this channel belongs to
     public members: string[] = [], // array of user IDs who are members of the channel
+    public joinRequests: string[] = [], // join request for users interested in the channel
     public blacklist: string[] = [] // array of users banned from channel
   ) {}
 }
@@ -622,77 +644,93 @@ class User {
 ## Node.js Server Architecture
 
 ### Modules
+
 - Express: primary web framework used to create the server and manage routing
-- CORS: Middleware that allows cross-origin resource sharing, allowing server to handle requests from 
-different origins
+- CORS: Middleware that allows cross-origin resource sharing, allowing server to handle requests from
+  different origins
 - File system (`fs`): Native module used for reading/writing JSON files for data storage
 - Path: Native module used to work with file and directory paths
 
 ### Files
+
 1. `server.js`
+
 - Purpose: Entry point of the Node.js app. It creates the Express server, sets up middleware,
-and listens on a specific port. Import and use route modules for handling API requests.
+  and listens on a specific port. Import and use route modules for handling API requests.
+
 2. `routes/` Directory
+
 - Purpose: This directory cotains route handling modules that define the RESTful API endpoints
 - Files:
   - `api-login.js`: Handles user authentication (login)
   - `user.js`: Fetches user-related actions
   - `group.js`: Manages group-related functions like making channels, adding/removing members
-   `channel.js`: Handles channel-related operations like joining
+    `channel.js`: Handles channel-related operations like joining
+
 3. `services/` Directory
+
 - Purpose: Contains service modules that handle reading/writing data into JSON files for each
-data structure
-- Files: 
+  data structure
+- Files:
   - `userService.js`: generates userId, read/writes JSON data for user
   - `channelService.js`: read/write channel data
   - `groupService.js`: read/writes for group JSON data
 
 ### Functions
-Each service module exports functions that are used for interacting with data. They perform  actions like:
+
+Each service module exports functions that are used for interacting with data. They perform actions like:
+
 - Reading data
 - Writing data
 - CRUD operations
 - Validation
 
 ### Global Variables
-Global variables were minimised. The application uses modules to encapsulate data and state management. The const file path that was used was 
+
+Global variables were minimised. The application uses modules to encapsulate data and state management. The const file path that was used was
 `const uiPath = path.join(__dirname, "../dist/client/browser");`
 This is used to serve the backend data to the front end through the dist directory.
 
 ### Middleware
+
 The server uses Express middleware for tasks such as:
+
 - JSON Parsing: Automatically parsing JSON bodies in incoming requests using `express.json()`
 - CORS: Allowing cross-origin requests using a CORS middleware
 
 ## Client-Server Interaction
+
 1. HTTP Requests: Angular front-end sends HTTP requests to Node.js server to perform
-CRUD operations on data structures like users, groups, and channels. These requests include:
+   CRUD operations on data structures like users, groups, and channels. These requests include:
+
 - GET: to fetch data from server such as user details, group info, or channel messages
 - POST: used to create new entities like users, groups, or channels
 - PUT: used to update existing entities such as updating group details
 - DELETE: used to remove entities like users, groups, or channels
-2. Data exchange: the server processes the requests, interacts with the JSON files and 
-sends back appropriate response
+
+2. Data exchange: the server processes the requests, interacts with the JSON files and
+   sends back appropriate response
 3. UI update: Angular app responds to server by updating UI dynamically. Components use Angular services to
-fetch data from server and then display the data in the UI. 
+   fetch data from server and then display the data in the UI.
+
 - Example: After user logs in, DashboardComponent requests data related to user's role. For a SuperAdmin, it retrieves all
-users, groups, and channels, allowing the admin to manage the system.
+  users, groups, and channels, allowing the admin to manage the system.
 - For GroupComponent, when new data about group members is received, the list displayed in the UI is updated.
 
 Client-side Angular Components:
+
 - LoginComponent: Sends user details to server for authentication. Upon success, the valid attribute of the user is checked (and create a session) and stored in client's local storage for further requests. Also you can request to make an account.
 - DashboardComponent: After user logs in, the component requests data related to the user's permissions. This component retrieves group details such as members and available groups. The SuperAdmin has the following permissions:
   - Assign details to account request
   - Delete users
   - Promote users
   - Has all permissions of GroupAdmin
-Group Admin has the following permissions:
+    Group Admin has the following permissions:
   - Manage/Delete own group
   - Create group
-All permissions:
+    All permissions:
   - Delete account
   - Logout
 - GroupsComponent: When a user selects a group, this component retrieves the group's details, such as its members and related channels. Adnubs cab add nenbersm create channels, or manage join requests.
 - ChannelsComponent: Displays the contents of a channel such as messages and participants. Users can
-join or leave channels, and admins can ban users from channel or delete the channel
-
+  join or leave channels, and admins can ban users from channel or delete the channel

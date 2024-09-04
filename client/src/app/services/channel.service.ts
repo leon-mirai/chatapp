@@ -34,7 +34,7 @@ export class ChannelService {
   }
 
   joinChannel(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/request-join`; // Make sure this matches the backend
+    const url = `${this.apiUrl}/${channelId}/request-join`;
     return this.http.post(url, { userId });
   }
 
@@ -49,11 +49,11 @@ export class ChannelService {
   }
 
   requestJoinChannel(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/request-join`; // Ensure this points to /request-join endpoint
+    const url = `${this.apiUrl}/${channelId}/request-join`;
     return this.http.post(url, { userId });
   }
 
-  // Approves or rejects a join request
+  //aapproves or rejects a join request
   approveJoinRequest(
     channelId: string,
     userId: string,

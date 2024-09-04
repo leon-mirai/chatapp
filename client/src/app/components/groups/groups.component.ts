@@ -64,16 +64,16 @@ export class GroupsComponent implements OnInit {
   }
 
   getUserName(memberId: string): string {
-    // If the username is already cached, return it
+    // if the username is already cached, return it
     if (this.userCache[memberId]) {
       return this.userCache[memberId];
     }
 
-    // Fetch the user from the user service
+    // fetch the user from the user service
     this.userService.getUserById(memberId).subscribe({
       next: (user) => {
         if (user) {
-          this.userCache[memberId] = user.username; // Cache the username
+          this.userCache[memberId] = user.username; // cache username
         }
       },
       error: (err: any) => {
@@ -81,7 +81,7 @@ export class GroupsComponent implements OnInit {
       },
     });
 
-    // Return userId as a fallback while we fetch the username
+    // rrturn userId as a fallback while we fetch the username
     return memberId;
   }
 
@@ -121,11 +121,11 @@ export class GroupsComponent implements OnInit {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
-      // Check if the user exists before adding
+      // check if the user exists before adding
       this.userService.getUserById(userId).subscribe({
         next: (user) => {
           if (user) {
-            // Proceed with adding the member
+            // proceed with adding the member
             this.groupService.addMember(this.group!.id, userId).subscribe({
               next: () => {
                 this.group?.members.push(userId);

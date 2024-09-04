@@ -14,7 +14,6 @@
         <div class="card-body">
           <ul class="list-group">
             <li *ngFor="let memberId of group?.members" class="list-group-item d-flex justify-content-between align-items-center">
-              <!-- Here, we will fetch the username using the getUserById function -->
               {{ getUserName(memberId) }} (ID: {{ memberId }})
               <div *ngIf="isGroupAdmin(group)">
                 <button class="btn btn-danger btn-sm" (click)="removeMember(memberId)">Remove</button>
