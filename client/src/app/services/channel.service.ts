@@ -34,8 +34,7 @@ export class ChannelService {
   }
 
   joinChannel(channelId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${channelId}/join`;
-    console.log('Sending POST request to:', url);
+    const url = `${this.apiUrl}/${channelId}/request-join`; // Make sure this matches the backend
     return this.http.post(url, { userId });
   }
 
@@ -47,5 +46,21 @@ export class ChannelService {
   removeUserFromChannel(channelId: string, userId: string): Observable<any> {
     const url = `${this.apiUrl}/${channelId}/members/${userId}`;
     return this.http.delete(url);
+  }
+
+  requestJoinChannel(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/request-join`; // Ensure this points to /request-join endpoint
+    return this.http.post(url, { userId });
+  }
+
+  // Approves or rejects a join request
+  approveJoinRequest(
+    channelId: string,
+    userId: string,
+    approve: boolean
+  ): Observable<any> {
+    const action = approve ? 'approve-join' : 'reject-join';
+    const url = `${this.apiUrl}/${channelId}/${action}`;
+    return this.http.post(url, { userId });
   }
 }

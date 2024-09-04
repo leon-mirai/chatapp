@@ -214,6 +214,7 @@ export class DashboardComponent implements OnInit {
     if (this.user && confirm('Are you sure you want to leave this group?')) {
       this.userService.leaveGroup(this.user.id, groupId).subscribe({
         next: () => {
+          // Remove the group from the user's list of groups
           this.groups = this.groups.filter((group) => group.id !== groupId);
           console.log('Left group successfully');
         },

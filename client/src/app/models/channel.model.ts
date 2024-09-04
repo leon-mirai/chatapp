@@ -5,6 +5,7 @@ export class Channel {
     public name: string, // name of the channel
     public groupId: string, // iD of the group this channel belongs to
     public members: string[] = [], // array of user IDs who are members of the channel
+    public joinRequests: string[] = [],
     public blacklist: string[] = [] // banmed members from channel
   ) {}
 }

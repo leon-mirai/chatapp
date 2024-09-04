@@ -20,7 +20,7 @@ export class ChannelsComponent implements OnInit {
   channel: Channel | undefined;
   user: User | null = null;
   isAdminOfGroup: boolean = false;
-  userCache: { [key: string]: string } = {};  // Cache for user names
+  userCache: { [key: string]: string } = {}; // Cache for user names
 
   constructor(
     private route: ActivatedRoute,
@@ -68,15 +68,15 @@ export class ChannelsComponent implements OnInit {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         if (user) {
-          this.userCache[userId] = user.username;  // Cache the username
+          this.userCache[userId] = user.username; // Cache the username
         }
       },
       error: (err) => {
         console.error('Error fetching user:', err.message);
-      }
+      },
     });
 
-    return userId;  // Return ID if username is not fetched yet
+    return userId; // Return ID if username is not fetched yet
   }
 
   deleteChannel(): void {
@@ -99,16 +99,37 @@ export class ChannelsComponent implements OnInit {
     const userId = this.authService.getUser()?.id;
 
     if (this.channel && userId) {
-      this.channelService.joinChannel(this.channel.id, userId).subscribe({
-        next: (response) => {
-          if (response.message === 'User joined the channel successfully') {
-            this.reloadChannel();
-          }
-        },
-        error: (err) => {
-          console.error('Error joining channel:', err.message);
-        },
-      });
+      // Send a request to join the channel
+      this.channelService
+        .requestJoinChannel(this.channel.id, userId)
+        .subscribe({
+          next: (response) => {
+            if (response.message === 'Join request sent successfully') {
+              console.log('Join request sent.');
+            }
+          },
+          error: (err) => {
+            console.error('Error requesting to join channel:', err.message);
+          },
+        });
+    }
+  }
+
+  approveJoinRequest(userId: string, approve: boolean): void {
+    if (this.channel) {
+      this.channelService
+        .approveJoinRequest(this.channel.id, userId, approve)
+        .subscribe({
+          next: () => {
+            this.reloadChannel(); // Refresh channel details after approval/rejection
+          },
+          error: (err) => {
+            console.error(
+              `Error ${approve ? 'approving' : 'rejecting'} join request:`,
+              err.message
+            );
+          },
+        });
     }
   }
 
@@ -166,5 +187,9 @@ export class ChannelsComponent implements OnInit {
 
   isChatUser(): boolean {
     return this.authService.isChatUser();
+  }
+
+  isMemberOfChannel(): boolean {
+    return this.channel?.members.includes(this.user?.id || '') ?? false;
   }
 }
