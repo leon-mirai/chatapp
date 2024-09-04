@@ -31,28 +31,27 @@ const route = (app) => {
   });
 
   // create a new group
-app.post("/api/groups", (req, res) => {
-  const newGroup = req.body;
-  const groups = groupService.readGroups();
-  const users = userService.readUsers();
+  app.post("/api/groups", (req, res) => {
+    const newGroup = req.body;
+    const groups = groupService.readGroups();
+    const users = userService.readUsers();
 
-  // Add the new group to the list
-  groups.push(newGroup);
-  groupService.writeGroups(groups); // Save the updated groups
+    // Add the new group to the list
+    groups.push(newGroup);
+    groupService.writeGroups(groups); // Save the updated groups
 
-  // Find the user who created the group and update their groups array
-  const adminUser = users.find((user) => user.id === newGroup.admins[0]);
+    // Find the user who created the group and update their groups array
+    const adminUser = users.find((user) => user.id === newGroup.admins[0]);
 
-  if (adminUser) {
-    adminUser.groups.push(newGroup.id); // Add the new group ID to the user's groups
-    userService.writeUsers(users);      // Save the updated users
+    if (adminUser) {
+      adminUser.groups.push(newGroup.id); // Add the new group ID to the user's groups
+      userService.writeUsers(users); // Save the updated users
 
-    res.status(201).json(newGroup);
-  } else {
-    res.status(404).json({ message: "Admin user not found" });
-  }
-});
-
+      res.status(201).json(newGroup);
+    } else {
+      res.status(404).json({ message: "Admin user not found" });
+    }
+  });
 
   // update a group by ID
   app.put("/api/groups/:groupId", groupService.checkGroupAdmin, (req, res) => {
@@ -111,28 +110,45 @@ app.post("/api/groups", (req, res) => {
     }
   });
 
-  // add a member to a group
+  // Add a member to a group and update the user's groups array
   app.post("/api/groups/:groupId/members", (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
+
+    // Read all groups and users
     const groups = groupService.readGroups();
+    const users = userService.readUsers();
+
     const group = groups.find((group) => group.id === groupId);
+    const user = users.find((user) => user.id === userId);
 
-    
-
-    if (group) {
-      if (!group.members.includes(userId)) {
-        group.members.push(userId);
-        groupService.writeGroups(groups);
-        res.status(200).json({ message: "Member added successfully" });
-      } else {
-        res
-          .status(400)
-          .json({ message: "User is already a member of the group" });
-      }
-    } else {
-      res.status(404).json({ message: "Group not found" });
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
     }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Add the user to the group members if not already present
+    if (!group.members.includes(userId)) {
+      group.members.push(userId);
+      groupService.writeGroups(groups); // Update the groups file
+    } else {
+      return res
+        .status(400)
+        .json({ message: "User is already a member of the group" });
+    }
+
+    // Add the group to the user's groups array if not already present
+    if (!user.groups.includes(groupId)) {
+      user.groups.push(groupId);
+      userService.writeUsers(users); // Update the users file
+    }
+
+    res
+      .status(200)
+      .json({ message: "Member added successfully and user updated" });
   });
 
   app.delete("/api/groups/:groupId/members/:userId", (req, res) => {
