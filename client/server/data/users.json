@@ -58,7 +58,7 @@
     "username": "super",
     "email": "superadmin1@gmail.com",
     "roles": ["SuperAdmin"],
-    "groups": ["group1", "group3", "sadge-y47b"],
+    "groups": ["group1", "group3"],
     "password": "123",
     "valid": true
   },
@@ -75,6 +75,15 @@
     "id": "FdTI",
     "username": "",
     "email": "",
+    "roles": ["ChatUser"],
+    "groups": [],
+    "password": "123",
+    "valid": false
+  },
+  {
+    "username": "",
+    "email": "",
+    "id": "Xowy",
     "roles": ["ChatUser"],
     "groups": [],
     "password": "123",

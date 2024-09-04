@@ -46,13 +46,12 @@ const route = (app) => {
     }
   });
 
-  // ceate a new channel
+  // Create a new channel
   app.post("/api/channels", (req, res) => {
     try {
-      const newChannel = req.body;
+      const newChannel = { ...req.body, joinRequests: [] }; // Initialize joinRequests as an empty array
       const channels = channelService.readChannels();
 
-      // Add the new channel to the channels list and save it
       channels.push(newChannel);
       channelService.writeChannels(channels);
 
@@ -61,9 +60,8 @@ const route = (app) => {
       const group = groups.find((group) => group.id === newChannel.groupId);
 
       if (group) {
-        // Add the channel ID to the group's channels array
         group.channels.push(newChannel.id);
-        groupService.writeGroups(groups); // Save the updated group list
+        groupService.writeGroups(groups);
       }
 
       res.status(201).json(newChannel);
@@ -71,6 +69,7 @@ const route = (app) => {
       res.status(500).json({ message: "Failed to create channel", error });
     }
   });
+
   // pdate a channel by ID
   app.put("/api/channels/:channelId", (req, res) => {
     try {
@@ -121,26 +120,74 @@ const route = (app) => {
     }
   });
 
-  // user joins a channel
-  app.post("/api/channels/:channelId/join", (req, res) => {
+  // user requests to join a channel
+  app.post("/api/channels/:channelId/request-join", (req, res) => {
+
     try {
       const channelId = req.params.channelId.trim();
       const { userId } = req.body;
 
-      // validate userId
+      // Validate userId
       if (!userId || typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ message: "Invalid userId" });
       }
 
-      // call the service to join the channel
-      const response = channelService.joinChannel(channelId, userId);
+      const channels = channelService.readChannels();
+      const channel = channels.find((ch) => ch.id === channelId);
 
-      res.status(200).json(response);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      // Check if the user has already requested to join
+      if (channel.joinRequests && channel.joinRequests.includes(userId)) {
+        return res
+          .status(400)
+          .json({ message: "User has already requested to join the channel" });
+      }
+
+      // Add user to join requests
+      channel.joinRequests = channel.joinRequests || [];
+      channel.joinRequests.push(userId);
+
+      // Save the updated channels list
+      channelService.writeChannels(channels);
+
+      res.status(200).json({ message: "Join request sent successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to join the channel", error: error.message });
+      res.status(500).json({
+        message: "Failed to request to join the channel",
+        error: error.message,
+      });
     }
+  });
+
+  // Admin approves or rejects a join request
+  app.post("/api/channels/:channelId/approve-join", (req, res) => {
+    const { channelId } = req.params;
+    const { userId } = req.body;
+    const { approve } = req.body;
+
+    let channels = channelService.readChannels();
+    let channel = channels.find((channel) => channel.id === channelId);
+
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    if (approve) {
+      // Approve the user
+      channel.members.push(userId);
+    }
+
+    // Remove the user from the joinRequests array
+    channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
+
+    channelService.writeChannels(channels);
+
+    res
+      .status(200)
+      .json({ message: approve ? "User approved" : "Join request rejected" });
   });
 
   // rremove a user from a channel

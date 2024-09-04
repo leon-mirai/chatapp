@@ -185,28 +185,31 @@ const route = (app) => {
       const userId = req.params.userId.trim();
       const groupId = req.params.groupId.trim();
 
+      // Load all data
       let users = userService.readUsers();
       let groups = groupService.readGroups();
       let channels = channelService.readChannels();
 
+      // Find user
       const user = users.find((user) => user.id === userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Find group
       const group = groups.find((group) => group.id === groupId);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // remove group reference from user
-      user.groups = user.groups.filter((group) => group !== groupId);
+      // Remove group reference from user's group list
+      user.groups = user.groups.filter((gId) => gId !== groupId);
 
-      // remove user from group members and admins
+      // Remove user from group's member and admin lists
       group.members = group.members.filter((memberId) => memberId !== userId);
       group.admins = group.admins.filter((adminId) => adminId !== userId);
 
-      // update channels to remove the user from any channels in this group
+      // Update channels: remove the user from any channels in this group
       channels = channels.map((channel) => {
         if (channel.groupId === groupId) {
           channel.members = channel.members.filter(
@@ -216,18 +219,15 @@ const route = (app) => {
         return channel;
       });
 
-      // write updates back to the files
+      // Save updated data
       userService.writeUsers(users);
       groupService.writeGroups(groups);
       channelService.writeChannels(channels);
 
-      res.status(200).json({
-        message: "Left the group and removed from channels successfully",
-      });
+      return res.status(200).json({ message: "Successfully left the group" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to leave group", error: error.message });
+      console.error("Error leaving the group:", error);
+      res.status(500).json({ message: "Failed to leave group", error });
     }
   });
 

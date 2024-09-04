@@ -22,13 +22,5 @@
     "members": ["5555", "4444", "6666"],
     "channels": ["channel4"],
     "joinRequests": ["2222"]
-  },
-  {
-    "id": "sadge-y47b",
-    "name": "sadge",
-    "admins": ["6666"],
-    "members": ["6666"],
-    "channels": ["choom-9wwz"],
-    "joinRequests": []
   }
 ]
