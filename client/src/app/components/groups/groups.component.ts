@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IdService } from '../../services/id.service';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-groups',
@@ -27,6 +28,7 @@ export class GroupsComponent implements OnInit {
     private route: ActivatedRoute,
     private groupService: GroupService,
     private channelService: ChannelService,
+    private userService: UserService,
     private idService: IdService,
     private authService: AuthService
   ) {}
@@ -96,15 +98,30 @@ export class GroupsComponent implements OnInit {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
-      this.groupService.addMember(this.group.id, userId).subscribe({
-        next: () => {
-          this.group?.members.push(this.newMemberId);
-          console.log('Member added successfully');
-          this.newMemberId = '';
+      // Check if the user exists before adding
+      this.userService.getUserById(userId).subscribe({
+        next: (user) => {
+          if (user) {
+            // Proceed with adding the member
+            this.groupService.addMember(this.group!.id, userId).subscribe({
+              next: () => {
+                this.group?.members.push(userId);
+                console.log('Member added successfully');
+                this.newMemberId = '';
+              },
+              error: (err: any) => {
+                console.error('Error adding member:', err.message);
+              },
+            });
+          } else {
+            console.error('User does not exist');
+            alert('User does not exist');
+          }
         },
         error: (err: any) => {
-          console.error('Error adding member:', err.message);
-        },
+          console.error('Error checking user existence:', err.message);
+          alert('Error checking user existence');
+        }
       });
     } else {
       console.error('Group does not exist or user lacks permission.');

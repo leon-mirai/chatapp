@@ -106,6 +106,8 @@ const route = (app) => {
     const groups = groupService.readGroups();
     const group = groups.find((group) => group.id === groupId);
 
+    
+
     if (group) {
       if (!group.members.includes(userId)) {
         group.members.push(userId);
