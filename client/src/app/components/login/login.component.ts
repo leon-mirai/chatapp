@@ -38,21 +38,21 @@ export class LoginComponent {
         this.errorMessage =
           'Login failed. Please check your credentials and try again.';
       },
-      complete: () => console.log('Login process completed'),
+      complete: () => console.log('login process completed'),
     });
   }
 
   requestAccount() {
     this.userService.requestUserCreation().subscribe({
       next: (response) => {
-        console.log('Account request successful', response);
+        console.log('aaccount request successful', response);
         this.requestMessage =
-          'Account request has been sent to the SuperAdmin. Please wait for approval.';
+          'account request has been sent to the SuperAdmin. Please wait for approval.';
       },
       error: (error) => {
-        console.error('Account request failed', error);
+        console.error('account request failed', error);
         this.requestMessage =
-          'Failed to request account creation. Please try again later.';
+          'failed to request account creation. Please try again later.';
       },
     });
   }

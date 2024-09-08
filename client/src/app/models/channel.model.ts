@@ -1,4 +1,3 @@
-// src/app/models/channel.model.ts
 export class Channel {
   constructor(
     public id: string, // unique identifier for the channel

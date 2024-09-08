@@ -20,7 +20,7 @@
     "name": "Game Strategies",
     "groupId": "group2",
     "members": ["2222"],
-    "joinRequests": [],
+    "joinRequests": ["3333"],
     "blacklist": []
   },
   {

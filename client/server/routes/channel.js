@@ -46,16 +46,16 @@ const route = (app) => {
     }
   });
 
-  // Create a new channel
+  // create a new channel
   app.post("/api/channels", (req, res) => {
     try {
-      const newChannel = { ...req.body, joinRequests: [] }; // Initialize joinRequests as an empty array
+      const newChannel = { ...req.body, joinRequests: [] }; // initialize joinRequests as an empty array
       const channels = channelService.readChannels();
 
       channels.push(newChannel);
       channelService.writeChannels(channels);
 
-      // Update the corresponding group by adding the new channel's ID
+      // update the corresponding group by adding the new channel's ID
       const groups = groupService.readGroups();
       const group = groups.find((group) => group.id === newChannel.groupId);
 

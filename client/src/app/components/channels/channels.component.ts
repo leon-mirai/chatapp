@@ -48,13 +48,13 @@ export class ChannelsComponent implements OnInit {
                 this.isAdminOfGroup = group.admins.includes(this.user!.id);
               },
               error: (err) => {
-                console.error('Error checking group admin:', err.message);
+                console.error('error check for admin:', err.message);
               },
             });
           }
         },
         error: (err) => {
-          console.error('Error fetching channel:', err.message);
+          console.error('error fetch for channels:', err.message);
         },
       });
     }
@@ -72,7 +72,7 @@ export class ChannelsComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error fetching user:', err.message);
+        console.error('error fetch user:', err.message);
       },
     });
 
@@ -89,7 +89,7 @@ export class ChannelsComponent implements OnInit {
           this.router.navigate(['/dashboard']);
         },
         error: (err) => {
-          console.error('Error deleting channel:', err.message);
+          console.error('error deleting message:', err.message);
         },
       });
     }
@@ -108,7 +108,7 @@ export class ChannelsComponent implements OnInit {
             }
           },
           error: (err) => {
-            console.error('Error requesting to join channel:', err.message);
+            console.error('error requesting to join channel:', err.message);
           },
         });
     }
@@ -139,7 +139,7 @@ export class ChannelsComponent implements OnInit {
           this.channel = updatedChannel;
         },
         error: (err) => {
-          console.error('Error reloading channel:', err.message);
+          console.error('error reloading channel:', err.message);
         },
       });
     }
@@ -170,7 +170,7 @@ export class ChannelsComponent implements OnInit {
             console.log(`User ${userId} removed from channel.`);
           },
           error: (err) => {
-            console.error('Error removing user from channel:', err.message);
+            console.error('eror removing user from channel:', err.message);
           },
         });
     }

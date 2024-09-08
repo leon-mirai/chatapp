@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
         this.pendingUsers = users.filter((user) => !user.valid);
       },
       error: (err) => {
-        console.error('Error fetching pending users:', err);
+        console.error('error fetching pending users:', err);
       },
     });
   }
@@ -105,7 +105,7 @@ export class DashboardComponent implements OnInit {
           }
         },
         error: (err) => {
-          console.error('Error fetching groups:', err);
+          console.error('error fetching groups:', err);
         },
       });
     }
@@ -118,10 +118,10 @@ export class DashboardComponent implements OnInit {
           this.availableGroups = groups.filter(
             (group) => !group.members.includes(this.user.id)
           );
-          console.log('Available Groups:', this.availableGroups);
+          console.log('available Groups:', this.availableGroups);
         },
         error: (err) => {
-          console.error('Error fetching available groups:', err.message);
+          console.error('error fetching available groups:', err.message);
         },
       });
     }
@@ -133,7 +133,7 @@ export class DashboardComponent implements OnInit {
         this.users = users;
       },
       error: (err) => {
-        console.error('Error fetching users:', err);
+        console.error('error fetching users:', err);
       },
     });
   }
@@ -147,10 +147,10 @@ export class DashboardComponent implements OnInit {
       this.userService.deleteUser(userId).subscribe({
         next: () => {
           this.users = this.users.filter((user) => user.id !== userId);
-          console.log('User deleted successfully');
+          console.log('user deleted successfully');
         },
         error: (err) => {
-          console.error('Error deleting user:', err);
+          console.error('error deleting user:', err);
         },
       });
     }
@@ -168,7 +168,7 @@ export class DashboardComponent implements OnInit {
           this.router.navigate(['/login']);
         },
         error: (err: any) => {
-          console.error('Error deleting user account:', err);
+          console.error('error deleting user account:', err);
         },
       });
     }

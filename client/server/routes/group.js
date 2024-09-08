@@ -45,7 +45,7 @@ const route = (app) => {
 
     if (adminUser) {
       adminUser.groups.push(newGroup.id); // add the new group ID to the user's groups
-      userService.writeUsers(users); 
+      userService.writeUsers(users);
 
       res.status(201).json(newGroup);
     } else {
@@ -133,7 +133,7 @@ const route = (app) => {
     // add the user to the group members if not already present
     if (!group.members.includes(userId)) {
       group.members.push(userId);
-      groupService.writeGroups(groups); 
+      groupService.writeGroups(groups);
     } else {
       return res
         .status(400)
@@ -143,7 +143,7 @@ const route = (app) => {
     // add group to the user's groups array if not already present
     if (!user.groups.includes(groupId)) {
       user.groups.push(groupId);
-      userService.writeUsers(users); 
+      userService.writeUsers(users);
     }
 
     res
@@ -304,7 +304,7 @@ const route = (app) => {
         .json({ message: "User is already a member of the group" });
     }
 
-    // Check if the user has already requested to join
+    // check if the user has already requested to join
     if (group.joinRequests.includes(userId)) {
       return res
         .status(400)
@@ -353,7 +353,7 @@ const route = (app) => {
     // add the group to the user's groups array if not already present
     if (!user.groups.includes(groupId)) {
       user.groups.push(groupId);
-      userService.writeUsers(users); 
+      userService.writeUsers(users);
     }
 
     res
