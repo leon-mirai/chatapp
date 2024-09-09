@@ -92,6 +92,33 @@ async function removeUserFromChannel(db, channelId, userId) {
   }
 }
 
+// Remove a user from all channels
+async function removeUserFromChannels(db, userId) {
+  try {
+    // Update all channels to remove the user from members and blacklist arrays
+    const result = await db.collection('channels').updateMany(
+      {}, // Update all channels
+      { 
+        $pull: { 
+          members: userId,     // Remove user from members array
+          blacklist: userId    // Remove user from blacklist array
+        } 
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      console.log(`User ${userId} removed from ${result.modifiedCount} channels.`);
+    } else {
+      console.log(`User ${userId} was not found in any channels.`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error removing user from channels:", error);
+    throw error;
+  }
+}
+
 
 
 module.exports = {
@@ -100,4 +127,5 @@ module.exports = {
   joinChannel,
   isUserInGroup,
   removeUserFromChannel,
+  removeUserFromChannels,
 };

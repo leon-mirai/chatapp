@@ -1,4 +1,6 @@
-const { ObjectId } = require("mongodb");
+const groupService = require('./groupService');
+const channelService = require('./channelService')
+
 
 // Generate unique user ID (for cases when you're not using MongoDB's ObjectId)
 const generateUserId = () => {
@@ -94,6 +96,7 @@ async function deleteUser(db, userId) {
     throw error;
   }
 }
+
 
 
 // Remove group from user's group list when they leave a group
