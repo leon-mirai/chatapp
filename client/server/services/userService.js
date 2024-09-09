@@ -1,8 +1,6 @@
-const fs = require("fs");
-const path = require("path");
+const { ObjectId } = require("mongodb");
 
-const usersPath = path.join(__dirname, "../data/users.json");
-
+// Generate unique user ID (we'll use MongoDB's ObjectId)
 const generateUserId = () => {
   const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   let result = '';
@@ -12,26 +10,35 @@ const generateUserId = () => {
   return result;
 };
 
-function readUsers() {
+// Get all users
+async function readUsers(db) {
   try {
-    const usersData = fs.readFileSync(usersPath, "utf-8");
-    return JSON.parse(usersData);
+    const usersCollection = db.collection("users");
+    const users = await usersCollection.find().toArray();
+    return users;
   } catch (error) {
-    console.error("Error reading users file:", error);
+    console.error("Error reading users from MongoDB:", error);
     return [];
   }
 }
 
-function writeUsers(users) {
+// Write user to the database (add or update)
+async function writeUser(db, user) {
   try {
-    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), "utf-8");
+    const usersCollection = db.collection("users");
+    const result = await usersCollection.updateOne(
+      { _id: ObjectId(user._id) }, 
+      { $set: user }, 
+      { upsert: true } // Create the user if it doesn't exist
+    );
+    return result;
   } catch (error) {
-    console.error("Error writing to users file:", error);
+    console.error("Error writing user to MongoDB:", error);
   }
 }
 
 module.exports = {
   readUsers,
-  writeUsers,
+  writeUser,
   generateUserId,
 };

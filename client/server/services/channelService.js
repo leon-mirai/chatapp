@@ -1,91 +1,101 @@
-const fs = require("fs");
-const path = require("path");
+const { ObjectId } = require("mongodb");
 
-const channelsPath = path.join(__dirname, "../data/channels.json");
-const groupsPath = path.join(__dirname, "../data/groups.json");
-
-function readChannels() {
+// Get all channels
+async function readChannels(db) {
   try {
-    const channelsData = fs.readFileSync(channelsPath, "utf-8");
-    return JSON.parse(channelsData || "[]");
+    const channelsCollection = db.collection("channels");
+    const channels = await channelsCollection.find().toArray();
+    return channels;
   } catch (error) {
-    console.error("Error reading channels file:", error);
+    console.error("Error reading channels from MongoDB:", error);
     return [];
   }
 }
 
-function writeChannels(channels) {
+// Write channel to the database (add or update)
+async function writeChannel(db, channel) {
   try {
-    fs.writeFileSync(channelsPath, JSON.stringify(channels, null, 2), "utf-8");
+    const channelsCollection = db.collection("channels");
+    const result = await channelsCollection.updateOne(
+      { _id: ObjectId(channel._id) }, 
+      { $set: channel }, 
+      { upsert: true }
+    );
+    return result;
   } catch (error) {
-    console.error("Error writing to channels file:", error);
+    console.error("Error writing channel to MongoDB:", error);
   }
 }
 
-function readGroups() {
+// Check if user is in the group associated with the channel
+async function isUserInGroup(db, groupId, userId) {
   try {
-    const groupsData = fs.readFileSync(groupsPath, "utf-8");
-    return JSON.parse(groupsData || "[]");
+    const groupsCollection = db.collection("groups");
+    const group = await groupsCollection.findOne({ _id: ObjectId(groupId) });
+
+    if (!group) {
+      console.error(`Group with ID ${groupId} not found.`);
+      return false; // Group not found
+    }
+    return group.members.includes(userId);
   } catch (error) {
-    console.error("Error reading groups file:", error);
-    return [];
+    console.error("Error checking user in group:", error);
+    return false;
   }
 }
 
-function isUserInGroup(groupId, userId) {
-  const groups = readGroups();
-  const group = groups.find((group) => group.id === groupId);
-  if (!group) {
-    console.error(`Group with ID ${groupId} not found.`);
-    return false; // group not found
-  }
-  return group.members.includes(userId);
-}
+// Join a channel
+async function joinChannel(db, channelId, userId) {
+  try {
+    const channelsCollection = db.collection("channels");
+    const channel = await channelsCollection.findOne({ _id: ObjectId(channelId) });
 
-function joinChannel(channelId, userId) {
-  const channels = readChannels();
-  const channel = channels.find((channel) => channel.id === channelId);
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
 
-  if (!channel) {
-    throw new Error("Channel not found");
-  }
+    // Validate if the user is in the group associated with the channel
+    if (!await isUserInGroup(db, channel.groupId, userId)) {
+      throw new Error("User is not a member of the group");
+    }
 
-  // validate if the user is in the group associated with the channel
-  if (!isUserInGroup(channel.groupId, userId)) {
-    throw new Error("User is not a member of the group");
-  }
-
-  if (!channel.members.includes(userId)) {
-    channel.members.push(userId);
-    writeChannels(channels);
-    console.log(`User ${userId} successfully joined channel ${channelId}`);
-    return { message: "User joined the channel successfully" };
-  } else {
-    console.log(`User ${userId} is already a member of channel ${channelId}`);
-    return { message: "User is already a member of the channel" };
+    if (!channel.members.includes(userId)) {
+      channel.members.push(userId);
+      await writeChannel(db, channel);
+      return { message: "User joined the channel successfully" };
+    } else {
+      return { message: "User is already a member of the channel" };
+    }
+  } catch (error) {
+    console.error("Error joining channel:", error);
+    throw error;
   }
 }
 
-function removeUserFromChannel(channelId, userId) {
-  const channels = readChannels();
-  const channel = channels.find((ch) => ch.id === channelId);
+// Remove a user from a channel
+async function removeUserFromChannel(db, channelId, userId) {
+  try {
+    const channelsCollection = db.collection("channels");
+    const channel = await channelsCollection.findOne({ _id: ObjectId(channelId) });
 
-  if (!channel) {
-    throw new Error("Channel not found");
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+
+    channel.members = channel.members.filter(member => member !== userId);
+    await writeChannel(db, channel);
+
+    return { message: "User removed from channel successfully", success: true };
+  } catch (error) {
+    console.error("Error removing user from channel:", error);
+    throw error;
   }
-
-  channel.members = channel.members.filter((member) => member !== userId);
-
-  writeChannels(channels);
-
-  return { message: "User removed from channel successfully", success: true };
 }
 
 module.exports = {
   readChannels,
-  writeChannels,
+  writeChannel,
   joinChannel,
-  readGroups,
   isUserInGroup,
   removeUserFromChannel,
 };

@@ -1,50 +1,62 @@
-const fs = require("fs");
-const path = require("path");
+const { ObjectId } = require("mongodb");
 
-const groupsPath = path.join(__dirname, "../data/groups.json");
-
-function readGroups() {
+// Get all groups
+async function readGroups(db) {
   try {
-    const groupsData = fs.readFileSync(groupsPath, "utf-8");
-    return JSON.parse(groupsData || "[]"); // fallback to an empty array if the file is empty
+    const groupsCollection = db.collection("groups");
+    const groups = await groupsCollection.find().toArray();
+    return groups;
   } catch (error) {
-    console.error("Error reading groups file:", error);
-    return []; // return an empty array if there's an error reading the file
+    console.error("Error reading groups from MongoDB:", error);
+    return [];
   }
 }
 
-function writeGroups(groups) {
+// Write group to the database (add or update)
+async function writeGroup(db, group) {
   try {
-    fs.writeFileSync(groupsPath, JSON.stringify(groups, null, 2), "utf-8");
+    const groupsCollection = db.collection("groups");
+    const result = await groupsCollection.updateOne(
+      { _id: ObjectId(group._id) },
+      { $set: group },
+      { upsert: true }
+    );
+    return result;
   } catch (error) {
-    console.error("Error writing to groups file:", error);
+    console.error("Error writing group to MongoDB:", error);
   }
 }
 
-function checkGroupAdmin(req, res, next) {
-  const userId = req.user.id;
-  const groupId = req.params.groupId;
+function checkGroupAdmin(db) {
+  return async function (req, res, next) {
+    try {
+      const userId = req.user.id; // Assuming `req.user` is populated correctly.
+      const groupId = req.params.groupId;
 
-  // fetch the group from the database
-  Group.findById(groupId, (err, group) => {
-    if (err || !group) {
-      return res.status(404).json({ message: "Group not found" });
+      // Fetch the group from the MongoDB collection
+      const group = await db.collection("groups").findOne({ _id: groupId });
+
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      if (!group.admins.includes(userId)) {
+        return res
+          .status(403)
+          .json({ message: "You are not authorized to manage this group" });
+      }
+
+      // If the user is an admin, proceed to the next middleware/route handler
+      next();
+    } catch (error) {
+      console.error("Error in checkGroupAdmin middleware:", error);
+      res.status(500).json({ message: "Internal Server Error", error });
     }
-
-    // check if the user is an admin of the group
-    if (!group.admins.includes(userId)) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to manage this group" });
-    }
-
-    // user is authorized, go to the next middleware or route handler
-    next();
-  });
+  };
 }
 
 module.exports = {
   readGroups,
-  writeGroups,
+  writeGroup,
   checkGroupAdmin,
 };

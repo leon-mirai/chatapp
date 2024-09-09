@@ -2,297 +2,218 @@ const userService = require("../services/userService");
 const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
 
-const route = (app) => {
-  // get all users
-  app.get("/api/users", (req, res) => {
-    const users = userService.readUsers();
-    res.status(200).json(users);
-  });
-
-  // get user by ID
-  app.get("/api/users/:userId", (req, res) => {
-    const userId = req.params.userId.trim();
-    const users = userService.readUsers();
-    const user = users.find((user) => user.id === String(userId));
-
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
+const route = (app, db) => {
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await userService.readUsers(db);
+      res.status(200).json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve users", error });
     }
   });
 
-  //user requests account creation with minimal details
-  app.post("/api/users", (req, res) => {
-    const newUser = {
-      ...req.body, // spreader
-      id: userService.generateUserId(),
-      username: "",
-      email: "",
-      roles: ["ChatUser"],
-      groups: [],
-      password: "123",
-      valid: false, // invalid until registered
-    };
-
-    const users = userService.readUsers();
-    users.push(newUser);
-    userService.writeUsers(users);
-    res.status(201).json({ message: "Account request created", user: newUser });
+  // Get user by ID
+  app.get("/api/users/:userId", async (req, res) => {
+    const userId = req.params.userId.trim();
+    try {
+      const user = await userService.getUserById(db, userId);
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user", error });
+    }
   });
 
-  // superAdmin completes user registration
-  app.put("/api/users/:userId/complete-registration", (req, res) => {
+  // User requests account creation with minimal details
+  app.post("/api/users", async (req, res) => {
+    try {
+      const newUser = {
+        id: userService.generateUserId(),
+        username: req.body.username || "", 
+        email: req.body.email || "",
+        roles: req.body.roles || ["ChatUser"],
+        groups: req.body.groups || [],
+        password: req.body.password || "123",
+        valid: false, 
+      };
+  
+      // Insert user into the database
+      await userService.createUser(db, newUser); // Make sure this calls the MongoDB collection to insert the document.
+  
+      res.status(201).json({ message: "Account request created", user: newUser });
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      res.status(500).json({ message: "Failed to create user", error });
+    }
+  });
+  
+  
+
+  // SuperAdmin completes user registration
+  app.put("/api/users/:userId/complete-registration", async (req, res) => {
     const { userId } = req.params;
     const { username, email } = req.body;
-    const users = userService.readUsers();
-    const userIndex = users.findIndex((user) => user.id === userId);
 
-    if (userIndex !== -1) {
-      // check for existing username or email
-      const existingUser = users.find(
-        (user) =>
-          (user.username === username || user.email === email) &&
-          user.id !== userId
-      );
-      if (existingUser) {
-        return res
-          .status(400)
-          .json({ message: "Username or email already exists" });
+    try {
+      const user = await userService.getUserById(db, userId);
+      if (user) {
+        // Check for existing username or email
+        const existingUser = await userService.findUserByUsernameOrEmail(db, username, email, userId);
+        if (existingUser) {
+          return res.status(400).json({ message: "Username or email already exists" });
+        }
+
+        // Complete registration and mark as valid
+        const updatedUser = { ...user, username, email, valid: true };
+        await userService.updateUser(db, updatedUser);
+        res.status(200).json({ message: "User registration completed", user: updatedUser });
+      } else {
+        res.status(404).json({ message: "User not found" });
       }
-
-      // complete registration and mark as valid
-      users[userIndex] = {
-        ...users[userIndex],
-        username,
-        email,
-        valid: true,
-      };
-      userService.writeUsers(users);
-      res.status(200).json({
-        message: "User registration completed",
-        user: users[userIndex],
-      });
-    } else {
-      res.status(404).json({ message: "User not found" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to complete registration", error });
     }
   });
 
-  // update user details
-  app.put("/api/users/:userId", (req, res) => {
+  // Update user details
+  app.put("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     const updatedUser = req.body;
-    const users = userService.readUsers();
-    const userIndex = users.findIndex((user) => user.id === String(userId));
 
-    if (userIndex !== -1) {
-      users[userIndex] = { ...users[userIndex], ...updatedUser };
-      userService.writeUsers(users);
-      res.status(200).json(users[userIndex]);
-    } else {
-      res.status(404).json({ message: "User not found" });
+    try {
+      const user = await userService.getUserById(db, userId);
+      if (user) {
+        const mergedUser = { ...user, ...updatedUser };
+        await userService.updateUser(db, mergedUser);
+        res.status(200).json(mergedUser);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user", error });
     }
   });
 
-  // self-delete a user account
-  app.delete("/api/users/:userId", (req, res) => {
+  // Delete a user account (self-delete)
+  app.delete("/api/users/:userId", async (req, res) => {
+    const userId = req.params.userId.trim();
     try {
-      const userId = req.params.userId.trim();
-      let users = userService.readUsers();
-
-      const user = users.find((user) => user.id === userId);
+      const user = await userService.getUserById(db, userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // rmove user from all groups and channels
-      let groups = groupService.readGroups();
-      groups = groups.map((group) => {
-        group.members = group.members.filter((memberId) => memberId !== userId);
-        group.admins = group.admins.filter((adminId) => adminId !== userId);
-        group.joinRequests = group.joinRequests.filter(
-          (joinRequest) => joinRequest !== userId
-        );
-        return group;
-      });
-      groupService.writeGroups(groups);
+      // Remove user from all groups and channels
+      await groupService.removeUserFromGroups(db, userId);
+      await channelService.removeUserFromChannels(db, userId);
 
-      let channels = channelService.readChannels();
-      channels = channels.map((channel) => {
-        channel.members = channel.members.filter(
-          (memberId) => memberId !== userId
-        );
-        return channel;
-      });
-      channelService.writeChannels(channels);
-
-      // delete the user from the users array
-      users = users.filter((user) => user.id !== userId);
-      userService.writeUsers(users);
-
+      // Delete user
+      await userService.deleteUser(db, userId);
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to delete user", error: error.message });
+      res.status(500).json({ message: "Failed to delete user", error });
     }
   });
 
-  // delete user (admin-initiated deletion)
-  app.delete("/api/users/:userId/delete-user", (req, res) => {
+  // Delete user (admin-initiated deletion)
+  app.delete("/api/users/:userId/delete-user", async (req, res) => {
+    const { userId } = req.params;
     try {
-      const { userId } = req.params;
-      let users = userService.readUsers();
-
-      const user = users.find((user) => user.id === userId);
+      const user = await userService.getUserById(db, userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // remove user from all groups and channels
-      let groups = groupService.readGroups();
-      groups = groups.map((group) => {
-        group.members = group.members.filter((memberId) => memberId !== userId);
-        group.admins = group.admins.filter((adminId) => adminId !== userId);
-        return group;
-      });
-      groupService.writeGroups(groups);
+      // Remove user from all groups and channels
+      await groupService.removeUserFromGroups(db, userId);
+      await channelService.removeUserFromChannels(db, userId);
 
-      let channels = channelService.readChannels();
-      channels = channels.map((channel) => {
-        channel.members = channel.members.filter(
-          (memberId) => memberId !== userId
-        );
-        return channel;
-      });
-      channelService.writeChannels(channels);
-
-      // delete the user from the users array
-      users = users.filter((user) => user.id !== userId);
-      userService.writeUsers(users);
-
+      // Delete user
+      await userService.deleteUser(db, userId);
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to delete user", error: error.message });
+      res.status(500).json({ message: "Failed to delete user", error });
     }
   });
 
-  // leave a group
-  app.post("/api/users/:userId/groups/:groupId/leave", (req, res) => {
+  // Leave a group
+  app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {
+    const userId = req.params.userId.trim();
+    const groupId = req.params.groupId.trim();
+
     try {
-      const userId = req.params.userId.trim();
-      const groupId = req.params.groupId.trim();
+      const user = await userService.getUserById(db, userId);
+      const group = await groupService.getGroupById(db, groupId);
 
-      // lLoad all data
-      let users = userService.readUsers();
-      let groups = groupService.readGroups();
-      let channels = channelService.readChannels();
-
-      // find user
-      const user = users.find((user) => user.id === userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!user || !group) {
+        return res.status(404).json({ message: "User or Group not found" });
       }
 
-      // find group
-      const group = groups.find((group) => group.id === groupId);
-      if (!group) {
-        return res.status(404).json({ message: "Group not found" });
-      }
+      // Remove group from user's groups and remove user from group's members
+      await userService.leaveGroup(db, userId, groupId);
+      await groupService.removeUserFromGroup(db, userId, groupId);
 
-      // remove group reference from user's group list
-      user.groups = user.groups.filter((gId) => gId !== groupId);
+      // Remove user from group's channels
+      await channelService.removeUserFromGroupChannels(db, groupId, userId);
 
-      // remove user from group's member and admin lists
-      group.members = group.members.filter((memberId) => memberId !== userId);
-      group.admins = group.admins.filter((adminId) => adminId !== userId);
-
-      // update channels: remove the user from any channels in this group
-      channels = channels.map((channel) => {
-        if (channel.groupId === groupId) {
-          channel.members = channel.members.filter(
-            (memberId) => memberId !== userId
-          );
-        }
-        return channel;
-      });
-
-      // Save updated data
-      userService.writeUsers(users);
-      groupService.writeGroups(groups);
-      channelService.writeChannels(channels);
-
-      return res.status(200).json({ message: "Successfully left the group" });
+      res.status(200).json({ message: "Successfully left the group" });
     } catch (error) {
-      console.error("Error leaving the group:", error);
       res.status(500).json({ message: "Failed to leave group", error });
     }
   });
 
-  // register interest in a group
-  app.post(
-    "/api/users/:userId/groups/:groupId/register-interest",
-    (req, res) => {
-      const userId = req.params.userId.trim();
-      const groupId = req.params.groupId.trim();
-      const users = userService.readUsers();
-      const user = users.find((user) => user.id === userId);
+  // Register interest in a group
+  app.post("/api/users/:userId/groups/:groupId/register-interest", async (req, res) => {
+    const userId = req.params.userId.trim();
+    const groupId = req.params.groupId.trim();
 
+    try {
+      const user = await userService.getUserById(db, userId);
       if (user) {
         if (!user.interests) {
           user.interests = [];
         }
         if (!user.interests.includes(groupId)) {
           user.interests.push(groupId);
-          userService.writeUsers(users);
+          await userService.updateUser(db, user);
           res.status(200).json({ message: "Interest registered successfully" });
         } else {
-          res
-            .status(400)
-            .json({ message: "Already registered interest in this group" });
+          res.status(400).json({ message: "Already registered interest in this group" });
         }
       } else {
         res.status(404).json({ message: "User not found" });
       }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to register interest", error });
     }
-  );
+  });
 
-  // promote a user to GroupAdmin or SuperAdmin
-  app.post("/api/users/:userId/promote", (req, res) => {
+  // Promote a user to GroupAdmin or SuperAdmin
+  app.post("/api/users/:userId/promote", async (req, res) => {
+    const { userId } = req.params;
+    const { newRole } = req.body;
+
     try {
-      const { userId } = req.params;
-      const { newRole } = req.body;
-
-      let users = userService.readUsers();
-      const user = users.find((user) => user.id === userId);
-
+      const user = await userService.getUserById(db, userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // check if the user already has the role
       if (user.roles.includes(newRole)) {
-        return res
-          .status(400)
-          .json({ message: `User is already a ${newRole}` });
+        return res.status(400).json({ message: `User is already a ${newRole}` });
       }
 
-      // add the new role to the user's roles
+      // Add new role
       user.roles.push(newRole);
+      await userService.updateUser(db, user);
 
-      // persist the updated user data
-      userService.writeUsers(users);
-
-      res
-        .status(200)
-        .json({ message: `User promoted to ${newRole} successfully` });
+      res.status(200).json({ message: `User promoted to ${newRole} successfully` });
     } catch (error) {
-      console.error("Error promoting user:", error);
-      res
-        .status(500)
-        .json({ message: "An error occurred while promoting the user" });
+      res.status(500).json({ message: "Failed to promote user", error });
     }
   });
 };

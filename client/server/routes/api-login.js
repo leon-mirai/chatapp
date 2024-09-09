@@ -1,28 +1,36 @@
-const users = require("../data/users");
+const { ObjectId } = require("mongodb");
 
-const route = (app) => {
-  app.post("/api/auth", function (req, res) {
+const route = (app, db) => {
+  app.post("/api/auth", async (req, res) => {
     const { email, password } = req.body;
-    const user = users.find(
-      (user) => user.email === email && user.password === password
-    );
-    if (user) {
-      if (user.valid) {
-        res.status(200).json({
-          message: "Login successful",
-          user: {
-            username: user.username,
-            id: user.id,
-            email: user.email,
-            roles: user.roles,
-            groups: user.groups,
-          },
-        });
+
+    try {
+      // Query the MongoDB for a user matching the email and password
+      const user = await db.collection("users").findOne({
+        email: email,
+        password: password, // In production, use hashed passwords!
+      });
+
+      if (user) {
+        if (user.valid) {
+          res.status(200).json({
+            message: "Login successful",
+            user: {
+              username: user.username,
+              id: user._id,
+              email: user.email,
+              roles: user.roles,
+              groups: user.groups,
+            },
+          });
+        } else {
+          res.status(401).json({ message: "User account is not valid" });
+        }
       } else {
-        res.status(401).json({ message: "User account is not valid" });
+        res.status(401).json({ message: "Invalid username or password" });
       }
-    } else {
-      res.status(401).json({ message: "Invalid username or password" });
+    } catch (error) {
+      res.status(500).json({ message: "Error during login", error: error.message });
     }
   });
 };
