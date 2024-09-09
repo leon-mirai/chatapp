@@ -92,6 +92,8 @@ async function removeUserFromChannel(db, channelId, userId) {
   }
 }
 
+
+
 module.exports = {
   readChannels,
   writeChannel,

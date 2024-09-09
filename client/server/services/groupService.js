@@ -55,8 +55,23 @@ function checkGroupAdmin(db) {
   };
 }
 
+// Remove user from all groups
+async function removeUserFromGroups(db, userId) {
+  try {
+    await db.collection("groups").updateMany(
+      {}, // Update all groups
+      { $pull: { members: userId, admins: userId } } // Remove user from members and admins
+    );
+  } catch (error) {
+    console.error("Error removing user from groups:", error);
+    throw error;
+  }
+}
+
+
 module.exports = {
   readGroups,
   writeGroup,
   checkGroupAdmin,
+  removeUserFromGroups,
 };
