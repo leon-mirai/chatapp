@@ -3,29 +3,38 @@ const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
 const route = (app, db) => {
-  // Get every single group that exists
-  app.get("/api/groups", async (req, res) => {
-    try {
-      const groups = await groupService.readGroups(db); // Read all groups from MongoDB
-      res.status(200).json(groups);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get groups", error });
-    }
-  });
+  // Get every single group that exists (e.g., admin route)
+app.get("/api/groups", async (req, res) => {
+  try {
+    const groups = await groupService.readGroups(db); // Read all groups from MongoDB
+    res.status(200).json(groups);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get groups", error });
+  }
+});
 
-  // Get all groups for the specific user
-  app.get("/api/groups", async (req, res) => {
-    const userId = req.query.userId; // Get the userId from the query parameter
-    try {
-      const groups = await groupService.readGroups(db);
-      const userGroups = groups.filter((group) =>
-        group.members.includes(userId)
-      ); // Filter groups by membership
-      res.status(200).json(userGroups); // Return the filtered groups
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get user groups", error });
-    }
-  });
+// Get all groups for a specific user (e.g., user route)
+app.get("/api/users/:userId/groups", async (req, res) => {
+  const userId = req.params.userId.trim(); // Get userId from the URL parameter
+
+  console.log("Received userId:", userId); // Log userId for debugging
+
+  try {
+    const groups = await groupService.readGroups(db);
+    
+    // Filter groups by membership and join requests
+    const userGroups = groups.filter(group =>
+      group.members.includes(userId) || group.joinRequests.includes(userId)
+    );
+
+    res.status(200).json(userGroups); // Return the filtered groups
+  } catch (error) {
+    console.error("Failed to get user groups:", error);
+    res.status(500).json({ message: "Failed to get user groups", error });
+  }
+});
+
+
 
   // Get a group by ID
   app.get("/api/groups/:groupId", async (req, res) => {
