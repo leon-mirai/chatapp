@@ -33,25 +33,25 @@ const route = (app, db) => {
     try {
       const newUser = {
         id: userService.generateUserId(),
-        username: req.body.username || "", 
+        username: req.body.username || "",
         email: req.body.email || "",
         roles: req.body.roles || ["ChatUser"],
         groups: req.body.groups || [],
         password: req.body.password || "123",
-        valid: false, 
+        valid: false,
       };
-  
+
       // Insert user into the database
       await userService.createUser(db, newUser); // Make sure this calls the MongoDB collection to insert the document.
-  
-      res.status(201).json({ message: "Account request created", user: newUser });
+
+      res
+        .status(201)
+        .json({ message: "Account request created", user: newUser });
     } catch (error) {
       console.error("Failed to create user:", error);
       res.status(500).json({ message: "Failed to create user", error });
     }
   });
-  
-  
 
   // SuperAdmin completes user registration
   app.put("/api/users/:userId/complete-registration", async (req, res) => {
@@ -62,20 +62,31 @@ const route = (app, db) => {
       const user = await userService.getUserById(db, userId);
       if (user) {
         // Check for existing username or email
-        const existingUser = await userService.findUserByUsernameOrEmail(db, username, email, userId);
+        const existingUser = await userService.findUserByUsernameOrEmail(
+          db,
+          username,
+          email,
+          userId
+        );
         if (existingUser) {
-          return res.status(400).json({ message: "Username or email already exists" });
+          return res
+            .status(400)
+            .json({ message: "Username or email already exists" });
         }
 
         // Complete registration and mark as valid
         const updatedUser = { ...user, username, email, valid: true };
         await userService.updateUser(db, updatedUser);
-        res.status(200).json({ message: "User registration completed", user: updatedUser });
+        res
+          .status(200)
+          .json({ message: "User registration completed", user: updatedUser });
       } else {
         res.status(404).json({ message: "User not found" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Failed to complete registration", error });
+      res
+        .status(500)
+        .json({ message: "Failed to complete registration", error });
     }
   });
 
@@ -146,8 +157,11 @@ const route = (app, db) => {
     const groupId = req.params.groupId.trim();
 
     try {
+      // Ensure both the user and group exist in the database
       const user = await userService.getUserById(db, userId);
-      const group = await groupService.getGroupById(db, groupId);
+      const group = await groupService
+        .readGroups(db)
+        .then((groups) => groups.find((g) => g.id === groupId));
 
       if (!user || !group) {
         return res.status(404).json({ message: "User or Group not found" });
@@ -162,57 +176,89 @@ const route = (app, db) => {
 
       res.status(200).json({ message: "Successfully left the group" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to leave group", error });
+      console.error("Error leaving group:", error);
+      res
+        .status(500)
+        .json({ message: "Failed to leave group", error: error.message });
     }
   });
 
   // Register interest in a group
-  app.post("/api/users/:userId/groups/:groupId/register-interest", async (req, res) => {
-    const userId = req.params.userId.trim();
-    const groupId = req.params.groupId.trim();
+  app.post(
+    "/api/users/:userId/groups/:groupId/register-interest",
+    async (req, res) => {
+      const userId = req.params.userId.trim();
+      const groupId = req.params.groupId.trim();
 
-    try {
-      const user = await userService.getUserById(db, userId);
-      if (user) {
-        if (!user.interests) {
-          user.interests = [];
+      try {
+        // Find the user
+        const user = await userService.getUserById(db, userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
         }
-        if (!user.interests.includes(groupId)) {
-          user.interests.push(groupId);
-          await userService.updateUser(db, user);
+
+        // Find the group
+        const group = await groupService.getGroupById(db, groupId);
+        if (!group) {
+          return res.status(404).json({ message: "Group not found" });
+        }
+
+        // Initialize joinRequests array if it doesn't exist
+        if (!group.joinRequests) {
+          group.joinRequests = [];
+        }
+
+        // Check if the user has already requested to join
+        if (!group.joinRequests.includes(userId)) {
+          // Add user to the joinRequests array
+          group.joinRequests.push(userId);
+
+          // Update the group document in the database
+          await groupService.updateGroup(db, group);
+
           res.status(200).json({ message: "Interest registered successfully" });
         } else {
-          res.status(400).json({ message: "Already registered interest in this group" });
+          res
+            .status(400)
+            .json({ message: "Already registered interest in this group" });
         }
-      } else {
-        res.status(404).json({ message: "User not found" });
+      } catch (error) {
+        console.error("Failed to register interest:", error);
+        res.status(500).json({ message: "Failed to register interest", error });
       }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to register interest", error });
     }
-  });
+  );
 
   // Promote a user to GroupAdmin or SuperAdmin
   app.post("/api/users/:userId/promote", async (req, res) => {
     const { userId } = req.params;
-    const { newRole } = req.body;
+    const { newRole } = req.body; // newRole should be sent in the request body
 
     try {
+      // Find the user by userId
       const user = await userService.getUserById(db, userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Check if the user already has the role
       if (user.roles.includes(newRole)) {
-        return res.status(400).json({ message: `User is already a ${newRole}` });
+        return res
+          .status(400)
+          .json({ message: `User is already a ${newRole}` });
       }
 
-      // Add new role
+      // Add the new role to the user's roles
       user.roles.push(newRole);
+
+      // Update the user in the database
       await userService.updateUser(db, user);
 
-      res.status(200).json({ message: `User promoted to ${newRole} successfully` });
+      res
+        .status(200)
+        .json({ message: `User promoted to ${newRole} successfully`, user });
     } catch (error) {
+      console.error("Error promoting user:", error);
       res.status(500).json({ message: "Failed to promote user", error });
     }
   });

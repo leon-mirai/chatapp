@@ -27,15 +27,16 @@ async function writeGroup(db, group) {
   }
 }
 
+// Check if user is an admin of the group
 function checkGroupAdmin(db) {
   return async function (req, res, next) {
     try {
-      const userId = req.user.id; // Assuming `req.user` is populated correctly.
+      const userId = req.user.id;
       const groupId = req.params.groupId;
 
-      // Fetch the group from the MongoDB collection
-      const group = await db.collection("groups").findOne({ _id: groupId });
-
+      const group = await db
+        .collection("groups")
+        .findOne({ _id: ObjectId(groupId) });
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
@@ -46,13 +47,30 @@ function checkGroupAdmin(db) {
           .json({ message: "You are not authorized to manage this group" });
       }
 
-      // If the user is an admin, proceed to the next middleware/route handler
       next();
     } catch (error) {
       console.error("Error in checkGroupAdmin middleware:", error);
       res.status(500).json({ message: "Internal Server Error", error });
     }
   };
+}
+
+// Remove user from a specific group
+async function removeUserFromGroup(db, userId, groupId) {
+  try {
+    const result = await db
+      .collection("groups")
+      .updateOne(
+        { id: groupId },
+        { $pull: { members: userId, admins: userId } }
+      );
+    if (result.matchedCount === 0) {
+      throw new Error("Group not found");
+    }
+  } catch (error) {
+    console.error("Error removing user from group:", error);
+    throw error;
+  }
 }
 
 // Remove user from all groups
@@ -68,10 +86,37 @@ async function removeUserFromGroups(db, userId) {
   }
 }
 
+// Get group by custom group ID
+async function getGroupById(db, groupId) {
+  try {
+    const group = await db.collection("groups").findOne({ id: groupId });
+    return group;
+  } catch (error) {
+    console.error("Error getting group by ID:", error);
+    throw error;
+  }
+}
+
+// Update a group in the database
+async function updateGroup(db, group) {
+  try {
+    const result = await db.collection("groups").updateOne(
+      { id: group.id }, // Match by custom group ID
+      { $set: group }
+    );
+    return result;
+  } catch (error) {
+    console.error("Error updating group:", error);
+    throw error;
+  }
+}
 
 module.exports = {
   readGroups,
   writeGroup,
   checkGroupAdmin,
+  removeUserFromGroup, // <-- New function added here
   removeUserFromGroups,
+  getGroupById,
+  updateGroup,
 };

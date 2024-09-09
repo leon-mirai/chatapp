@@ -59,12 +59,11 @@ async function findUserByUsernameOrEmail(db, username, email, currentUserId) {
   }
 }
 
-// Update a user in the database
 async function updateUser(db, user) {
   try {
     const result = await db.collection("users").updateOne(
       { id: user.id }, // Match by the custom user id
-      { $set: user }
+      { $set: user }   // Set the updated user document
     );
     return result;
   } catch (error) {
@@ -104,14 +103,19 @@ async function leaveGroup(db, userId, groupId) {
   try {
     const result = await db.collection("users").updateOne(
       { id: userId },
-      { $pull: { groups: groupId } } // Remove groupId from user's group array
+      { $pull: { groups: groupId } }  // Pull the groupId from the user's groups array
     );
+    if (result.matchedCount === 0) {
+      throw new Error("User not found");
+    }
     return result;
   } catch (error) {
     console.error("Error removing group from user:", error);
     throw error;
   }
 }
+
+
 
 module.exports = {
   readUsers,
