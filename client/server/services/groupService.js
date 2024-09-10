@@ -49,10 +49,12 @@ function checkGroupAdmin(db) {
       }
 
       if (!group.admins.includes(userId)) {
-        return res.status(403).json({ message: "You are not authorized to manage this group" });
+        return res
+          .status(403)
+          .json({ message: "You are not authorized to manage this group" });
       }
 
-      next();  // If the user is an admin, proceed
+      next(); // If the user is an admin, proceed
     } catch (error) {
       console.error("Error in checkGroupAdmin middleware:", error);
       res.status(500).json({ message: "Internal Server Error", error });
@@ -60,16 +62,21 @@ function checkGroupAdmin(db) {
   };
 }
 
-
 // Remove user from a specific group
 async function removeUserFromGroup(db, userId, groupId) {
   try {
-    const result = await db
-      .collection("groups")
-      .updateOne(
-        { id: groupId },
-        { $pull: { members: userId, admins: userId } }
-      );
+    // Log inputs to check for correct data
+    console.log("Removing user from group:", { userId, groupId });
+
+    // Query by the custom 'id' field
+    const result = await db.collection("groups").updateOne(
+      { id: groupId }, // Ensure groupId is correct and used as a string
+      { $pull: { members: userId, admins: userId } }
+    );
+
+    // Log the result to see if any documents were matched
+    console.log("Update result:", result);
+
     if (result.matchedCount === 0) {
       throw new Error("Group not found");
     }
@@ -95,7 +102,9 @@ async function removeUserFromGroups(db, userId) {
 // Get group by custom group ID
 async function getGroupById(db, groupId) {
   try {
+    console.log("Looking for group with ID:", groupId);
     const group = await db.collection("groups").findOne({ id: groupId });
+    console.log("Found group:", group);
     return group;
   } catch (error) {
     console.error("Error getting group by ID:", error);
@@ -104,11 +113,11 @@ async function getGroupById(db, groupId) {
 }
 
 // Update a group in the database
-async function updateGroup(db, group) {
+async function updateGroup(db, groupId, updatedFields) {
   try {
     const result = await db.collection("groups").updateOne(
-      { id: group.id }, // Match by custom group ID
-      { $set: group }
+      { id: groupId }, // Match by custom group ID
+      { $set: updatedFields } // Only update the specific fields that were passed
     );
     return result;
   } catch (error) {
@@ -116,6 +125,19 @@ async function updateGroup(db, group) {
     throw error;
   }
 }
+
+// async function updateGroup(db, group) {
+//   try {
+//     const result = await db.collection("groups").updateOne(
+//       { id: group.id }, // Match by custom group ID
+//       { $set: group } // Use $set to update the entire group document
+//     );
+//     return result;
+//   } catch (error) {
+//     console.error("Error updating group:", error);
+//     throw error;
+//   }
+// }
 
 async function createGroup(db, group) {
   try {
@@ -140,15 +162,62 @@ async function deleteGroup(db, groupId) {
   }
 }
 
+async function isAdminOfGroup(db, groupId, userId) {
+  const group = await getGroupById(db, groupId);
+  if (!group) throw new Error("Group not found");
+  return group.admins.includes(userId);
+}
+
+// Remove an admin from a group
+async function removeAdminFromGroup(db, groupId, userId) {
+  try {
+    const result = await db
+      .collection("groups")
+      .updateOne({ id: groupId }, { $pull: { admins: userId } });
+    if (result.matchedCount === 0) {
+      throw new Error("Group not found");
+    }
+    return result;
+  } catch (error) {
+    console.error("Error removing admin from group:", error);
+    throw error;
+  }
+}
+
+async function addChannelToGroup(db, groupId, channelId) {
+  try {
+    console.log(`Adding channel ${channelId} to group ${groupId}`);
+    
+    // Update the group with the new channel ID
+    const result = await db.collection("groups").updateOne(
+      { id: groupId }, // Match by group ID
+      { $addToSet: { channels: channelId } } // Use $addToSet to avoid duplicates
+    );
+    
+    if (result.matchedCount === 0) {
+      throw new Error("Group not found");
+    }
+
+    console.log(`Channel ${channelId} added to group ${groupId}`);
+    return result;
+  } catch (error) {
+    console.error("Error adding channel to group:", error);
+    throw error;
+  }
+}
+
 
 module.exports = {
   readGroups,
   writeGroup,
   checkGroupAdmin,
-  removeUserFromGroup, 
+  removeUserFromGroup,
   removeUserFromGroups,
   getGroupById,
   updateGroup,
   createGroup,
   deleteGroup,
+  isAdminOfGroup,
+  removeAdminFromGroup,
+  addChannelToGroup,
 };

@@ -95,29 +95,32 @@ const route = (app, db) => {
     }
   );
 
-  // Delete a group by ID
-  app.delete("/api/groups/:groupId", async (req, res) => {
-    const { groupId } = req.params;
+  // Remove a member from a group and its channels
+  app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
+    const { groupId, userId } = req.params;
 
     try {
-      // 1. Check if the group exists
-      const groupExists = await groupService.getGroupById(db, groupId);
-      if (!groupExists) {
-        return res.status(404).json({ message: "Group not found" });
+      const group = await groupService.getGroupById(db, groupId);
+      const user = await userService.getUserById(db, userId);
+
+      if (group && user) {
+        // 1. Remove the user from the group
+        await groupService.removeUserFromGroup(db, userId, groupId);
+
+        // 2. Remove the user from all channels associated with the group
+        await channelService.removeUserFromGroupChannels(db, groupId, userId);
+
+        // 3. Remove the group from the user's groups array
+        await userService.removeGroupFromUser(db, userId, groupId);
+
+        res
+          .status(200)
+          .json({ message: "Member removed and cascade deletion successful" });
+      } else {
+        res.status(404).json({ message: "Group or User not found" });
       }
-
-      // 2. Delete all channels associated with the group
-      await channelService.deleteGroupChannels(db, groupId);
-
-      // 3. Remove the group reference from all users
-      await userService.removeGroupFromUsers(db, groupId);
-
-      // 4. Delete the group itself
-      await groupService.deleteGroup(db, groupId);
-
-      res.status(200).json({ message: "Group deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete group", error });
+      res.status(500).json({ message: "Failed to remove member", error });
     }
   });
 
@@ -132,10 +135,12 @@ const route = (app, db) => {
         return res.status(404).json({ message: "Group or User not found" });
       }
 
+      // Add user to group if not already in it
       if (!group.members.includes(userId)) {
         group.members.push(userId);
-        await groupService.updateGroup(db, groupId, group);
+        await groupService.updateGroup(db, group);
 
+        // Add group to user's groups array if not already present
         if (!user.groups.includes(groupId)) {
           user.groups.push(groupId);
           await userService.updateUser(db, user);
@@ -162,7 +167,8 @@ const route = (app, db) => {
       const user = await userService.getUserById(db, userId);
 
       if (group && user) {
-        await groupService.removeUserFromGroup(db, groupId, userId);
+        // Swap the arguments to match the correct order: userId first, groupId second
+        await groupService.removeUserFromGroup(db, userId, groupId);
         await userService.removeGroupFromUser(db, userId, groupId);
         await channelService.removeUserFromGroupChannels(db, groupId, userId);
 
