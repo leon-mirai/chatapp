@@ -31,29 +31,35 @@ async function writeGroup(db, group) {
 function checkGroupAdmin(db) {
   return async function (req, res, next) {
     try {
+      // Ensure that req.user is available, otherwise return an error
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
       const userId = req.user.id;
       const groupId = req.params.groupId;
 
-      const group = await db
-        .collection("groups")
-        .findOne({ _id: ObjectId(groupId) });
+      if (!groupId) {
+        return res.status(400).json({ message: "Group ID is required" });
+      }
+
+      const group = await db.collection("groups").findOne({ id: groupId });
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
       if (!group.admins.includes(userId)) {
-        return res
-          .status(403)
-          .json({ message: "You are not authorized to manage this group" });
+        return res.status(403).json({ message: "You are not authorized to manage this group" });
       }
 
-      next();
+      next();  // If the user is an admin, proceed
     } catch (error) {
       console.error("Error in checkGroupAdmin middleware:", error);
       res.status(500).json({ message: "Internal Server Error", error });
     }
   };
 }
+
 
 // Remove user from a specific group
 async function removeUserFromGroup(db, userId, groupId) {
@@ -111,12 +117,38 @@ async function updateGroup(db, group) {
   }
 }
 
+async function createGroup(db, group) {
+  try {
+    const result = await db.collection("groups").insertOne(group);
+    return result;
+  } catch (error) {
+    console.error("Error inserting group into MongoDB:", error);
+    throw error;
+  }
+}
+
+async function deleteGroup(db, groupId) {
+  try {
+    const result = await db.collection("groups").deleteOne({ id: groupId });
+    if (result.deletedCount === 0) {
+      throw new Error("Group not found");
+    }
+    return result;
+  } catch (error) {
+    console.error("Error deleting group:", error);
+    throw error;
+  }
+}
+
+
 module.exports = {
   readGroups,
   writeGroup,
   checkGroupAdmin,
-  removeUserFromGroup, // <-- New function added here
+  removeUserFromGroup, 
   removeUserFromGroups,
   getGroupById,
   updateGroup,
+  createGroup,
+  deleteGroup,
 };

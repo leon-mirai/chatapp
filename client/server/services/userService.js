@@ -115,6 +115,20 @@ async function leaveGroup(db, userId, groupId) {
   }
 }
 
+async function removeGroupFromUsers(db, groupId) {
+  try {
+    const result = await db.collection("users").updateMany(
+      {}, 
+      { $pull: { groups: groupId } }
+    );
+    return result;
+  } catch (error) {
+    console.error("Error removing group from users:", error);
+    throw error;
+  }
+}
+
+
 
 
 module.exports = {
@@ -126,4 +140,5 @@ module.exports = {
   leaveGroup,
   generateUserId,
   createUser,
+  removeGroupFromUsers,
 };

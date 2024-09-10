@@ -141,6 +141,26 @@ async function removeUserFromGroupChannels(db, groupId, userId) {
   }
 }
 
+async function deleteGroupChannels(db, groupId) {
+  try {
+    const result = await db.collection("channels").deleteMany({ groupId: groupId });
+    
+    // Instead of throwing an error, just log a message if no channels were found.
+    if (result.deletedCount === 0) {
+      console.log(`No channels found for group ${groupId}.`);
+    } else {
+      console.log(`Deleted ${result.deletedCount} channels for group ${groupId}.`);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("Error deleting group channels:", error);
+    throw error;  // Let any other unexpected errors propagate
+  }
+}
+
+
+
 
 module.exports = {
   readChannels,
@@ -150,4 +170,5 @@ module.exports = {
   removeUserFromChannel,
   removeUserFromChannels,
   removeUserFromGroupChannels,
+  deleteGroupChannels,
 };

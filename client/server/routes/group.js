@@ -4,37 +4,36 @@ const groupService = require("../services/groupService");
 
 const route = (app, db) => {
   // Get every single group that exists (e.g., admin route)
-app.get("/api/groups", async (req, res) => {
-  try {
-    const groups = await groupService.readGroups(db); // Read all groups from MongoDB
-    res.status(200).json(groups);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to get groups", error });
-  }
-});
+  app.get("/api/groups", async (req, res) => {
+    try {
+      const groups = await groupService.readGroups(db); // Read all groups from MongoDB
+      res.status(200).json(groups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get groups", error });
+    }
+  });
 
-// Get all groups for a specific user (e.g., user route)
-app.get("/api/users/:userId/groups", async (req, res) => {
-  const userId = req.params.userId.trim(); // Get userId from the URL parameter
+  // Get all groups for a specific user (e.g., user route)
+  app.get("/api/users/:userId/groups", async (req, res) => {
+    const userId = req.params.userId.trim(); // Get userId from the URL parameter
 
-  console.log("Received userId:", userId); // Log userId for debugging
+    console.log("Received userId:", userId); // Log userId for debugging
 
-  try {
-    const groups = await groupService.readGroups(db);
-    
-    // Filter groups by membership and join requests
-    const userGroups = groups.filter(group =>
-      group.members.includes(userId) || group.joinRequests.includes(userId)
-    );
+    try {
+      const groups = await groupService.readGroups(db);
 
-    res.status(200).json(userGroups); // Return the filtered groups
-  } catch (error) {
-    console.error("Failed to get user groups:", error);
-    res.status(500).json({ message: "Failed to get user groups", error });
-  }
-});
+      // Filter groups by membership and join requests
+      const userGroups = groups.filter(
+        (group) =>
+          group.members.includes(userId) || group.joinRequests.includes(userId)
+      );
 
-
+      res.status(200).json(userGroups); // Return the filtered groups
+    } catch (error) {
+      console.error("Failed to get user groups:", error);
+      res.status(500).json({ message: "Failed to get user groups", error });
+    }
+  });
 
   // Get a group by ID
   app.get("/api/groups/:groupId", async (req, res) => {
@@ -65,6 +64,7 @@ app.get("/api/users/:userId/groups", async (req, res) => {
         res.status(404).json({ message: "Admin user not found" });
       }
     } catch (error) {
+      console.error("Error creating group:", error); // Log the error to the console
       res.status(500).json({ message: "Failed to create group", error });
     }
   });
@@ -75,17 +75,13 @@ app.get("/api/users/:userId/groups", async (req, res) => {
     groupService.checkGroupAdmin(db),
     async (req, res) => {
       const { groupId } = req.params;
-      const updatedGroup = req.body;
+      const updatedGroup = req.body; // Assuming the updated group data is sent in the request body
 
       try {
-        // Assuming the `updateGroup` is an async function
-        const result = await groupService.updateGroup(
-          db,
-          groupId,
-          updatedGroup
-        );
+        // Update the group by passing the group data
+        const result = await groupService.updateGroup(db, updatedGroup);
 
-        if (result) {
+        if (result.matchedCount > 0) {
           res.status(200).json({
             message: "Group updated successfully",
             group: updatedGroup,
@@ -102,19 +98,21 @@ app.get("/api/users/:userId/groups", async (req, res) => {
   // Delete a group by ID
   app.delete("/api/groups/:groupId", async (req, res) => {
     const { groupId } = req.params;
+
     try {
+      // 1. Check if the group exists
       const groupExists = await groupService.getGroupById(db, groupId);
       if (!groupExists) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      // 1. Delete all channels associated with this group
+      // 2. Delete all channels associated with the group
       await channelService.deleteGroupChannels(db, groupId);
 
-      // 2. Remove the group reference from all users
+      // 3. Remove the group reference from all users
       await userService.removeGroupFromUsers(db, groupId);
 
-      // 3. Delete the group itself
+      // 4. Delete the group itself
       await groupService.deleteGroup(db, groupId);
 
       res.status(200).json({ message: "Group deleted successfully" });
