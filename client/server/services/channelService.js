@@ -155,10 +155,10 @@ async function removeUserFromGroupChannels(db, groupId, userId) {
       `Attempting to remove user ${userObjectId} from all channels in group ${groupObjectId}`
     );
 
-    // Find all channels associated with the groupId
+    // Find all channels associated with the groupId and remove the userObjectId from the members array
     const result = await db.collection("channels").updateMany(
       { groupId: groupObjectId }, // Match all channels by groupId
-      { $pull: { members: userObjectId.toString() } } // Use userObjectId as a string for the members array
+      { $pull: { members: userObjectId } } // Pull userId as ObjectId from members array
     );
 
     // Check if any channels were updated
@@ -178,6 +178,7 @@ async function removeUserFromGroupChannels(db, groupId, userId) {
     throw error;
   }
 }
+
 
 async function deleteGroupChannels(db, groupId) {
   try {

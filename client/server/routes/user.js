@@ -163,14 +163,14 @@ const route = (app, db) => {
       await groupService.removeUserFromGroup(db, userId, groupId);
 
       // Step 2: Remove the group from the user's groups array
-      // console.log(`Removing group ${groupId} from user ${userId}'s group list`);
-      // await userService.removeGroupFromUser(db, userId, groupId);
+      console.log(`Removing group ${groupId} from user ${userId}'s group list`);
+      await userService.removeGroupFromUser(db, userId, groupId);
 
       // Step 3: Remove the user from all channels within the group
-      // console.log(
-      //   `Removing user ${userId} from all channels in group ${groupId}`
-      // );
-      // await channelService.removeUserFromGroupChannels(db, groupId, userId);
+      console.log(
+        `Removing user ${userId} from all channels in group ${groupId}`
+      );
+      await channelService.removeUserFromGroupChannels(db, groupId, userId);
 
       res.status(200).json({ message: "Successfully left the group" });
     } catch (error) {
