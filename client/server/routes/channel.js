@@ -1,4 +1,4 @@
-const userService = require("../services/userService");
+const { ObjectId } = require("mongodb");
 const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
@@ -6,7 +6,7 @@ const route = (app, db) => {
   // get all channels
   app.get("/api/channels", async (req, res) => {
     try {
-      const channels = await channelService.readChannels(db); // Ensure correct function name
+      const channels = await channelService.readChannels(db);
       res.status(200).json(channels);
     } catch (error) {
       console.error("Failed to retrieve channels:", error);
@@ -14,10 +14,10 @@ const route = (app, db) => {
     }
   });
 
-  // get channels by group ID
+  // get channels by group ID (use ObjectId for groupId)
   app.get("/api/channels/group/:groupId", async (req, res) => {
     try {
-      const groupId = req.params.groupId.trim();
+      const groupId = new ObjectId(req.params.groupId.trim());
       const channels = await channelService.getChannelsByGroupId(db, groupId);
       res.status(200).json(channels);
     } catch (error) {
@@ -27,10 +27,10 @@ const route = (app, db) => {
     }
   });
 
-  // get a channel by ID
+  // get a channel by ID (use ObjectId for channelId)
   app.get("/api/channels/:channelId", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
       const channel = await channelService.getChannelById(db, channelId);
 
       if (channel) {
@@ -46,17 +46,13 @@ const route = (app, db) => {
   // create a new channel
   app.post("/api/channels", async (req, res) => {
     try {
-      console.log("Request body for channel creation:", req.body); // Add this to check the request body
-
       const newChannel = { ...req.body };
       const createdChannel = await channelService.createChannel(db, newChannel);
-
-      console.log("Created channel:", createdChannel); // Add this log to verify the created channel
 
       // update the corresponding group by adding the new channel's ID
       const group = await groupService.addChannelToGroup(
         db,
-        newChannel.groupId,
+        new ObjectId(newChannel.groupId),
         createdChannel._id
       );
 
@@ -66,15 +62,15 @@ const route = (app, db) => {
         res.status(404).json({ message: "Group not found" });
       }
     } catch (error) {
-      console.error("Failed to create channel:", error); // Add error details to the console
+      console.error("Failed to create channel:", error);
       res.status(500).json({ message: "Failed to create channel", error });
     }
   });
 
-  // Update a channel by ID
+  // Update a channel by ID (use ObjectId for channelId)
   app.put("/api/channels/:channelId", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
       const updatedChannelData = req.body;
       const updatedChannel = await channelService.updateChannelById(
         db,
@@ -94,16 +90,16 @@ const route = (app, db) => {
     }
   });
 
+  // Delete a channel by ID (use ObjectId for channelId)
   app.delete("/api/channels/:channelId", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
       const deletedChannel = await channelService.deleteChannelById(
         db,
         channelId
       );
 
       if (deletedChannel.deletedCount > 0) {
-        // Check deletedCount instead of just deletedChannel
         res.status(200).json({ message: "Channel deleted successfully" });
       } else {
         res.status(404).json({ message: "Channel not found" });
@@ -113,20 +109,20 @@ const route = (app, db) => {
     }
   });
 
-  // user requests to join a channel
+  // user requests to join a channel (use ObjectId for channelId and userId)
   app.post("/api/channels/:channelId/request-join", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
       const { userId } = req.body;
 
-      if (!userId || typeof userId !== "string" || userId.trim() === "") {
+      if (!ObjectId.isValid(userId)) {
         return res.status(400).json({ message: "Invalid userId" });
       }
 
       const requestJoinResult = await channelService.requestJoinChannel(
         db,
         channelId,
-        userId
+        new ObjectId(userId)
       );
 
       if (requestJoinResult.success) {
@@ -141,7 +137,7 @@ const route = (app, db) => {
     }
   });
 
-  // admin approves or rejects a join request
+  // admin approves or rejects a join request (use ObjectId for channelId and userId)
   app.post("/api/channels/:channelId/approve-join", async (req, res) => {
     const { channelId } = req.params;
     const { userId, approve } = req.body;
@@ -149,8 +145,8 @@ const route = (app, db) => {
     try {
       const result = await channelService.approveJoinRequest(
         db,
-        channelId,
-        userId,
+        new ObjectId(channelId.trim()),
+        new ObjectId(userId),
         approve
       );
 
@@ -164,11 +160,11 @@ const route = (app, db) => {
     }
   });
 
-  // remove a user from a channel
+  // remove a user from a channel (use ObjectId for channelId and userId)
   app.delete("/api/channels/:channelId/members/:userId", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
-      const userId = req.params.userId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
+      const userId = new ObjectId(req.params.userId.trim());
       const response = await channelService.removeUserFromChannel(
         db,
         channelId,
@@ -183,7 +179,7 @@ const route = (app, db) => {
     }
   });
 
-  // ban a user from a channel
+  // ban a user from a channel (use ObjectId for channelId and userId)
   app.post("/api/channels/:channelId/ban", async (req, res) => {
     const { channelId } = req.params;
     const { userId } = req.body;
@@ -191,8 +187,8 @@ const route = (app, db) => {
     try {
       const result = await channelService.banUserFromChannel(
         db,
-        channelId,
-        userId
+        new ObjectId(channelId.trim()),
+        new ObjectId(userId)
       );
 
       if (result.success) {
@@ -205,11 +201,11 @@ const route = (app, db) => {
     }
   });
 
-  // check if a user is a member of a channel
+  // check if a user is a member of a channel (use ObjectId for channelId and userId)
   app.get("/api/channels/:channelId/members/:userId", async (req, res) => {
     try {
-      const channelId = req.params.channelId.trim();
-      const userId = req.params.userId.trim();
+      const channelId = new ObjectId(req.params.channelId.trim());
+      const userId = new ObjectId(req.params.userId.trim());
       const isMember = await channelService.isUserInChannel(
         db,
         channelId,

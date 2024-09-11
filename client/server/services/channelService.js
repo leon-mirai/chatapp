@@ -17,7 +17,7 @@ async function writeChannel(db, channel) {
   try {
     const channelsCollection = db.collection("channels");
     const result = await channelsCollection.updateOne(
-      { _id: ObjectId(channel._id) },
+      { _id: new ObjectId(channel._id) },
       { $set: channel },
       { upsert: true }
     );
@@ -27,11 +27,28 @@ async function writeChannel(db, channel) {
   }
 }
 
+// Get a channel by ObjectId
+async function getChannelById(db, channelId) {
+  try {
+    const channel = await db.collection("channels").findOne({ _id: new ObjectId(channelId) }); // Use ObjectId for channel ID
+    if (!channel) {
+      console.error(`Channel with ID ${channelId} not found.`);
+      return null;
+    }
+    return channel;
+  } catch (error) {
+    console.error("Error retrieving channel by ID:", error);
+    throw error;
+  }
+}
+
+
 // Check if user is in the group associated with the channel
 async function isUserInGroup(db, groupId, userId) {
   try {
+    const groupObjectId = new ObjectId(groupId); // Convert to ObjectId
     const groupsCollection = db.collection("groups");
-    const group = await groupsCollection.findOne({ _id: ObjectId(groupId) });
+    const group = await groupsCollection.findOne({ _id: groupObjectId });
 
     if (!group) {
       console.error(`Group with ID ${groupId} not found.`);
@@ -47,9 +64,10 @@ async function isUserInGroup(db, groupId, userId) {
 // Join a channel
 async function joinChannel(db, channelId, userId) {
   try {
+    const channelObjectId = new ObjectId(channelId); // Convert to ObjectId
     const channelsCollection = db.collection("channels");
     const channel = await channelsCollection.findOne({
-      _id: ObjectId(channelId),
+      _id: channelObjectId,
     });
 
     if (!channel) {
@@ -77,9 +95,10 @@ async function joinChannel(db, channelId, userId) {
 // Remove a user from a channel
 async function removeUserFromChannel(db, channelId, userId) {
   try {
+    const channelObjectId = new ObjectId(channelId); // Convert to ObjectId
     const channelsCollection = db.collection("channels");
     const channel = await channelsCollection.findOne({
-      _id: ObjectId(channelId),
+      _id: channelObjectId,
     });
 
     if (!channel) {
@@ -128,26 +147,45 @@ async function removeUserFromChannels(db, userId) {
 // Remove user from all channels within a group
 async function removeUserFromGroupChannels(db, groupId, userId) {
   try {
-    const result = await db.collection("channels").updateMany(
-      { groupId: groupId }, // Find all channels in the group
-      { $pull: { members: userId } } // Remove user from the members array
+    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
+    const userObjectId = new ObjectId(userId); // Convert userId to ObjectId
+
+    // Log for debugging
+    console.log(
+      `Attempting to remove user ${userObjectId} from all channels in group ${groupObjectId}`
     );
+
+    // Find all channels associated with the groupId
+    const result = await db.collection("channels").updateMany(
+      { groupId: groupObjectId }, // Match all channels by groupId
+      { $pull: { members: userObjectId.toString() } } // Use userObjectId as a string for the members array
+    );
+
+    // Check if any channels were updated
     if (result.modifiedCount === 0) {
-      throw new Error("No channels were updated");
+      console.log(
+        "No channels were updated, user might not be in any channels or group not found."
+      );
+    } else {
+      console.log(
+        `User ${userObjectId} removed from ${result.modifiedCount} channels.`
+      );
     }
+
+    return result;
   } catch (error) {
-    console.error("Error removing user from group channels:", error);
+    console.error("Error removing user from group channels:", error.message);
     throw error;
   }
 }
 
 async function deleteGroupChannels(db, groupId) {
   try {
+    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
     const result = await db
       .collection("channels")
-      .deleteMany({ groupId: groupId });
+      .deleteMany({ groupId: groupObjectId });
 
-    // Instead of throwing an error, just log a message if no channels were found.
     if (result.deletedCount === 0) {
       console.log(`No channels found for group ${groupId}.`);
     } else {
@@ -159,18 +197,18 @@ async function deleteGroupChannels(db, groupId) {
     return result;
   } catch (error) {
     console.error("Error deleting group channels:", error);
-    throw error; // Let any other unexpected errors propagate
+    throw error;
   }
 }
 
 async function getChannelsByGroupId(db, groupId) {
   try {
-    console.log("Looking for channels with group ID: ", groupId);
+    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
+    console.log("Looking for channels with group ID: ", groupObjectId);
 
-    // Find all channels with the matching groupId
     const channels = await db
       .collection("channels")
-      .find({ groupId: groupId })
+      .find({ groupId: groupObjectId })
       .toArray();
 
     console.log("Found channels:", channels);
@@ -183,11 +221,8 @@ async function getChannelsByGroupId(db, groupId) {
 
 async function createChannel(db, channel) {
   try {
-    console.log("Creating channel with data:", channel); // Add this log to see the input data
-
-    const result = await db.collection("channels").insertOne(channel); // Ensure collection name is "channels"
-
-    console.log("Insert result:", result); // Add this to check the MongoDB response
+    console.log("Creating channel with data:", channel);
+    const result = await db.collection("channels").insertOne(channel);
 
     return result.ops ? result.ops[0] : { ...channel, _id: result.insertedId };
   } catch (error) {
@@ -198,9 +233,10 @@ async function createChannel(db, channel) {
 
 async function updateChannelById(db, channelId, updatedChannelData) {
   try {
+    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
     const result = await db.collection("channels").updateOne(
-      { id: channelId }, // Match the custom channel ID
-      { $set: updatedChannelData } // Update the channel with new data
+      { _id: channelObjectId }, // Match by ObjectId
+      { $set: updatedChannelData }
     );
 
     return result.modifiedCount > 0 ? updatedChannelData : null;
@@ -212,29 +248,31 @@ async function updateChannelById(db, channelId, updatedChannelData) {
 
 async function deleteChannelById(db, channelId) {
   try {
-    const result = await db.collection("channels").deleteOne({ id: channelId });
+    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
+    const result = await db
+      .collection("channels")
+      .deleteOne({ _id: channelObjectId });
     if (result.deletedCount === 0) {
       throw new Error("Channel not found");
     }
     return result;
   } catch (error) {
     console.error("Error deleting channel:", error);
-    throw error; // Make sure to re-throw the error so it can be handled properly in the route
+    throw error;
   }
 }
 
 async function requestJoinChannel(db, channelId, userId) {
   try {
+    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
     const channelsCollection = db.collection("channels");
 
-    // Check if the channel exists
-    const channel = await channelsCollection.findOne({ id: channelId });
+    const channel = await channelsCollection.findOne({ _id: channelObjectId });
 
     if (!channel) {
       throw new Error("Channel not found");
     }
 
-    // Check if the user is already a member of the channel
     if (channel.members.includes(userId)) {
       return {
         success: false,
@@ -242,17 +280,14 @@ async function requestJoinChannel(db, channelId, userId) {
       };
     }
 
-    // Check if the user has already requested to join
     if (channel.joinRequests.includes(userId)) {
       return { success: false, message: "User has already requested to join" };
     }
 
-    // Add the user to the joinRequests array
     channel.joinRequests.push(userId);
 
-    // Update the channel in the database
     await channelsCollection.updateOne(
-      { id: channelId },
+      { _id: channelObjectId },
       { $set: { joinRequests: channel.joinRequests } }
     );
 
@@ -265,32 +300,28 @@ async function requestJoinChannel(db, channelId, userId) {
 
 async function approveJoinRequest(db, channelId, userId, approve) {
   try {
+    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
     const channelsCollection = db.collection("channels");
 
-    // Find the channel by its ID
-    const channel = await channelsCollection.findOne({ id: channelId });
+    const channel = await channelsCollection.findOne({ _id: channelObjectId });
 
     if (!channel) {
       throw new Error("Channel not found");
     }
 
-    // Check if the user has requested to join
     if (!channel.joinRequests.includes(userId)) {
       return { success: false, message: "No join request found for this user" };
     }
 
     if (approve) {
-      // Approve: Add the user to members and remove from joinRequests
       channel.members.push(userId);
-      channel.joinRequests = channel.joinRequests.filter(id => id !== userId);
+      channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
     } else {
-      // Reject: Simply remove the user from joinRequests
-      channel.joinRequests = channel.joinRequests.filter(id => id !== userId);
+      channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
     }
 
-    // Update the channel in the database
     await channelsCollection.updateOne(
-      { id: channelId },
+      { _id: channelObjectId },
       { $set: { members: channel.members, joinRequests: channel.joinRequests } }
     );
 
@@ -301,11 +332,11 @@ async function approveJoinRequest(db, channelId, userId, approve) {
   }
 }
 
-
 module.exports = {
   readChannels,
   writeChannel,
   joinChannel,
+  getChannelById,
   isUserInGroup,
   removeUserFromChannel,
   removeUserFromChannels,
@@ -316,5 +347,5 @@ module.exports = {
   updateChannelById,
   deleteChannelById,
   requestJoinChannel,
-  approveJoinRequest
+  approveJoinRequest,
 };

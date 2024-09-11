@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const userService = require("../services/userService");
 const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
@@ -13,11 +14,11 @@ const route = (app, db) => {
     }
   });
 
-  // Get user by ID
+  // Get user by ID (ensure userId is converted to ObjectId)
   app.get("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     try {
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Use new ObjectId
       if (user) {
         res.status(200).json(user);
       } else {
@@ -42,7 +43,7 @@ const route = (app, db) => {
       };
 
       // Insert user into the database
-      await userService.createUser(db, newUser); // Make sure this calls the MongoDB collection to insert the document.
+      await userService.createUser(db, newUser);
 
       res
         .status(201)
@@ -59,7 +60,7 @@ const route = (app, db) => {
     const { username, email } = req.body;
 
     try {
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
         // Check for existing username or email
         const existingUser = await userService.findUserByUsernameOrEmail(
@@ -96,7 +97,7 @@ const route = (app, db) => {
     const updatedUser = req.body;
 
     try {
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
         const mergedUser = { ...user, ...updatedUser };
         await userService.updateUser(db, mergedUser);
@@ -113,7 +114,7 @@ const route = (app, db) => {
   app.delete("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     try {
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -123,7 +124,7 @@ const route = (app, db) => {
       await channelService.removeUserFromChannels(db, userId);
 
       // Delete user
-      await userService.deleteUser(db, userId);
+      await userService.deleteUser(db, new ObjectId(userId)); // Convert to ObjectId
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user", error });
@@ -134,7 +135,7 @@ const route = (app, db) => {
   app.delete("/api/users/:userId/delete-user", async (req, res) => {
     const { userId } = req.params;
     try {
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -144,7 +145,7 @@ const route = (app, db) => {
       await channelService.removeUserFromChannels(db, userId);
 
       // Delete user
-      await userService.deleteUser(db, userId);
+      await userService.deleteUser(db, new ObjectId(userId)); // Convert to ObjectId
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user", error });
@@ -153,30 +154,27 @@ const route = (app, db) => {
 
   // Leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {
-    const userId = req.params.userId.trim();
-    const groupId = req.params.groupId.trim();
+    const userId = new ObjectId(req.params.userId.trim()); // Ensure ObjectId
+    const groupId = new ObjectId(req.params.groupId.trim()); // Ensure ObjectId
 
     try {
-      // Ensure both the user and group exist in the database
-      const user = await userService.getUserById(db, userId);
-      const group = await groupService
-        .readGroups(db)
-        .then((groups) => groups.find((g) => g.id === groupId));
-
-      if (!user || !group) {
-        return res.status(404).json({ message: "User or Group not found" });
-      }
-
-      // Remove group from user's groups and remove user from group's members
-      await userService.leaveGroup(db, userId, groupId);
+      // Step 1: Remove user from the group's members array
+      console.log(`Removing user ${userId} from group ${groupId}`);
       await groupService.removeUserFromGroup(db, userId, groupId);
 
-      // Remove user from group's channels
-      await channelService.removeUserFromGroupChannels(db, groupId, userId);
+      // Step 2: Remove the group from the user's groups array
+      // console.log(`Removing group ${groupId} from user ${userId}'s group list`);
+      // await userService.removeGroupFromUser(db, userId, groupId);
+
+      // Step 3: Remove the user from all channels within the group
+      // console.log(
+      //   `Removing user ${userId} from all channels in group ${groupId}`
+      // );
+      // await channelService.removeUserFromGroupChannels(db, groupId, userId);
 
       res.status(200).json({ message: "Successfully left the group" });
     } catch (error) {
-      console.error("Error leaving group:", error);
+      console.error("Error during leave group process:", error.message);
       res
         .status(500)
         .json({ message: "Failed to leave group", error: error.message });
@@ -187,8 +185,8 @@ const route = (app, db) => {
   app.post(
     "/api/users/:userId/groups/:groupId/register-interest",
     async (req, res) => {
-      const userId = req.params.userId.trim();
-      const groupId = req.params.groupId.trim();
+      const userId = new ObjectId(req.params.userId.trim());
+      const groupId = new ObjectId(req.params.groupId.trim());
 
       try {
         // Find the user
@@ -208,23 +206,27 @@ const route = (app, db) => {
           group.joinRequests = [];
         }
 
-        // Check if the user has already requested to join
-        if (!group.joinRequests.includes(userId)) {
-          // Add user to the joinRequests array
+        // Check if the user has already requested to join (compare ObjectId)
+        if (!group.joinRequests.some((id) => id.equals(userId))) {
+          // Add userId as ObjectId to the joinRequests array
           group.joinRequests.push(userId);
 
           // Update the group document in the database
           await groupService.updateGroup(db, group);
 
-          res.status(200).json({ message: "Interest registered successfully" });
+          return res
+            .status(200)
+            .json({ message: "Interest registered successfully" });
         } else {
-          res
+          return res
             .status(400)
             .json({ message: "Already registered interest in this group" });
         }
       } catch (error) {
-        console.error("Failed to register interest:", error);
-        res.status(500).json({ message: "Failed to register interest", error });
+        console.error("Error registering interest:", error);
+        return res
+          .status(500)
+          .json({ message: "Failed to register interest", error });
       }
     }
   );
@@ -232,11 +234,11 @@ const route = (app, db) => {
   // Promote a user to GroupAdmin or SuperAdmin
   app.post("/api/users/:userId/promote", async (req, res) => {
     const { userId } = req.params;
-    const { newRole } = req.body; // newRole should be sent in the request body
+    const { newRole } = req.body; // Ensure you're getting 'newRole' from the body
 
     try {
       // Find the user by userId
-      const user = await userService.getUserById(db, userId);
+      const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -262,6 +264,63 @@ const route = (app, db) => {
       res.status(500).json({ message: "Failed to promote user", error });
     }
   });
+
+  // Remove user from a specific group (both userId and groupId as ObjectId)
+  app.post("/api/groups/:groupId/remove-member/:userId", async (req, res) => {
+    const groupId = new ObjectId(req.params.groupId.trim()); // Convert groupId to ObjectId
+    const userId = new ObjectId(req.params.userId.trim()); // Convert userId to ObjectId
+
+    try {
+      await groupService.removeUserFromGroup(db, userId, groupId);
+      res.status(200).json({ message: "User removed from group members" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to remove user from group",
+        error: error.message,
+      });
+    }
+  });
+
+  // Remove group from user's groups (test-only)
+  app.post("/api/users/:userId/remove-group/:groupId", async (req, res) => {
+    const userId = new ObjectId(req.params.userId.trim()); // Convert userId to ObjectId
+    const groupId = new ObjectId(req.params.groupId.trim()); // Convert groupId to ObjectId
+
+    try {
+      // Remove group from user's groups array
+      await userService.removeGroupFromUser(db, userId, groupId);
+      res.status(200).json({ message: "Group removed from user" });
+    } catch (error) {
+      console.error("Error:", error.message);
+      res.status(500).json({
+        message: "Failed to remove group from user",
+        error: error.message,
+      });
+    }
+  });
+
+  // Test-only route to remove user from all channels within a group
+  app.post(
+    "/api/groups/:groupId/remove-member-from-channels/:userId",
+    async (req, res) => {
+      const groupId = req.params.groupId.trim();
+      const userId = req.params.userId.trim();
+
+      try {
+        // Ensure both userId and groupId are treated as ObjectId
+        await channelService.removeUserFromGroupChannels(db, groupId, userId);
+        res
+          .status(200)
+          .json({ message: "User removed from all channels in the group" });
+      } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({
+          message: "Failed to remove user from channels",
+          error: error.message,
+        });
+      }
+    }
+  );
 };
 
 module.exports = { route };

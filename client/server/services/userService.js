@@ -1,7 +1,7 @@
+const { ObjectId } = require("mongodb"); // Import ObjectId from MongoDB
 const groupService = require("./groupService");
 const channelService = require("./channelService");
 
-// Generate unique user ID (for cases when you're not using MongoDB's ObjectId)
 const generateUserId = () => {
   const characters =
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -14,13 +14,12 @@ const generateUserId = () => {
 
 // Create a new user in the collection
 const createUser = async (db, user) => {
-  try {
-    const result = await db.collection("users").insertOne(user);
-    return result;
-  } catch (error) {
-    console.error("Error inserting user into MongoDB:", error);
-    throw error;
-  }
+  const newUser = {
+    ...user,
+    _id: new ObjectId(), // Create a new ObjectId for the user
+    groups: user.groups.map((group) => new ObjectId(group)), // Ensure group IDs are ObjectIds
+  };
+  return await db.collection("users").insertOne(newUser);
 };
 
 // Get all users from the database
@@ -34,10 +33,12 @@ async function readUsers(db) {
   }
 }
 
-// Get user by custom ID field
 async function getUserById(db, userId) {
   try {
-    const user = await db.collection("users").findOne({ id: userId });
+    // Ensure that userId is properly converted to ObjectId
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) }); // Use new ObjectId
     return user;
   } catch (error) {
     console.error("Error getting user by ID:", error);
@@ -50,7 +51,7 @@ async function findUserByUsernameOrEmail(db, username, email, currentUserId) {
   try {
     const existingUser = await db.collection("users").findOne({
       $or: [{ username }, { email }],
-      id: { $ne: currentUserId }, // Exclude the current user from the check
+      _id: { $ne: new ObjectId(currentUserId) }, // Exclude the current user from the check
     });
     return existingUser;
   } catch (error) {
@@ -61,9 +62,11 @@ async function findUserByUsernameOrEmail(db, username, email, currentUserId) {
 
 async function updateUser(db, user) {
   try {
+    const { _id, ...userWithoutId } = user; // Destructure to remove _id from the user object
+
     const result = await db.collection("users").updateOne(
-      { id: user.id }, // Match by the custom user id
-      { $set: user } // Set the updated user document
+      { _id: new ObjectId(_id) }, // Match by ObjectId
+      { $set: userWithoutId } // Set the updated user document excluding _id
     );
     return result;
   } catch (error) {
@@ -76,14 +79,19 @@ async function updateUser(db, user) {
 // Cascade delete user by removing from all groups and channels before deleting user
 async function deleteUser(db, userId) {
   try {
+    // Convert userId to ObjectId
+    const userObjectId = new ObjectId(userId);
+
     // Remove user from all groups
-    await groupService.removeUserFromGroups(db, userId);
+    await groupService.removeUserFromGroups(db, userObjectId);
 
     // Remove user from all channels
-    await channelService.removeUserFromChannels(db, userId);
+    await channelService.removeUserFromChannels(db, userObjectId);
 
     // Delete user from the users collection
-    const result = await db.collection("users").deleteOne({ id: userId });
+    const result = await db
+      .collection("users")
+      .deleteOne({ _id: userObjectId });
 
     if (result.deletedCount === 0) {
       throw new Error("User not found");
@@ -100,8 +108,8 @@ async function deleteUser(db, userId) {
 async function leaveGroup(db, userId, groupId) {
   try {
     const result = await db.collection("users").updateOne(
-      { id: userId },
-      { $pull: { groups: groupId } } // Pull the groupId from the user's groups array
+      { _id: new ObjectId(userId) }, // Ensure userId is an ObjectId
+      { $pull: { groups: new ObjectId(groupId) } } // Ensure groupId is an ObjectId
     );
     if (result.matchedCount === 0) {
       throw new Error("User not found");
@@ -113,43 +121,84 @@ async function leaveGroup(db, userId, groupId) {
   }
 }
 
+// Remove group from all users' groups array
 async function removeGroupFromUsers(db, groupId) {
   try {
-    const result = await db
-      .collection("users")
-      .updateMany({}, { $pull: { groups: groupId } });
-    return result;
-  } catch (error) {
-    console.error("Error removing group from users:", error);
-    throw error;
-  }
-}
+    const groupObjectId = new ObjectId(groupId); // Ensure groupId is an ObjectId
 
-// Remove group from the user's groups array
-async function removeGroupFromUser(db, userId, groupId) {
-  try {
-    const result = await db.collection("users").updateOne(
-      { id: userId },
-      { $pull: { groups: groupId } } // Remove group from the user's groups array
+    // Remove the group (as ObjectId) from the 'groups' array of all users who have this group
+    const result = await db.collection("users").updateMany(
+      { groups: groupObjectId }, // Match users that have this groupId (as ObjectId) in their groups array
+      { $pull: { groups: groupObjectId } } // Pull groupId (as ObjectId) from users' groups array
     );
 
-    if (result.matchedCount === 0) {
-      throw new Error("User not found");
+    if (result.modifiedCount === 0) {
+      throw new Error("No users were found with the specified group.");
     }
+
+    console.log(
+      `Group ${groupObjectId} removed from ${result.modifiedCount} users.`
+    );
+    return result;
   } catch (error) {
-    console.error("Error removing group from user:", error);
+    console.error("Error removing group from all users:", error.message);
     throw error;
   }
 }
 
+/// Remove group from user's groups array
+async function removeGroupFromUser(db, userId, groupId) {
+  try {
+    const userObjectId = new ObjectId(userId); // Convert userId to ObjectId
+    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
+
+    // Log for debugging
+    console.log(
+      `Attempting to remove group ${groupObjectId} from user ${userObjectId}`
+    );
+
+    // Ensure the user exists
+    const user = await db.collection("users").findOne({ _id: userObjectId });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    console.log(`User found: ${user._id}, with groups: ${user.groups}`);
+
+    // Ensure the group is in the user's groups array using the equals method
+    const groupExists = user.groups.some((group) => group.equals(groupObjectId));
+    
+    if (!groupExists) {
+      throw new Error("Group was not in the user's groups list.");
+    }
+
+    // Remove the group from the user's groups array
+    const result = await db.collection("users").updateOne(
+      { _id: userObjectId },
+      { $pull: { groups: groupObjectId } } // Use ObjectId for the pull operation
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error("Failed to remove the group from user's groups list.");
+    }
+
+    console.log(`Group ${groupObjectId} removed from user ${userId}'s groups.`);
+    return result;
+  } catch (error) {
+    console.error("Error removing group from user:", error.message);
+    throw error;
+  }
+}
+
+
 module.exports = {
+  generateUserId,
   readUsers,
   getUserById,
   findUserByUsernameOrEmail,
   updateUser,
   deleteUser,
   leaveGroup,
-  generateUserId,
   createUser,
   removeGroupFromUsers,
   removeGroupFromUser,
