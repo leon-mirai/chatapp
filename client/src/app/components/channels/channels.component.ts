@@ -40,12 +40,12 @@ export class ChannelsComponent implements OnInit {
         next: (channel: Channel) => {
           this.channel = channel;
 
-          if (this.channel.blacklist.includes(this.user!.id)) {
+          if (this.channel.blacklist.includes(this.user!._id)) {
             this.router.navigate(['/dashboard']);
           } else {
             this.groupService.getGroupById(this.channel.groupId).subscribe({
               next: (group) => {
-                this.isAdminOfGroup = group.admins.includes(this.user!.id);
+                this.isAdminOfGroup = group.admins.includes(this.user!._id);
               },
               error: (err) => {
                 console.error('error check for admin:', err.message);
@@ -84,7 +84,7 @@ export class ChannelsComponent implements OnInit {
       this.channel &&
       confirm('Are you sure you want to delete this channel?')
     ) {
-      this.channelService.deleteChannel(this.channel.id).subscribe({
+      this.channelService.deleteChannel(this.channel._id).subscribe({
         next: () => {
           this.router.navigate(['/dashboard']);
         },
@@ -96,11 +96,11 @@ export class ChannelsComponent implements OnInit {
   }
 
   joinChannel(): void {
-    const userId = this.authService.getUser()?.id;
+    const userId = this.authService.getUser()?._id;
 
     if (this.channel && userId) {
       this.channelService
-        .requestJoinChannel(this.channel.id, userId)
+        .requestJoinChannel(this.channel._id, userId)
         .subscribe({
           next: (response) => {
             if (response.message === 'Join request sent successfully') {
@@ -117,7 +117,7 @@ export class ChannelsComponent implements OnInit {
   approveJoinRequest(userId: string, approve: boolean): void {
     if (this.channel) {
       this.channelService
-        .approveJoinRequest(this.channel.id, userId, approve)
+        .approveJoinRequest(this.channel._id, userId, approve)
         .subscribe({
           next: () => {
             this.reloadChannel();
@@ -134,7 +134,7 @@ export class ChannelsComponent implements OnInit {
 
   reloadChannel(): void {
     if (this.channel) {
-      this.channelService.getChannelById(this.channel.id).subscribe({
+      this.channelService.getChannelById(this.channel._id).subscribe({
         next: (updatedChannel: Channel) => {
           this.channel = updatedChannel;
         },
@@ -147,7 +147,7 @@ export class ChannelsComponent implements OnInit {
 
   banUser(userId: string): void {
     if (this.channel && (this.isAdminOfGroup || this.isSuperAdmin())) {
-      this.channelService.banUser(this.channel.id, userId).subscribe({
+      this.channelService.banUser(this.channel._id, userId).subscribe({
         next: (response) => {
           this.reloadChannel();
         },
@@ -161,7 +161,7 @@ export class ChannelsComponent implements OnInit {
   removeMember(userId: string): void {
     if (this.channel && (this.isGroupAdmin() || this.isSuperAdmin())) {
       this.channelService
-        .removeUserFromChannel(this.channel.id, userId)
+        .removeUserFromChannel(this.channel._id, userId)
         .subscribe({
           next: () => {
             this.channel!.members = this.channel!.members.filter(
@@ -189,6 +189,6 @@ export class ChannelsComponent implements OnInit {
   }
 
   isMemberOfChannel(): boolean {
-    return this.channel?.members.includes(this.user?.id || '') ?? false;
+    return this.channel?.members.includes(this.user?._id || '') ?? false;
   }
 }

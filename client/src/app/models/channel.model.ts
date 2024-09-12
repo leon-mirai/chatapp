@@ -1,10 +1,11 @@
 export class Channel {
   constructor(
-    public id: string, // unique identifier for the channel
-    public name: string, // name of the channel
-    public groupId: string, // iD of the group this channel belongs to
-    public members: string[] = [], // array of user IDs who are members of the channel
+    public _id: string,  // MongoDB ObjectId for Channel
+    public id: string,   // Optional: string identifier
+    public name: string,
+    public groupId: string,
+    public members: string[] = [],
     public joinRequests: string[] = [],
-    public blacklist: string[] = [] // banmed members from channel
+    public blacklist: string[] = []
   ) {}
 }

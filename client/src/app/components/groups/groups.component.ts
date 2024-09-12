@@ -36,7 +36,7 @@ export class GroupsComponent implements OnInit {
 
   ngOnInit(): void {
     // optional chaining to not check nullish, nullish coalescing operator returns null
-    this.userId = this.authService.getUser()?.id ?? null;
+    this.userId = this.authService.getUser()?._id ?? null;
 
     const groupId = this.route.snapshot.params['id']; // synchronously get groupId
     if (groupId) {
@@ -91,7 +91,7 @@ export class GroupsComponent implements OnInit {
       return;
     }
 
-    const groupId = this.group.id; // store the group ID in a variable
+    const groupId = this.group._id; // store the group ID in a variable
 
     this.groupService.removeUserFromGroup(groupId, memberId).subscribe({
       next: () => {
@@ -126,7 +126,7 @@ export class GroupsComponent implements OnInit {
         next: (user) => {
           if (user) {
             // proceed with adding the member
-            this.groupService.addMember(this.group!.id, userId).subscribe({
+            this.groupService.addMember(this.group!._id, userId).subscribe({
               next: () => {
                 this.group?.members.push(userId);
                 console.log('Member added successfully');
@@ -152,34 +152,34 @@ export class GroupsComponent implements OnInit {
   }
 
   createChannel() {
-    if (
-      this.group &&
-      this.isGroupAdmin(this.group) &&
-      this.newChannelName.trim()
-    ) {
-      const newChannelId = this.idService.generateId(this.newChannelName);
-      const newChannel = new Channel(
-        newChannelId,
-        this.newChannelName,
-        this.group.id
-      );
-      this.channelService.addChannel(newChannel).subscribe({
-        next: () => {
-          this.channels.push(newChannel);
-          this.newChannelName = '';
-        },
-        error: (err: any) => {
-          console.error('Error adding channel:', err.message);
-        },
-      });
-    } else {
-      console.error('User lacks permission or channel name is empty.');
-    }
+    // if (
+    //   this.group &&
+    //   this.isGroupAdmin(this.group) &&
+    //   this.newChannelName.trim()
+    // ) {
+    //   const newChannelId = this.idService.generateId(this.newChannelName);
+    //   const newChannel = new Channel(
+    //     newChannelId,
+    //     this.newChannelName,
+    //     this.group._id
+    //   );
+    //   this.channelService.addChannel(newChannel).subscribe({
+    //     next: () => {
+    //       this.channels.push(newChannel);
+    //       this.newChannelName = '';
+    //     },
+    //     error: (err: any) => {
+    //       console.error('Error adding channel:', err.message);
+    //     },
+    //   });
+    // } else {
+    //   console.error('User lacks permission or channel name is empty.');
+    // }
   }
 
   approveRequest(userId: string): void {
     if (this.group && this.isGroupAdmin(this.group)) {
-      this.groupService.approveRequest(this.group.id, userId).subscribe({
+      this.groupService.approveRequest(this.group._id, userId).subscribe({
         next: () => {
           console.log(`User ${userId} approved to join the group.`);
           this.group!.joinRequests = this.group!.joinRequests.filter(
@@ -195,7 +195,7 @@ export class GroupsComponent implements OnInit {
 
   rejectRequest(userId: string): void {
     if (this.group && this.isGroupAdmin(this.group)) {
-      this.groupService.rejectRequest(this.group.id, userId).subscribe({
+      this.groupService.rejectRequest(this.group._id, userId).subscribe({
         next: () => {
           console.log(`User ${userId}'s request rejected.`);
           this.group!.joinRequests = this.group!.joinRequests.filter(

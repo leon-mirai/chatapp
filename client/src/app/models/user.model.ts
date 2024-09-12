@@ -1,6 +1,7 @@
 export class User {
   constructor(
-    public id: string,
+    public _id: string,   // MongoDB ObjectId
+    public id: string,    // Optional: custom identifier like username
     public username: string,
     public email: string,
     public roles: string[] = [],

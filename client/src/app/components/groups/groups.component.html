@@ -73,7 +73,7 @@
         <div class="card-body">
           <ul class="list-group">
             <li *ngFor="let channel of channels" class="list-group-item">
-              <a [routerLink]="['/channels', channel.id]">{{ channel.name }}</a>
+              <a [routerLink]="['/channels', channel._id]">{{ channel.name }}</a>
             </li>
           </ul>
 

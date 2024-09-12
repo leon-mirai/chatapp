@@ -31,8 +31,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private groupService: GroupService,
     private authService: AuthService,
-    private idService: IdService,
     private userService: UserService,
+    private idService: IdService,
     private router: Router
   ) {}
 
@@ -70,7 +70,7 @@ export class DashboardComponent implements OnInit {
     if (pendingUser.username && pendingUser.email) {
       this.userService
         .completeRegistration(
-          pendingUser.id,
+          pendingUser._id,
           pendingUser.username,
           pendingUser.email
         )
@@ -90,17 +90,18 @@ export class DashboardComponent implements OnInit {
 
   loadGroups(): void {
     if (this.user) {
-      this.groupService.getGroups(this.user.id).subscribe({
+      this.groupService.getGroups(this.user._id).subscribe({
         next: (groups) => {
           if (this.isSuperAdmin()) {
             this.groups = groups;
           } else if (this.isGroupAdmin() && !this.isSuperAdmin()) {
+            // Use _id for filtering group membership
             this.groups = groups.filter((group) =>
-              group.members.includes(this.user.id)
+              group.members.includes(this.user._id)
             );
           } else if (this.isChatUser()) {
             this.groups = groups.filter((group) =>
-              group.members.includes(this.user.id)
+              group.members.includes(this.user._id)
             );
           }
         },
@@ -116,7 +117,7 @@ export class DashboardComponent implements OnInit {
       this.groupService.getAllGroups().subscribe({
         next: (groups: Group[]) => {
           this.availableGroups = groups.filter(
-            (group) => !group.members.includes(this.user.id)
+            (group) => !group.members.includes(this.user._id)
           );
           console.log('available Groups:', this.availableGroups);
         },
@@ -131,30 +132,35 @@ export class DashboardComponent implements OnInit {
     this.userService.getUsers().subscribe({
       next: (users) => {
         this.users = users;
+        // Verify if the data contains `_id`
+        console.log("Loaded users with ObjectId:", this.users);
       },
       error: (err) => {
         console.error('error fetching users:', err);
-      },
+      }
     });
   }
+  
 
   deleteUser(userId: string): void {
-    if (
-      confirm(
-        'Are you sure you want to delete this user? This action cannot be undone.'
-      )
-    ) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      // Ensure that userId is referring to the MongoDB ObjectId (_id)
+      console.log(`Initiating delete for user with ObjectId: ${userId}`);
+  
       this.userService.deleteUser(userId).subscribe({
         next: () => {
-          this.users = this.users.filter((user) => user.id !== userId);
-          console.log('user deleted successfully');
+          // Use _id for filtering the user from the list
+          this.users = this.users.filter((user) => user._id !== userId);
+          console.log('User deleted successfully');
         },
         error: (err) => {
-          console.error('error deleting user:', err);
-        },
+          console.error('Error deleting user:', err);
+        }
       });
     }
   }
+  
+  
 
   selfDelete(): void {
     if (
@@ -162,7 +168,7 @@ export class DashboardComponent implements OnInit {
         'Are you sure you want to delete your account? This action cannot be undone.'
       )
     ) {
-      this.userService.selfDelete(this.user.id).subscribe({
+      this.userService.selfDelete(this.user._id).subscribe({
         next: () => {
           this.authService.logout();
           this.router.navigate(['/login']);
@@ -177,18 +183,19 @@ export class DashboardComponent implements OnInit {
   createGroup(): void {
     if (this.newGroupName.trim() && this.user) {
       const newGroup = {
-        id: this.idService.generateId(this.newGroupName),
+        // Since Partial<Group> is used, _id can be omitted here
         name: this.newGroupName,
-        admins: [this.user.id],
-        members: [this.user.id],
+        admins: [this.user._id],
+        members: [this.user._id],
         channels: [],
         joinRequests: [],
       };
-
+  
       this.groupService.addGroup(newGroup).subscribe({
-        next: (group) => {
-          this.groups.push(group); 
-          this.newGroupName = ''; 
+        next: (group: Group) => {
+          // The backend will return the full group with _id included
+          this.groups.push(group);
+          this.newGroupName = '';
         },
         error: (err) => {
           console.error('Error creating group:', err);
@@ -196,12 +203,13 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
+  
 
   deleteGroup(groupId: string): void {
     if (confirm('Are you sure you want to delete this group?')) {
       this.groupService.deleteGroup(groupId).subscribe({
         next: () => {
-          this.groups = this.groups.filter((group) => group.id !== groupId);
+          this.groups = this.groups.filter((group) => group._id !== groupId);
         },
         error: (err) => {
           console.error('Error deleting group:', err);
@@ -212,10 +220,10 @@ export class DashboardComponent implements OnInit {
 
   leaveGroup(groupId: string): void {
     if (this.user && confirm('Are you sure you want to leave this group?')) {
-      this.userService.leaveGroup(this.user.id, groupId).subscribe({
+      this.userService.leaveGroup(this.user._id, groupId).subscribe({
         next: () => {
           // remove the group from the user's list of groups
-          this.groups = this.groups.filter((group) => group.id !== groupId);
+          this.groups = this.groups.filter((group) => group._id !== groupId);
           console.log('Left group successfully');
         },
         error: (err) => {
@@ -245,12 +253,12 @@ export class DashboardComponent implements OnInit {
   }
 
   requestToJoin(groupId: string): void {
-    if (!this.user.id) return;
+    if (!this.user._id) return;
 
-    this.groupService.requestToJoinGroup(groupId, this.user.id).subscribe({
+    this.groupService.requestToJoinGroup(groupId, this.user._id).subscribe({
       next: () => {
         this.availableGroups = this.availableGroups.filter(
-          (group) => group.id !== groupId
+          (group) => group._id !== groupId
         );
       },
       error: (err: any) => {
@@ -272,7 +280,7 @@ export class DashboardComponent implements OnInit {
       return this.user?.roles.includes('GroupAdmin') ?? false;
     }
 
-    return group.admins.includes(this.user?.id ?? '');
+    return group.admins.includes(this.user?._id ?? '');
   }
 
   isChatUser(): boolean {

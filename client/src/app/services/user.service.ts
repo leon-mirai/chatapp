@@ -78,14 +78,20 @@ export class UserService {
 
   // delete a user by SuperAdmin
   deleteUser(userId: string): Observable<any> {
-    console.log(`Deleting user with ID: ${userId} by SuperAdmin`);
-    return this.http.delete(`${this.apiUrl}/${userId}/delete-user`);
+    console.log(`Deleting user with ObjectId: ${userId}`);
+    // Ensure the correct URL
+    return this.http.delete(
+      `http://localhost:3000/api/users/${userId}/delete-user`
+    );
   }
 
   // leave a group
   leaveGroup(userId: string, groupId: string): Observable<any> {
     console.log(`User with ID: ${userId} leaving group with ID: ${groupId}`);
-    return this.http.post(`${this.apiUrl}/${userId}/groups/${groupId}/leave`,{});
+    return this.http.post(
+      `${this.apiUrl}/${userId}/groups/${groupId}/leave`,
+      {}
+    );
   }
 
   // promote a user to a new role (e.g., GroupAdmin or SuperAdmin)
