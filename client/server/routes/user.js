@@ -94,7 +94,7 @@ const route = (app, db) => {
   app.put("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     const updatedUser = req.body;
-  
+
     try {
       const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
@@ -104,7 +104,7 @@ const route = (app, db) => {
             (groupId) => new ObjectId(groupId)
           );
         }
-  
+
         const mergedUser = { ...user, ...updatedUser };
         await userService.updateUser(db, mergedUser);
         res.status(200).json(mergedUser);
@@ -115,7 +115,6 @@ const route = (app, db) => {
       res.status(500).json({ message: "Failed to update user", error });
     }
   });
-  
 
   // Delete a user account (self-delete)
   app.delete("/api/users/:userId", async (req, res) => {
@@ -156,35 +155,6 @@ const route = (app, db) => {
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user", error });
-    }
-  });
-
-  // Leave a group
-  app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {
-    const userId = new ObjectId(req.params.userId.trim()); // Ensure ObjectId
-    const groupId = new ObjectId(req.params.groupId.trim()); // Ensure ObjectId
-
-    try {
-      // Step 1: Remove user from the group's members array
-      console.log(`Removing user ${userId} from group ${groupId}`);
-      await groupService.removeUserFromGroup(db, userId, groupId);
-
-      // Step 2: Remove the group from the user's groups array
-      console.log(`Removing group ${groupId} from user ${userId}'s group list`);
-      await userService.removeGroupFromUser(db, userId, groupId);
-
-      // Step 3: Remove the user from all channels within the group
-      console.log(
-        `Removing user ${userId} from all channels in group ${groupId}`
-      );
-      await channelService.removeUserFromGroupChannels(db, groupId, userId);
-
-      res.status(200).json({ message: "Successfully left the group" });
-    } catch (error) {
-      console.error("Error during leave group process:", error.message);
-      res
-        .status(500)
-        .json({ message: "Failed to leave group", error: error.message });
     }
   });
 
@@ -278,8 +248,12 @@ const route = (app, db) => {
     const userId = new ObjectId(req.params.userId.trim()); // Convert userId to ObjectId
 
     try {
-      await groupService.removeUserFromGroup(db, userId, groupId);
-      res.status(200).json({ message: "User removed from group members" });
+      const result = await groupService.removeUserFromGroup(
+        db,
+        userId,
+        groupId
+      );
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({
         message: "Failed to remove user from group",
@@ -328,6 +302,35 @@ const route = (app, db) => {
       }
     }
   );
+
+  // Leave a group
+  app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {
+    const userId = new ObjectId(req.params.userId.trim()); // Ensure ObjectId
+    const groupId = new ObjectId(req.params.groupId.trim()); // Ensure ObjectId
+
+    try {
+      // Step 1: Remove user from the group's members array
+      console.log(`Removing user ${userId} from group ${groupId}`);
+      await groupService.removeUserFromGroup(db, userId, groupId);
+
+      // Step 2: Remove the group from the user's groups array
+      console.log(`Removing group ${groupId} from user ${userId}'s group list`);
+      await userService.removeGroupFromUser(db, userId, groupId);
+
+      // Step 3: Remove the user from all channels within the group
+      console.log(
+        `Removing user ${userId} from all channels in group ${groupId}`
+      );
+      await channelService.removeUserFromGroupChannels(db, groupId, userId);
+
+      res.status(200).json({ message: "Successfully left the group" });
+    } catch (error) {
+      console.error("Error during leave group process:", error.message);
+      res
+        .status(500)
+        .json({ message: "Failed to leave group", error: error.message });
+    }
+  });
 };
 
 module.exports = { route };

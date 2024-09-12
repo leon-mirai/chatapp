@@ -66,7 +66,7 @@ async function removeUserFromGroup(db, userId, groupId) {
   try {
     const result = await db.collection("groups").updateOne(
       { _id: new ObjectId(groupId) }, // Match by ObjectId
-      { $pull: { members: new ObjectId(userId) } } // Use ObjectId for comparison, do not convert to string
+      { $pull: { members: new ObjectId(userId) } } // Use ObjectId for comparison
     );
 
     if (result.matchedCount === 0) {
@@ -138,10 +138,10 @@ async function updateGroup(db, groupId, updatedGroupData) {
 async function createGroup(db, group) {
   try {
     // Ensure admins array contains ObjectId
-    group.admins = group.admins.map(adminId => new ObjectId(adminId)); 
+    group.admins = group.admins.map((adminId) => new ObjectId(adminId));
 
     // Assign a new ObjectId to the group
-    group._id = new ObjectId(); 
+    group._id = new ObjectId();
 
     // Insert the group into the database
     const result = await db.collection("groups").insertOne(group);
@@ -152,7 +152,6 @@ async function createGroup(db, group) {
     throw error;
   }
 }
-
 
 // Delete a group by ObjectId
 async function deleteGroup(db, groupId) {
@@ -198,6 +197,27 @@ async function removeAdminFromGroup(db, groupId, userId) {
   }
 }
 
+// Remove a channel from a group's channels array
+async function removeChannelFromGroup(db, groupId, channelId) {
+  try {
+    const result = await db.collection("groups").updateOne(
+      { _id: groupId },
+      { $pull: { channels: channelId } } // Remove channelId from channels array
+    );
+
+    if (result.modifiedCount === 0) {
+      console.log("Channel ID was not found in the group or group not found.");
+    } else {
+      console.log(`Channel ${channelId} removed from group ${groupId}.`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error removing channel from group:", error);
+    throw error;
+  }
+}
+
 // Add a channel to a group
 async function addChannelToGroup(db, groupId, channelId) {
   try {
@@ -221,6 +241,7 @@ async function addChannelToGroup(db, groupId, channelId) {
 }
 
 module.exports = {
+  removeChannelFromGroup,
   readGroups,
   writeGroup,
   checkGroupAdmin,

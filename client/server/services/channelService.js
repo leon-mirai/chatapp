@@ -96,20 +96,30 @@ async function joinChannel(db, channelId, userId) {
 // Remove a user from a channel
 async function removeUserFromChannel(db, channelId, userId) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert to ObjectId
-    const channelsCollection = db.collection("channels");
-    const channel = await channelsCollection.findOne({
-      _id: channelObjectId,
-    });
+    const channel = await db.collection("channels").findOne({ _id: channelId });
 
     if (!channel) {
-      throw new Error("Channel not found");
+      return { success: false, message: "Channel not found" };
     }
 
-    channel.members = channel.members.filter((member) => member !== userId);
-    await writeChannel(db, channel);
+    // Filter the members array to remove the userId using ObjectId comparison
+    channel.members = channel.members.filter(
+      (member) => !member.equals(userId)
+    );
 
-    return { message: "User removed from channel successfully", success: true };
+    // Update the channel with the modified members array
+    const result = await db
+      .collection("channels")
+      .updateOne({ _id: channelId }, { $set: { members: channel.members } });
+
+    if (result.modifiedCount > 0) {
+      return {
+        success: true,
+        message: "User removed from channel successfully",
+      };
+    } else {
+      return { success: false, message: "Failed to remove user from channel" };
+    }
   } catch (error) {
     console.error("Error removing user from channel:", error);
     throw error;
@@ -274,43 +284,42 @@ async function deleteChannelById(db, channelId) {
 
 async function requestJoinChannel(db, channelId, userId) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
     const channelsCollection = db.collection("channels");
+    // Ensure both channelId and userId are treated as ObjectId
+    const channelObjectId = new ObjectId(channelId);
+    const userObjectId = new ObjectId(userId);
 
-    const channel = await channelsCollection.findOne({ _id: channelObjectId });
+    // Check if the user has already requested to join
+    const channel = await channelsCollection.findOne({
+      _id: channelObjectId,
+      joinRequests: userObjectId,
+    });
 
-    if (!channel) {
-      throw new Error("Channel not found");
-    }
-
-    if (channel.members.includes(userId)) {
-      return {
-        success: false,
-        message: "User is already a member of the channel",
-      };
-    }
-
-    if (channel.joinRequests.includes(userId)) {
+    if (channel) {
       return { success: false, message: "User has already requested to join" };
     }
 
-    channel.joinRequests.push(userId);
-
-    await channelsCollection.updateOne(
+    // Add user to joinRequests
+    const result = await channelsCollection.updateOne(
       { _id: channelObjectId },
-      { $set: { joinRequests: channel.joinRequests } }
+      { $addToSet: { joinRequests: userObjectId } } // Use $addToSet to avoid duplicates
     );
+
+    if (result.modifiedCount === 0) {
+      return { success: false, message: "Failed to add join request" };
+    }
 
     return { success: true, message: "Join request sent successfully" };
   } catch (error) {
     console.error("Error in requestJoinChannel:", error);
-    throw error;
+    throw error; // Rethrow the error so it can be caught in the route handler
   }
 }
 
 async function approveJoinRequest(db, channelId, userId, approve) {
   try {
     const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
+    const userObjectId = new ObjectId(userId); // Convert userId to ObjectId
     const channelsCollection = db.collection("channels");
 
     const channel = await channelsCollection.findOne({ _id: channelObjectId });
@@ -319,17 +328,22 @@ async function approveJoinRequest(db, channelId, userId, approve) {
       throw new Error("Channel not found");
     }
 
-    if (!channel.joinRequests.includes(userId)) {
+    // Ensure we're comparing ObjectId to ObjectId
+    if (!channel.joinRequests.some((id) => id.equals(userObjectId))) {
       return { success: false, message: "No join request found for this user" };
     }
 
     if (approve) {
-      channel.members.push(userId);
-      channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
-    } else {
-      channel.joinRequests = channel.joinRequests.filter((id) => id !== userId);
+      // Add user to members and remove from joinRequests
+      channel.members.push(userObjectId);
     }
 
+    // Always remove the user from joinRequests regardless of approval or rejection
+    channel.joinRequests = channel.joinRequests.filter(
+      (id) => !id.equals(userObjectId)
+    );
+
+    // Update the channel in the database
     await channelsCollection.updateOne(
       { _id: channelObjectId },
       { $set: { members: channel.members, joinRequests: channel.joinRequests } }
@@ -338,6 +352,68 @@ async function approveJoinRequest(db, channelId, userId, approve) {
     return { success: true };
   } catch (error) {
     console.error("Error in approveJoinRequest:", error);
+    throw error;
+  }
+}
+
+// Ban a user from a channel
+async function banUserFromChannel(db, channelId, userId) {
+  try {
+    const channelsCollection = db.collection("channels");
+
+    // Ensure channelId is properly converted to ObjectId
+    const channelObjectId = new ObjectId(channelId);
+
+    // Fetch the channel to check if the user is already banned
+    const channel = await channelsCollection.findOne({ _id: channelObjectId });
+
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+
+    // Check if the user is already in the blacklist
+    if (channel.blacklist.includes(userId)) {
+      return { success: false, message: "User is already banned" };
+    }
+
+    // Remove the user from the members array if they exist there
+    await channelsCollection.updateOne(
+      { _id: channelObjectId },
+      { $pull: { members: userId } } // Remove the userId from the members array
+    );
+
+    // Add the user to the blacklist
+    await channelsCollection.updateOne(
+      { _id: channelObjectId },
+      { $push: { blacklist: userId } } // Add the userId to the blacklist array
+    );
+
+    return { success: true, message: "User banned successfully" };
+  } catch (error) {
+    console.error("Error banning user from channel:", error);
+    throw error;
+  }
+}
+
+async function isUserInChannel(db, channelId, userId) {
+  try {
+    const channelsCollection = db.collection("channels");
+
+    // Find the channel by its ObjectId
+    const channel = await channelsCollection.findOne({ _id: channelId });
+
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+
+    // Convert each member in the members array to ObjectId
+    const isMember = channel.members.some(
+      (memberId) => memberId.equals(userId)
+    );
+
+    return isMember;
+  } catch (error) {
+    console.error("Error checking if user is in channel:", error);
     throw error;
   }
 }
@@ -358,4 +434,7 @@ module.exports = {
   deleteChannelById,
   requestJoinChannel,
   approveJoinRequest,
+  banUserFromChannel,
+  isUserInChannel
+
 };

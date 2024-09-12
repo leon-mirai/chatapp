@@ -111,12 +111,28 @@ const route = (app, db) => {
   app.delete("/api/channels/:channelId", async (req, res) => {
     try {
       const channelId = new ObjectId(req.params.channelId.trim());
+
+      // Find the channel first to get the groupId
+      const channel = await channelService.getChannelById(db, channelId);
+
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      // Proceed to delete the channel
       const deletedChannel = await channelService.deleteChannelById(
         db,
         channelId
       );
 
       if (deletedChannel.deletedCount > 0) {
+        // After deleting the channel, remove the channel ID from the corresponding group's channels array
+        await groupService.removeChannelFromGroup(
+          db,
+          new ObjectId(channel.groupId),
+          channelId
+        );
+
         res.status(200).json({ message: "Channel deleted successfully" });
       } else {
         res.status(404).json({ message: "Channel not found" });
@@ -236,6 +252,7 @@ const route = (app, db) => {
         .json({ message: "Failed to check if user is in channel", error });
     }
   });
+  
 };
 
 module.exports = { route };

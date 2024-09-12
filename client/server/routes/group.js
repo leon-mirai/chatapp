@@ -333,6 +333,8 @@ app.put("/api/groups/:groupId", async (req, res) => {
       res.status(500).json({ message: "Failed to reject join request", error });
     }
   });
+
+  
 };
 
 module.exports = { route };
