@@ -6,9 +6,9 @@ import { Group } from '../../models/group.model';
 import { Channel } from '../../models/channel.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { IdService } from '../../services/id.service';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
+import { CreateChannel } from '../../models/create-channel.model';
 
 @Component({
   selector: 'app-groups',
@@ -30,20 +30,25 @@ export class GroupsComponent implements OnInit {
     private groupService: GroupService,
     private channelService: ChannelService,
     private userService: UserService,
-    private idService: IdService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // optional chaining to not check nullish, nullish coalescing operator returns null
-    this.userId = this.authService.getUser()?._id ?? null;
-
-    const groupId = this.route.snapshot.params['id']; // synchronously get groupId
+    const user = this.authService.getUser(); // Get user from AuthService
+    console.log('Retrieved user:', user);    // Log the user object
+  
+    if (user && user._id) {
+      this.userId = user._id; // Assign user._id to userId
+    } else {
+      console.error('User data is missing or invalid.');
+    }
+  
+    const groupId = this.route.snapshot.params['id']; // Get groupId from route
     if (groupId) {
       this.groupService.getGroupById(groupId).subscribe({
         next: (group: Group) => {
           this.group = group;
-          this.fetchChannels(groupId);
+          this.fetchChannels(groupId); // Fetch the channels after getting the group
         },
         error: (err: any) => {
           console.error('Error fetching group:', err.message);
@@ -51,6 +56,7 @@ export class GroupsComponent implements OnInit {
       });
     }
   }
+  
 
   fetchChannels(groupId: string): void {
     this.channelService.getChannelsByGroupId(groupId).subscribe({
@@ -64,16 +70,16 @@ export class GroupsComponent implements OnInit {
   }
 
   getUserName(memberId: string): string {
-    // if the username is already cached, return it
+    // If the username is already cached, return it
     if (this.userCache[memberId]) {
       return this.userCache[memberId];
     }
 
-    // fetch the user from the user service
+    // Fetch the user from the user service if not cached
     this.userService.getUserById(memberId).subscribe({
       next: (user) => {
         if (user) {
-          this.userCache[memberId] = user.username; // cache username
+          this.userCache[memberId] = user.username; // Cache the username
         }
       },
       error: (err: any) => {
@@ -81,7 +87,7 @@ export class GroupsComponent implements OnInit {
       },
     });
 
-    // rrturn userId as a fallback while we fetch the username
+    // Return memberId as a fallback while fetching the name
     return memberId;
   }
 
@@ -91,18 +97,17 @@ export class GroupsComponent implements OnInit {
       return;
     }
 
-    const groupId = this.group._id; // store the group ID in a variable
+    const groupId = this.group._id; // Store the groupId locally
 
     this.groupService.removeUserFromGroup(groupId, memberId).subscribe({
       next: () => {
-        // remove the user from the group's members list locally
+        // Remove the member locally from the group's member list
         this.group!.members = this.group!.members.filter(
           (member) => member !== memberId
         );
-        // refresh the channels in case the user was removed from any
-        this.fetchChannels(groupId); // use the stored group ID
+        this.fetchChannels(groupId); // Refresh channels
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error removing member:', err.message);
       },
     });
@@ -116,19 +121,19 @@ export class GroupsComponent implements OnInit {
     );
   }
 
-  addMember() {
+  addMember(): void {
     if (this.group && this.isGroupAdmin(this.group)) {
       const userId = this.newMemberId.trim();
       if (!userId) return;
 
-      // check if the user exists before adding
+      // Check if the user exists before adding
       this.userService.getUserById(userId).subscribe({
         next: (user) => {
           if (user) {
-            // proceed with adding the member
+            // Proceed with adding the member
             this.groupService.addMember(this.group!._id, userId).subscribe({
               next: () => {
-                this.group?.members.push(userId);
+                this.group?.members.push(userId); // Add member to local group list
                 console.log('Member added successfully');
                 this.newMemberId = '';
               },
@@ -151,30 +156,27 @@ export class GroupsComponent implements OnInit {
     }
   }
 
-  createChannel() {
-    // if (
-    //   this.group &&
-    //   this.isGroupAdmin(this.group) &&
-    //   this.newChannelName.trim()
-    // ) {
-    //   const newChannelId = this.idService.generateId(this.newChannelName);
-    //   const newChannel = new Channel(
-    //     newChannelId,
-    //     this.newChannelName,
-    //     this.group._id
-    //   );
-    //   this.channelService.addChannel(newChannel).subscribe({
-    //     next: () => {
-    //       this.channels.push(newChannel);
-    //       this.newChannelName = '';
-    //     },
-    //     error: (err: any) => {
-    //       console.error('Error adding channel:', err.message);
-    //     },
-    //   });
-    // } else {
-    //   console.error('User lacks permission or channel name is empty.');
-    // }
+  createChannel(): void {
+    if (this.newChannelName.trim() && this.group && this.userId) {
+      const newChannel = new CreateChannel(
+        this.newChannelName, // Channel name
+        this.group._id, // Group ID
+        [this.userId], // Initial members (the current user who creates the channel)
+        [], // Channels (empty since it's a new channel)
+        [], // Join Requests (empty initially)
+        [] // Blacklist (empty initially)
+      );
+
+      this.channelService.addChannel(newChannel).subscribe({
+        next: (createdChannel) => {
+          this.channels.push(createdChannel); // Add the new channel to the list
+          this.newChannelName = ''; // Clear the input field
+        },
+        error: (err: any) => {
+          console.error('Error creating channel:', err.message);
+        },
+      });
+    }
   }
 
   approveRequest(userId: string): void {
@@ -217,9 +219,7 @@ export class GroupsComponent implements OnInit {
     if (!group || !this.userId) {
       return false;
     }
-    return (
-      this.authService.isSuperAdmin() || group.admins.includes(this.userId)
-    );
+    return group.admins.includes(this.userId) || this.isSuperAdmin();
   }
 
   isChatUser(): boolean {

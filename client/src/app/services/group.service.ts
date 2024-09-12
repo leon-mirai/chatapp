@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Group } from '../models/group.model';
-
+import { CreateGroup } from '../models/create-group.model';
 @Injectable({
   providedIn: 'root',
 })
@@ -39,8 +39,8 @@ export class GroupService {
     return this.http.post(url, { userId });
   }
 
-  addGroup(group: Group): Observable<Group> {
-    return this.http.post<Group>(this.apiUrl, group);
+  addGroup(newGroup: CreateGroup): Observable<Group> {
+    return this.http.post<Group>('http://localhost:3000/api/groups', newGroup);
   }
 
   deleteGroup(groupId: string): Observable<any> {

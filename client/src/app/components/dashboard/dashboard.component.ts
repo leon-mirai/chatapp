@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { IdService } from '../../services/id.service';
 import { UserService } from '../../services/user.service';
+import { CreateGroup } from '../../models/create-group.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -40,7 +41,21 @@ export class DashboardComponent implements OnInit {
     const userData = localStorage.getItem('user');
     if (userData) {
       this.user = JSON.parse(userData);
+
+      // Check if the user object contains `id` instead of `_id` and assign accordingly
+      if (!this.user._id && this.user.id) {
+        this.user._id = this.user.id; // Temporarily assign id to _id
+        console.log('Temporary fix applied: Using `id` for `_id`');
+      }
     }
+
+    // Check again to ensure `_id` is available after applying the fix
+    if (!this.user || !this.user._id) {
+      console.error('User ID is missing or invalid');
+      return; // Prevent further execution if no valid user ID is found
+    }
+
+    // Proceed to load groups and other data if the user is valid
     this.loadGroups();
     this.loadAvailableGroups();
 
@@ -133,20 +148,23 @@ export class DashboardComponent implements OnInit {
       next: (users) => {
         this.users = users;
         // Verify if the data contains `_id`
-        console.log("Loaded users with ObjectId:", this.users);
+        console.log('Loaded users with ObjectId:', this.users);
       },
       error: (err) => {
         console.error('error fetching users:', err);
-      }
+      },
     });
   }
-  
 
   deleteUser(userId: string): void {
-    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (
+      confirm(
+        'Are you sure you want to delete this user? This action cannot be undone.'
+      )
+    ) {
       // Ensure that userId is referring to the MongoDB ObjectId (_id)
       console.log(`Initiating delete for user with ObjectId: ${userId}`);
-  
+
       this.userService.deleteUser(userId).subscribe({
         next: () => {
           // Use _id for filtering the user from the list
@@ -155,12 +173,10 @@ export class DashboardComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error deleting user:', err);
-        }
+        },
       });
     }
   }
-  
-  
 
   selfDelete(): void {
     if (
@@ -181,29 +197,30 @@ export class DashboardComponent implements OnInit {
   }
 
   createGroup(): void {
-    if (this.newGroupName.trim() && this.user) {
-      const newGroup = {
-        // Since Partial<Group> is used, _id can be omitted here
-        name: this.newGroupName,
-        admins: [this.user._id],
-        members: [this.user._id],
-        channels: [],
-        joinRequests: [],
-      };
-  
+    if (this.newGroupName.trim() && this.user && this.user._id) {
+      console.log('Admin User ID Sent from Frontend:', this.user._id);
+
+      const newGroup = new CreateGroup(
+        this.newGroupName,
+        [this.user._id], // Admins
+        [this.user._id], // Members
+        [], // Channels
+        [] // Join Requests
+      );
+
       this.groupService.addGroup(newGroup).subscribe({
-        next: (group: Group) => {
-          // The backend will return the full group with _id included
-          this.groups.push(group);
-          this.newGroupName = '';
+        next: (createdGroup: Group) => {
+          this.groups.push(createdGroup); // Add the complete group with _id to the list
+          this.newGroupName = ''; // Clear the input field
         },
         error: (err) => {
           console.error('Error creating group:', err);
         },
       });
+    } else {
+      console.error('Cannot create group: User ID is missing or invalid');
     }
   }
-  
 
   deleteGroup(groupId: string): void {
     if (confirm('Are you sure you want to delete this group?')) {

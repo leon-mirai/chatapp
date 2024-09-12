@@ -35,10 +35,13 @@ async function readUsers(db) {
 
 async function getUserById(db, userId) {
   try {
-    // Ensure that userId is properly converted to ObjectId
-    const user = await db
-      .collection("users")
-      .findOne({ _id: new ObjectId(userId) }); // Use new ObjectId
+    if (!ObjectId.isValid(userId)) {
+      console.error("Invalid ObjectId:", userId);
+      return null; // Return null if invalid ObjectId
+    }
+
+    // Fetch the user by ObjectId
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
     return user;
   } catch (error) {
     console.error("Error getting user by ID:", error);
@@ -166,8 +169,10 @@ async function removeGroupFromUser(db, userId, groupId) {
     console.log(`User found: ${user._id}, with groups: ${user.groups}`);
 
     // Ensure the group is in the user's groups array using the equals method
-    const groupExists = user.groups.some((group) => group.equals(groupObjectId));
-    
+    const groupExists = user.groups.some((group) =>
+      group.equals(groupObjectId)
+    );
+
     if (!groupExists) {
       throw new Error("Group was not in the user's groups list.");
     }
@@ -189,7 +194,6 @@ async function removeGroupFromUser(db, userId, groupId) {
     throw error;
   }
 }
-
 
 module.exports = {
   generateUserId,

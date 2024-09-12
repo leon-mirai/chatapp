@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Channel } from '../models/channel.model';
-
+import { CreateChannel } from '../models/create-channel.model';
 @Injectable({
   providedIn: 'root',
 })
@@ -24,8 +24,8 @@ export class ChannelService {
     return this.http.get<Channel[]>(url);
   }
 
-  addChannel(channel: Channel): Observable<Channel> {
-    return this.http.post<Channel>(this.apiUrl, channel);
+  addChannel(newChannel: CreateChannel): Observable<Channel> {
+    return this.http.post<Channel>(this.apiUrl, newChannel);
   }
 
   deleteChannel(channelId: string): Observable<any> {

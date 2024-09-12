@@ -66,8 +66,8 @@ export class UserService {
 
   // update a user on the backend
   updateUser(user: User): Observable<any> {
-    console.log(`Updating user with ID: ${user.id}`);
-    return this.http.put(`${this.apiUrl}/${user.id}`, user);
+    console.log(`Updating user with ID: ${user._id}`);
+    return this.http.put(`${this.apiUrl}/${user._id}`, user);
   }
 
   // seslf-delete user account

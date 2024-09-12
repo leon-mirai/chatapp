@@ -1,9 +1,9 @@
-export class Channel {
+export class CreateChannel {
   constructor(
-    public _id: string,  // MongoDB ObjectId for Channel
     public name: string,
     public groupId: string,
     public members: string[] = [],
+    public channels: string[] = [],
     public joinRequests: string[] = [],
     public blacklist: string[] = []
   ) {}

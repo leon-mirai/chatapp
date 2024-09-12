@@ -50,34 +50,38 @@ const route = (app, db) => {
     }
   });
 
-  // Create a new group (using ObjectId for admin user)
+  function isValidObjectId(id) {
+    return ObjectId.isValid(id) && new ObjectId(id).toString() === id;
+  }
+
+  // POST /api/groups route to create a group
 app.post("/api/groups", async (req, res) => {
   const newGroup = req.body;
 
+  console.log("Admin User ID (before conversion):", newGroup.admins[0]);
+
   try {
-    // Check if 'admins' array exists and is not empty
+    // Validation and group creation logic here
     if (!newGroup.admins || newGroup.admins.length === 0) {
       return res.status(400).json({ message: "Admin user is required" });
     }
 
-    // Fetch the admin user from the database using the first admin ID
-    const adminUser = await userService.getUserById(
-      db,
-      new ObjectId(newGroup.admins[0])
-    );
+    // Check if the ID is valid
+    if (!isValidObjectId(newGroup.admins[0])) {
+      console.log("Invalid Admin User ID:", newGroup.admins[0]);
+      return res.status(400).json({ message: "Invalid Admin User ID" });
+    }
+
+    const adminUser = await userService.getUserById(db, new ObjectId(newGroup.admins[0]));
 
     if (!adminUser) {
       return res.status(404).json({ message: "Admin user not found" });
     }
 
-    // Add the admin user to the group's members
-    newGroup.members = [adminUser._id];  // Add admin user to the members array
+    newGroup.members = [adminUser._id];
 
-    // Proceed to create the group
     const groupCreationResult = await groupService.createGroup(db, newGroup);
-
-    // Add the newly created group ObjectId to the admin user's groups array
-    adminUser.groups.push(groupCreationResult.insertedId);  // Group's ObjectId
+    adminUser.groups.push(groupCreationResult.insertedId);
     await userService.updateUser(db, adminUser);
 
     res.status(201).json({ message: "Group created successfully", group: newGroup });
@@ -87,43 +91,53 @@ app.post("/api/groups", async (req, res) => {
   }
 });
 
-
   // Update a group by ID (using ObjectId for groupId)
-app.put("/api/groups/:groupId", async (req, res) => {
-  const { groupId } = req.params;
-  const updatedGroup = req.body;
+  app.put("/api/groups/:groupId", async (req, res) => {
+    const { groupId } = req.params;
+    const updatedGroup = req.body;
 
-  try {
-    // Ensure all array fields (admins, members, channels, blacklist) use ObjectId
-    if (updatedGroup.admins) {
-      updatedGroup.admins = updatedGroup.admins.map(adminId => new ObjectId(adminId));
-    }
-    if (updatedGroup.members) {
-      updatedGroup.members = updatedGroup.members.map(memberId => new ObjectId(memberId));
-    }
-    if (updatedGroup.channels) {
-      updatedGroup.channels = updatedGroup.channels.map(channelId => new ObjectId(channelId));
-    }
-    if (updatedGroup.blacklist) {
-      updatedGroup.blacklist = updatedGroup.blacklist.map(userId => new ObjectId(userId));
-    }
+    try {
+      // Ensure all array fields (admins, members, channels, blacklist) use ObjectId
+      if (updatedGroup.admins) {
+        updatedGroup.admins = updatedGroup.admins.map(
+          (adminId) => new ObjectId(adminId)
+        );
+      }
+      if (updatedGroup.members) {
+        updatedGroup.members = updatedGroup.members.map(
+          (memberId) => new ObjectId(memberId)
+        );
+      }
+      if (updatedGroup.channels) {
+        updatedGroup.channels = updatedGroup.channels.map(
+          (channelId) => new ObjectId(channelId)
+        );
+      }
+      if (updatedGroup.blacklist) {
+        updatedGroup.blacklist = updatedGroup.blacklist.map(
+          (userId) => new ObjectId(userId)
+        );
+      }
 
-    // Perform the update
-    const result = await groupService.updateGroup(db, new ObjectId(groupId), updatedGroup);
+      // Perform the update
+      const result = await groupService.updateGroup(
+        db,
+        new ObjectId(groupId),
+        updatedGroup
+      );
 
-    if (result.matchedCount > 0) {
-      res.status(200).json({
-        message: "Group updated successfully",
-        group: updatedGroup,
-      });
-    } else {
-      res.status(404).json({ message: "Group not found" });
+      if (result.matchedCount > 0) {
+        res.status(200).json({
+          message: "Group updated successfully",
+          group: updatedGroup,
+        });
+      } else {
+        res.status(404).json({ message: "Group not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update group", error });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Failed to update group", error });
-  }
-});
-
+  });
 
   // Remove a member from a group and its channels (using ObjectId for groupId and userId)
   app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
@@ -161,7 +175,7 @@ app.put("/api/groups/:groupId", async (req, res) => {
     }
   });
 
-    // Add an admin to a group (using ObjectId for groupId and userId)
+  // Add an admin to a group (using ObjectId for groupId and userId)
   app.post("/api/groups/:groupId/admins", async (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -333,8 +347,6 @@ app.put("/api/groups/:groupId", async (req, res) => {
       res.status(500).json({ message: "Failed to reject join request", error });
     }
   });
-
-  
 };
 
 module.exports = { route };
