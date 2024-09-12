@@ -91,14 +91,20 @@ const route = (app, db) => {
     }
   });
 
-  // Update user details
   app.put("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     const updatedUser = req.body;
-
+  
     try {
       const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
+        // Convert strings in groups array to ObjectId
+        if (updatedUser.groups && Array.isArray(updatedUser.groups)) {
+          updatedUser.groups = updatedUser.groups.map(
+            (groupId) => new ObjectId(groupId)
+          );
+        }
+  
         const mergedUser = { ...user, ...updatedUser };
         await userService.updateUser(db, mergedUser);
         res.status(200).json(mergedUser);
@@ -109,6 +115,7 @@ const route = (app, db) => {
       res.status(500).json({ message: "Failed to update user", error });
     }
   });
+  
 
   // Delete a user account (self-delete)
   app.delete("/api/users/:userId", async (req, res) => {

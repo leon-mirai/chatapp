@@ -120,12 +120,12 @@ async function getGroupById(db, groupId) {
   }
 }
 
-// Update a group in the database (ensure it's updating by ObjectId)
-async function updateGroup(db, group) {
+// Update a group in the database by ObjectId
+async function updateGroup(db, groupId, updatedGroupData) {
   try {
     const result = await db.collection("groups").updateOne(
-      { _id: new ObjectId(group._id) }, // Ensure group is matched by ObjectId
-      { $set: group } // Update the whole group document
+      { _id: new ObjectId(groupId) }, // Match group by ObjectId
+      { $set: updatedGroupData } // Update only the specified fields
     );
     return result;
   } catch (error) {
@@ -134,17 +134,25 @@ async function updateGroup(db, group) {
   }
 }
 
-// Create a new group
+// Create a new group (ensure admins and other relevant fields use ObjectId)
 async function createGroup(db, group) {
   try {
-    group._id = new ObjectId(); // Assign a new ObjectId to the group
+    // Ensure admins array contains ObjectId
+    group.admins = group.admins.map(adminId => new ObjectId(adminId)); 
+
+    // Assign a new ObjectId to the group
+    group._id = new ObjectId(); 
+
+    // Insert the group into the database
     const result = await db.collection("groups").insertOne(group);
+
     return result;
   } catch (error) {
     console.error("Error inserting group into MongoDB:", error);
     throw error;
   }
 }
+
 
 // Delete a group by ObjectId
 async function deleteGroup(db, groupId) {

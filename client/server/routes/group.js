@@ -16,7 +16,7 @@ const route = (app, db) => {
 
   // Get all groups for a specific user (using ObjectId for userId)
   app.get("/api/users/:userId/groups", async (req, res) => {
-    const userId = req.params.userId.trim();
+    const userId = new ObjectId(req.params.userId.trim()); // Convert to ObjectId
 
     try {
       const groups = await groupService.readGroups(db);
@@ -24,8 +24,8 @@ const route = (app, db) => {
       // Filter groups by membership and join requests
       const userGroups = groups.filter(
         (group) =>
-          group.members.includes(new ObjectId(userId)) ||
-          group.joinRequests.includes(new ObjectId(userId))
+          group.members.some((member) => member.equals(userId)) ||
+          group.joinRequests.some((request) => request.equals(userId))
       );
 
       res.status(200).json(userGroups);
@@ -51,56 +51,79 @@ const route = (app, db) => {
   });
 
   // Create a new group (using ObjectId for admin user)
-  app.post("/api/groups", async (req, res) => {
-    const newGroup = req.body;
-    try {
-      const adminUser = await userService.getUserById(
-        db,
-        new ObjectId(newGroup.admins[0])
-      );
-      if (adminUser) {
-        await groupService.createGroup(db, newGroup);
-        adminUser.groups.push(newGroup._id); // Add the new group ObjectId to the user's groups
-        await userService.updateUser(db, adminUser);
-        res.status(201).json(newGroup);
-      } else {
-        res.status(404).json({ message: "Admin user not found" });
-      }
-    } catch (error) {
-      console.error("Error creating group:", error);
-      res.status(500).json({ message: "Failed to create group", error });
+app.post("/api/groups", async (req, res) => {
+  const newGroup = req.body;
+
+  try {
+    // Check if 'admins' array exists and is not empty
+    if (!newGroup.admins || newGroup.admins.length === 0) {
+      return res.status(400).json({ message: "Admin user is required" });
     }
-  });
+
+    // Fetch the admin user from the database using the first admin ID
+    const adminUser = await userService.getUserById(
+      db,
+      new ObjectId(newGroup.admins[0])
+    );
+
+    if (!adminUser) {
+      return res.status(404).json({ message: "Admin user not found" });
+    }
+
+    // Add the admin user to the group's members
+    newGroup.members = [adminUser._id];  // Add admin user to the members array
+
+    // Proceed to create the group
+    const groupCreationResult = await groupService.createGroup(db, newGroup);
+
+    // Add the newly created group ObjectId to the admin user's groups array
+    adminUser.groups.push(groupCreationResult.insertedId);  // Group's ObjectId
+    await userService.updateUser(db, adminUser);
+
+    res.status(201).json({ message: "Group created successfully", group: newGroup });
+  } catch (error) {
+    console.error("Error creating group:", error);
+    res.status(500).json({ message: "Failed to create group", error });
+  }
+});
+
 
   // Update a group by ID (using ObjectId for groupId)
-  app.put(
-    "/api/groups/:groupId",
-    groupService.checkGroupAdmin(db),
-    async (req, res) => {
-      const { groupId } = req.params;
-      const updatedGroup = req.body;
+app.put("/api/groups/:groupId", async (req, res) => {
+  const { groupId } = req.params;
+  const updatedGroup = req.body;
 
-      try {
-        const result = await groupService.updateGroup(
-          db,
-          new ObjectId(groupId),
-          updatedGroup
-        );
-        if (result.matchedCount > 0) {
-          res
-            .status(200)
-            .json({
-              message: "Group updated successfully",
-              group: updatedGroup,
-            });
-        } else {
-          res.status(404).json({ message: "Group not found" });
-        }
-      } catch (error) {
-        res.status(500).json({ message: "Failed to update group", error });
-      }
+  try {
+    // Ensure all array fields (admins, members, channels, blacklist) use ObjectId
+    if (updatedGroup.admins) {
+      updatedGroup.admins = updatedGroup.admins.map(adminId => new ObjectId(adminId));
     }
-  );
+    if (updatedGroup.members) {
+      updatedGroup.members = updatedGroup.members.map(memberId => new ObjectId(memberId));
+    }
+    if (updatedGroup.channels) {
+      updatedGroup.channels = updatedGroup.channels.map(channelId => new ObjectId(channelId));
+    }
+    if (updatedGroup.blacklist) {
+      updatedGroup.blacklist = updatedGroup.blacklist.map(userId => new ObjectId(userId));
+    }
+
+    // Perform the update
+    const result = await groupService.updateGroup(db, new ObjectId(groupId), updatedGroup);
+
+    if (result.matchedCount > 0) {
+      res.status(200).json({
+        message: "Group updated successfully",
+        group: updatedGroup,
+      });
+    } else {
+      res.status(404).json({ message: "Group not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update group", error });
+  }
+});
+
 
   // Remove a member from a group and its channels (using ObjectId for groupId and userId)
   app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
@@ -138,41 +161,7 @@ const route = (app, db) => {
     }
   });
 
-  // Add a member to a group and update the user's groups array (using ObjectId for groupId and userId)
-  app.post("/api/groups/:groupId/members", async (req, res) => {
-    const { groupId } = req.params;
-    const { userId } = req.body;
-    try {
-      const group = await groupService.getGroupById(db, new ObjectId(groupId));
-      const user = await userService.getUserById(db, new ObjectId(userId));
-
-      if (!group || !user) {
-        return res.status(404).json({ message: "Group or User not found" });
-      }
-
-      if (!group.members.includes(new ObjectId(userId))) {
-        group.members.push(new ObjectId(userId));
-        await groupService.updateGroup(db, new ObjectId(groupId), group);
-
-        if (!user.groups.includes(groupId)) {
-          user.groups.push(new ObjectId(groupId));
-          await userService.updateUser(db, user);
-        }
-
-        res
-          .status(200)
-          .json({ message: "Member added successfully and user updated" });
-      } else {
-        res
-          .status(400)
-          .json({ message: "User is already a member of the group" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add member", error });
-    }
-  });
-
-  // Add an admin to a group (using ObjectId for groupId and userId)
+    // Add an admin to a group (using ObjectId for groupId and userId)
   app.post("/api/groups/:groupId/admins", async (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -261,33 +250,46 @@ const route = (app, db) => {
   app.post("/api/groups/:groupId/approve-join", async (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
+
     try {
-      const group = await groupService.getGroupById(db, new ObjectId(groupId));
-      const user = await userService.getUserById(db, new ObjectId(userId));
+      // Convert both groupId and userId to ObjectId
+      const groupObjectId = new ObjectId(groupId);
+      const userObjectId = new ObjectId(userId);
+
+      // Fetch group and user by ObjectId
+      const group = await groupService.getGroupById(db, groupObjectId);
+      const user = await userService.getUserById(db, userObjectId);
 
       if (!group || !user) {
         return res.status(404).json({ message: "Group or User not found" });
       }
 
-      if (!group.joinRequests.includes(new ObjectId(userId))) {
+      // Ensure that joinRequests and members are compared as ObjectId
+      if (!group.joinRequests.some((id) => id.equals(userObjectId))) {
         return res
           .status(400)
           .json({ message: "User did not request to join the group" });
       }
 
-      group.members.push(new ObjectId(userId));
+      // Add the user to the group members and remove from joinRequests
+      group.members.push(userObjectId);
       group.joinRequests = group.joinRequests.filter(
-        (id) => !id.equals(new ObjectId(userId))
+        (id) => !id.equals(userObjectId)
       );
-      await groupService.updateGroup(db, new ObjectId(groupId), group);
 
-      if (!user.groups.includes(new ObjectId(groupId))) {
-        user.groups.push(new ObjectId(groupId));
+      // Update the group with new members and filtered joinRequests
+      await groupService.updateGroup(db, groupObjectId, group);
+
+      // Ensure user has the group added to their groups list
+      if (!user.groups.some((id) => id.equals(groupObjectId))) {
+        user.groups.push(groupObjectId);
         await userService.updateUser(db, user);
       }
 
+      // Return success
       res.status(200).json({ message: "User approved and added to group" });
     } catch (error) {
+      // Handle errors
       res
         .status(500)
         .json({ message: "Failed to approve join request", error });
@@ -298,24 +300,35 @@ const route = (app, db) => {
   app.post("/api/groups/:groupId/reject-join", async (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
+
     try {
-      const group = await groupService.getGroupById(db, new ObjectId(groupId));
+      // Convert both groupId and userId to ObjectId
+      const groupObjectId = new ObjectId(groupId);
+      const userObjectId = new ObjectId(userId);
+
+      // Fetch the group by ObjectId
+      const group = await groupService.getGroupById(db, groupObjectId);
+
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
 
-      if (!group.joinRequests.includes(new ObjectId(userId))) {
+      // Ensure the user is in the joinRequests array (as ObjectId)
+      if (!group.joinRequests.some((id) => id.equals(userObjectId))) {
         return res
           .status(400)
           .json({ message: "User did not request to join" });
       }
 
+      // Remove the user from the joinRequests array
       group.joinRequests = group.joinRequests.filter(
-        (id) => !id.equals(new ObjectId(userId))
+        (id) => !id.equals(userObjectId)
       );
-      await groupService.updateGroup(db, new ObjectId(groupId), group);
 
-      res.status(200).json({ message: "Join request rejected" });
+      // Update the group in the database
+      await groupService.updateGroup(db, groupObjectId, group);
+
+      res.status(200).json({ message: "Join request rejected successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to reject join request", error });
     }

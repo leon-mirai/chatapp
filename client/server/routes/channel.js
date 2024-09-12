@@ -30,7 +30,7 @@ const route = (app, db) => {
   // get a channel by ID (use ObjectId for channelId)
   app.get("/api/channels/:channelId", async (req, res) => {
     try {
-      const channelId = new ObjectId(req.params.channelId.trim());
+      const channelId = new ObjectId(req.params.channelId.trim()); // Convert to ObjectId
       const channel = await channelService.getChannelById(db, channelId);
 
       if (channel) {
@@ -46,7 +46,12 @@ const route = (app, db) => {
   // create a new channel
   app.post("/api/channels", async (req, res) => {
     try {
-      const newChannel = { ...req.body };
+      const newChannel = {
+        ...req.body,
+        groupId: new ObjectId(req.body.groupId), // Ensure groupId is an ObjectId
+        members: req.body.members.map((member) => new ObjectId(member)), // Ensure members are ObjectIds
+      };
+
       const createdChannel = await channelService.createChannel(db, newChannel);
 
       // update the corresponding group by adding the new channel's ID
@@ -71,7 +76,19 @@ const route = (app, db) => {
   app.put("/api/channels/:channelId", async (req, res) => {
     try {
       const channelId = new ObjectId(req.params.channelId.trim());
-      const updatedChannelData = req.body;
+      const updatedChannelData = { ...req.body };
+
+      // Ensure groupId and members are stored as ObjectId
+      if (updatedChannelData.groupId) {
+        updatedChannelData.groupId = new ObjectId(updatedChannelData.groupId);
+      }
+
+      if (updatedChannelData.members) {
+        updatedChannelData.members = updatedChannelData.members.map(
+          (memberId) => new ObjectId(memberId)
+        );
+      }
+
       const updatedChannel = await channelService.updateChannelById(
         db,
         channelId,

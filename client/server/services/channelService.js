@@ -30,7 +30,9 @@ async function writeChannel(db, channel) {
 // Get a channel by ObjectId
 async function getChannelById(db, channelId) {
   try {
-    const channel = await db.collection("channels").findOne({ _id: new ObjectId(channelId) }); // Use ObjectId for channel ID
+    const channel = await db
+      .collection("channels")
+      .findOne({ _id: new ObjectId(channelId) }); // Use ObjectId for channel ID
     if (!channel) {
       console.error(`Channel with ID ${channelId} not found.`);
       return null;
@@ -41,7 +43,6 @@ async function getChannelById(db, channelId) {
     throw error;
   }
 }
-
 
 // Check if user is in the group associated with the channel
 async function isUserInGroup(db, groupId, userId) {
@@ -179,7 +180,6 @@ async function removeUserFromGroupChannels(db, groupId, userId) {
   }
 }
 
-
 async function deleteGroupChannels(db, groupId) {
   try {
     const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
@@ -232,15 +232,24 @@ async function createChannel(db, channel) {
   }
 }
 
-async function updateChannelById(db, channelId, updatedChannelData) {
+// Service function to update a channel by ID
+async function updateChannelById(db, channelId, updatedData) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
-    const result = await db.collection("channels").updateOne(
-      { _id: channelObjectId }, // Match by ObjectId
-      { $set: updatedChannelData }
-    );
+    // Ensure ObjectId conversion for groupId and members
+    if (updatedData.groupId) {
+      updatedData.groupId = new ObjectId(updatedData.groupId);
+    }
 
-    return result.modifiedCount > 0 ? updatedChannelData : null;
+    if (updatedData.members) {
+      updatedData.members = updatedData.members.map(
+        (memberId) => new ObjectId(memberId)
+      );
+    }
+
+    const result = await db
+      .collection("channels")
+      .updateOne({ _id: channelId }, { $set: updatedData });
+    return result.modifiedCount > 0 ? updatedData : null;
   } catch (error) {
     console.error("Error updating channel:", error);
     throw error;
