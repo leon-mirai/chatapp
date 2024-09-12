@@ -29,7 +29,11 @@ export class AuthService {
   getUser(): User | null {
     const userData = localStorage.getItem('user');
     if (userData) {
-      this.currentUser = JSON.parse(userData);
+      const parsedUser = JSON.parse(userData);
+      if (parsedUser && parsedUser.id) {
+        parsedUser._id = parsedUser.id; // Ensure _id is properly mapped
+      }
+      this.currentUser = parsedUser;
       return this.currentUser;
     }
     return null;

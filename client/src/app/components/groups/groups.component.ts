@@ -35,14 +35,15 @@ export class GroupsComponent implements OnInit {
 
   ngOnInit(): void {
     const user = this.authService.getUser(); // Get user from AuthService
-    console.log('Retrieved user:', user);    // Log the user object
-  
+    console.log('Retrieved user in GroupsComponent:', user); // Log the user object
+
     if (user && user._id) {
       this.userId = user._id; // Assign user._id to userId
     } else {
       console.error('User data is missing or invalid.');
+      return; // Stop further execution if user data is invalid
     }
-  
+
     const groupId = this.route.snapshot.params['id']; // Get groupId from route
     if (groupId) {
       this.groupService.getGroupById(groupId).subscribe({
@@ -56,8 +57,6 @@ export class GroupsComponent implements OnInit {
       });
     }
   }
-  
-
   fetchChannels(groupId: string): void {
     this.channelService.getChannelsByGroupId(groupId).subscribe({
       next: (channels: Channel[]) => {
