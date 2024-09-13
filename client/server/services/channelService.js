@@ -436,6 +436,24 @@ async function updateChannel(db, channelId, updatedChannelData) {
   }
 }
 
+async function leaveChannel(db, channelId, userId) {
+  try {
+    const result = await db.collection('channels').updateOne(
+      { _id: new ObjectId(channelId) },
+      { $pull: { members: new ObjectId(userId) } }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error("Channel not found or user not a member of the channel");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error removing user from channel:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   readChannels,
   writeChannel,
@@ -454,6 +472,7 @@ module.exports = {
   approveJoinRequest,
   banUserFromChannel,
   isUserInChannel,
-  updateChannel
+  updateChannel,
+  leaveChannel
 
 };

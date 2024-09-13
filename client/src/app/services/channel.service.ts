@@ -58,5 +58,11 @@ export class ChannelService {
     const url = `${this.apiUrl}/${channelId}/approve-join`;
     return this.http.post(url, { userId, approve });
   }
+
+  leaveChannel(channelId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/leave`;
+    return this.http.post(url, { userId });
+  }
+  
   
 }

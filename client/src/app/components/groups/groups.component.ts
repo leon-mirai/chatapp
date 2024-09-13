@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { CreateChannel } from '../../models/create-channel.model';
 
+
 @Component({
   selector: 'app-groups',
   standalone: true,
@@ -89,6 +90,19 @@ export class GroupsComponent implements OnInit {
     // Return memberId as a fallback while fetching the name
     return memberId;
   }
+
+  isUserInChannel(channel: Channel): boolean {
+    const userId = this.authService.getUser()?._id;
+    
+    // Ensure userId is not undefined before checking membership
+    if (!userId) {
+      return false;
+    }
+    
+    return channel.members.includes(userId);
+  }
+  
+  
 
   removeMember(memberId: string): void {
     if (!this.group) {
@@ -170,6 +184,25 @@ export class GroupsComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Error rejecting join request:', err.message);
+        },
+      });
+    }
+  }
+
+  leaveChannel(channelId: string): void {
+    const userId = this.authService.getUser()?._id;
+
+    if (channelId && userId) {
+      this.channelService.leaveChannel(channelId, userId).subscribe({
+        next: () => {
+          console.log('Successfully left the channel');
+          // Optionally, remove the channel from the UI or redirect the user
+          this.channels = this.channels.filter(
+            (channel) => channel._id !== channelId
+          );
+        },
+        error: (err) => {
+          console.error('Failed to leave the channel:', err.message);
         },
       });
     }
