@@ -2,13 +2,24 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
-
+const http = require("http"); // Import HTTP for Socket.IO
+const { Server } = require("socket.io"); // Import Socket.IO
+const { setupSocket } = require('./sockets.js')
 const app = express();
 const port = 3000;
 
 // MongoDB connection URI
 const mongoUrl = "mongodb://127.0.0.1:27017";
 const client = new MongoClient(mongoUrl);
+
+// Create an HTTP server and integrate it with Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:4200", // Replace with your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
 
 async function connectToDb() {
   try {
@@ -46,6 +57,9 @@ async function connectToDb() {
     group.route(app, db);
     channel.route(app, db);
 
+    // Set up socket handling
+    setupSocket(io); // Pass the io object to your socket handler
+
     // Catch-all route to serve the Angular app
     app.get("*", function (request, response) {
       response.sendFile(
@@ -54,7 +68,7 @@ async function connectToDb() {
     });
 
     // Start the server
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
   } catch (err) {
