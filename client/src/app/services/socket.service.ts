@@ -1,12 +1,7 @@
-// socket.service.ts
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
-
-interface ChatMessage {
-  sender: string;
-  content: string;
-}
+import { Observable } from 'rxjs';
+import { ChatMessage, OutgoingMessage } from '../models/chat-message.model'; // Import both interfaces
 
 @Injectable({
   providedIn: 'root',
@@ -15,16 +10,15 @@ export class SocketService {
   private socket: Socket;
 
   constructor() {
-    // Connect to the server
-    this.socket = io('http://localhost:3000');
+    this.socket = io('http://localhost:3000'); // Connect to the server
   }
 
-  // Method to send a structured message (ChatMessage object)
-  sendMessage(message: ChatMessage): void {
+  // Send a message to the server
+  sendMessage(message: OutgoingMessage): void {
     this.socket.emit('message', message);
   }
 
-  // Method to receive structured messages from the server
+  // Receive messages from the server
   getMessages(): Observable<ChatMessage> {
     return new Observable<ChatMessage>((observer) => {
       this.socket.on('message', (message: ChatMessage) => {

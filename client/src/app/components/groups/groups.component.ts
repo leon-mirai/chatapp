@@ -10,7 +10,6 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { CreateChannel } from '../../models/create-channel.model';
 
-
 @Component({
   selector: 'app-groups',
   standalone: true,
@@ -93,16 +92,14 @@ export class GroupsComponent implements OnInit {
 
   isUserInChannel(channel: Channel): boolean {
     const userId = this.authService.getUser()?._id;
-    
+
     // Ensure userId is not undefined before checking membership
     if (!userId) {
       return false;
     }
-    
+
     return channel.members.includes(userId);
   }
-  
-  
 
   removeMember(memberId: string): void {
     if (!this.group) {

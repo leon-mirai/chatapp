@@ -9,11 +9,7 @@ import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { SocketService } from '../../services/socket.service';
-
-interface ChatMessage {
-  sender: string;
-  content: string;
-}
+import { ChatMessage, OutgoingMessage } from '../../models/chat-message.model';
 
 @Component({
   selector: 'app-channels',
@@ -49,6 +45,9 @@ export class ChannelsComponent implements OnInit {
         next: (channel: Channel) => {
           this.channel = channel;
 
+          // Fetch chat history
+          this.getChatHistory(channelId);
+
           // Subscribe to socket messages for this channel
           this.socketService.getMessages().subscribe((message: ChatMessage) => {
             this.messages.push(message); // Push received structured message into messages array
@@ -62,13 +61,13 @@ export class ChannelsComponent implements OnInit {
                 this.isAdminOfGroup = group.admins.includes(this.user!._id);
               },
               error: (err) => {
-                console.error('error check for admin:', err.message);
+                console.error('Error checking for admin:', err.message);
               },
             });
           }
         },
         error: (err) => {
-          console.error('error fetch for channels:', err.message);
+          console.error('Error fetching channels:', err.message);
         },
       });
     }
@@ -76,14 +75,28 @@ export class ChannelsComponent implements OnInit {
 
   sendMessage(): void {
     if (this.newMessage.trim() && this.channel && this.user) {
-      const message: ChatMessage = {
-        sender: this.user.username, // The user's name
+      const message: OutgoingMessage = {
+        senderId: this.user._id,       // Send the ObjectId for storage
+        senderName: this.user.username, // Send the username for display
         content: this.newMessage.trim(),
+        channelId: this.channel._id,    // Include channelId
       };
-
+  
       this.socketService.sendMessage(message); // Send the structured message to the server
-      this.newMessage = ''; // Clear the input field after sending the message
+      this.newMessage = '';                    // Clear the input field after sending the message
     }
+  }
+
+  getChatHistory(channelId: string): void {
+    this.channelService.getChatHistory(channelId).subscribe((history) => {
+      // For each message, fetch the sender's username
+      history.forEach((message) => {
+        this.userService.getUserById(message.sender).subscribe((user) => {
+          message.sender = user.username; // Replace the ObjectId with the username
+        });
+      });
+      this.messages = history; // Populate the messages array with chat history from backend
+    });
   }
 
   getUserName(userId: string): string {

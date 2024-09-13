@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Channel } from '../models/channel.model';
 import { CreateChannel } from '../models/create-channel.model';
+import { ChatMessage } from '../models/chat-message.model';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -54,7 +56,11 @@ export class ChannelService {
   }
 
   //aapproves or rejects a join request
-  approveJoinRequest(channelId: string, userId: string, approve: boolean): Observable<any> {
+  approveJoinRequest(
+    channelId: string,
+    userId: string,
+    approve: boolean
+  ): Observable<any> {
     const url = `${this.apiUrl}/${channelId}/approve-join`;
     return this.http.post(url, { userId, approve });
   }
@@ -63,6 +69,10 @@ export class ChannelService {
     const url = `${this.apiUrl}/${channelId}/leave`;
     return this.http.post(url, { userId });
   }
-  
-  
+
+  getChatHistory(channelId: string): Observable<ChatMessage[]> {
+    return this.http.get<ChatMessage[]>(
+      `${this.apiUrl}/${channelId}/messages`
+    );
+  }
 }

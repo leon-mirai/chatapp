@@ -12,7 +12,7 @@ async function readChannels(db) {
   }
 }
 
-// Write channel to the database (add or update)
+// rite channel to the database (add or update)
 async function writeChannel(db, channel) {
   try {
     const channelsCollection = db.collection("channels");
@@ -407,8 +407,8 @@ async function isUserInChannel(db, channelId, userId) {
     }
 
     // Convert each member in the members array to ObjectId
-    const isMember = channel.members.some(
-      (memberId) => memberId.equals(userId)
+    const isMember = channel.members.some((memberId) =>
+      memberId.equals(userId)
     );
 
     return isMember;
@@ -420,10 +420,12 @@ async function isUserInChannel(db, channelId, userId) {
 
 async function updateChannel(db, channelId, updatedChannelData) {
   try {
-    const result = await db.collection("channels").updateOne(
-      { _id: new ObjectId(channelId) },
-      { $set: updatedChannelData }
-    );
+    const result = await db
+      .collection("channels")
+      .updateOne(
+        { _id: new ObjectId(channelId) },
+        { $set: updatedChannelData }
+      );
 
     if (result.matchedCount === 0) {
       throw new Error("Channel not found");
@@ -438,10 +440,12 @@ async function updateChannel(db, channelId, updatedChannelData) {
 
 async function leaveChannel(db, channelId, userId) {
   try {
-    const result = await db.collection('channels').updateOne(
-      { _id: new ObjectId(channelId) },
-      { $pull: { members: new ObjectId(userId) } }
-    );
+    const result = await db
+      .collection("channels")
+      .updateOne(
+        { _id: new ObjectId(channelId) },
+        { $pull: { members: new ObjectId(userId) } }
+      );
 
     if (result.modifiedCount === 0) {
       throw new Error("Channel not found or user not a member of the channel");
@@ -450,6 +454,45 @@ async function leaveChannel(db, channelId, userId) {
     return result;
   } catch (error) {
     console.error("Error removing user from channel:", error);
+    throw error;
+  }
+}
+
+async function addMessageToChannel(db, channelId, message) {
+  try {
+    const channelsCollection = db.collection("channels");
+
+    // Push the new message (with ObjectId for the sender) into the messages array
+    const result = await channelsCollection.updateOne(
+      { _id: new ObjectId(channelId) },
+      { $push: { messages: message } }
+    );
+
+    if (result.matchedCount === 0) {
+      console.error(`Channel with ID ${channelId} not found.`);
+    }
+  } catch (error) {
+    console.error("Error adding message to channel:", error);
+    throw error;
+  }
+}
+
+// Fetch the chat history for a specific channel
+async function getChatHistory(db, channelId) {
+  try {
+    const channel = await db.collection("channels").findOne(
+      { _id: new ObjectId(channelId) },
+      { projection: { messages: 1 } } // Only return the 'messages' field
+    );
+
+    if (!channel) {
+      console.error(`Channel with ID ${channelId} not found.`);
+      return [];
+    }
+
+    return channel.messages || [];
+  } catch (error) {
+    console.error("Error retrieving chat history:", error);
     throw error;
   }
 }
@@ -473,6 +516,7 @@ module.exports = {
   banUserFromChannel,
   isUserInChannel,
   updateChannel,
-  leaveChannel
-
+  leaveChannel,
+  addMessageToChannel,
+  getChatHistory,
 };

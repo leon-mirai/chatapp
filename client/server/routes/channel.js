@@ -30,7 +30,7 @@ const route = (app, db) => {
   // get a channel by ID (use ObjectId for channelId)
   app.get("/api/channels/:channelId", async (req, res) => {
     try {
-      const channelId = new ObjectId(req.params.channelId.trim()); // Convert to ObjectId
+      const channelId = new ObjectId(req.params.channelId.trim());
       const channel = await channelService.getChannelById(db, channelId);
 
       if (channel) {
@@ -283,24 +283,62 @@ const route = (app, db) => {
     }
   });
 
-  // channel.js
-app.post("/api/channels/:channelId/leave", async (req, res) => {
-  const { channelId } = req.params;
-  const { userId } = req.body; // Assume userId is passed in the body
+  // Leave channel
+  app.post("/api/channels/:channelId/leave", async (req, res) => {
+    const { channelId } = req.params;
+    const { userId } = req.body; // Assume userId is passed in the body
 
-  try {
-    const result = await channelService.leaveChannel(db, channelId, userId);
+    try {
+      const result = await channelService.leaveChannel(db, channelId, userId);
 
-    if (result.modifiedCount > 0) {
-      res.status(200).json({ message: "User left the channel successfully" });
-    } else {
-      res.status(404).json({ message: "Channel not found or user not a member" });
+      if (result.modifiedCount > 0) {
+        res.status(200).json({ message: "User left the channel successfully" });
+      } else {
+        res
+          .status(404)
+          .json({ message: "Channel not found or user not a member" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to leave the channel", error });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Failed to leave the channel", error });
-  }
-});
+  });
 
+  // Get chat history for a specific channel
+  app.get('/api/channels/:channelId/messages', async (req, res) => {
+    const { channelId } = req.params;
+    try {
+      const messages = await channelService.getChatHistory(db, channelId);
+      res.status(200).json(messages);
+    } catch (err) {
+      console.error('Error fetching chat history:', err);
+      res.status(500).json({ error: 'Failed to fetch chat history' });
+    }
+  });
+
+  // Add a new message to the channel
+  app.post("/api/channels/:channelId/messages", async (req, res) => {
+    try {
+      const channelId = req.params.channelId;
+      const { sender, content, messageType = "text" } = req.body;
+
+      // Create message object
+      const message = {
+        sender,
+        content,
+        timestamp: new Date(),
+        messageType,
+      };
+
+      const result = await channelService.addMessageToChannel(
+        db,
+        channelId,
+        message
+      );
+      res.status(200).json({ message: "Message added successfully", result });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add message", error });
+    }
+  });
 };
 
 module.exports = { route };

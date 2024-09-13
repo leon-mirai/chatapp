@@ -33,7 +33,6 @@ export class DashboardComponent implements OnInit {
     private groupService: GroupService,
     private authService: AuthService,
     private userService: UserService,
-    private idService: IdService,
     private router: Router
   ) {}
 

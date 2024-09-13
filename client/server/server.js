@@ -4,7 +4,7 @@ const cors = require("cors");
 const { MongoClient } = require("mongodb");
 const http = require("http"); // Import HTTP for Socket.IO
 const { Server } = require("socket.io"); // Import Socket.IO
-const { setupSocket } = require('./sockets.js')
+const { setupSocket } = require("./sockets.js");
 const app = express();
 const port = 3000;
 
@@ -21,47 +21,41 @@ const io = new Server(server, {
   },
 });
 
+// Inside connectToDb()
 async function connectToDb() {
   try {
-    // Connect to MongoDB
     await client.connect();
     console.log("Connected to MongoDB");
 
-    // Select the database
-    const db = client.db("chatappDB");
+    const db = client.db("chatappDB"); // Ensure 'db' is selected properly
 
     // Middleware
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
     app.use(
       cors({
-        origin: "http://localhost:4200", // Replace with your frontend URL
+        origin: "http://localhost:4200",
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
       })
     );
 
-    // Serve front end
-    const uiPath = path.join(__dirname, "../dist/client/browser");
-    app.use(express.static(uiPath));
-
-    // Import routes (pass the `db` object to the routes)
+    // Import and use routes
     const login = require("./routes/api-login.js");
     const user = require("./routes/user.js");
     const group = require("./routes/group.js");
     const channel = require("./routes/channel.js");
 
-    // Use routes (passing the database connection)
     login.route(app, db);
     user.route(app, db);
     group.route(app, db);
     channel.route(app, db);
 
-    // Set up socket handling
-    setupSocket(io); // Pass the io object to your socket handler
+    // Set up socket handling and pass 'db'
+    setupSocket(io, db); // Pass 'db' to the socket
 
     // Catch-all route to serve the Angular app
-    app.get("*", function (request, response) {
+    app.get("*", (request, response) => {
       response.sendFile(
         path.resolve(__dirname, "../dist/client/browser/index.html")
       );
