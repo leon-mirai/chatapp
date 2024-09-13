@@ -120,41 +120,6 @@ export class GroupsComponent implements OnInit {
     );
   }
 
-  addMember(): void {
-    if (this.group && this.isGroupAdmin(this.group)) {
-      const userId = this.newMemberId.trim();
-      if (!userId) return;
-
-      // Check if the user exists before adding
-      this.userService.getUserById(userId).subscribe({
-        next: (user) => {
-          if (user) {
-            // Proceed with adding the member
-            this.groupService.addMember(this.group!._id, userId).subscribe({
-              next: () => {
-                this.group?.members.push(userId); // Add member to local group list
-                console.log('Member added successfully');
-                this.newMemberId = '';
-              },
-              error: (err: any) => {
-                console.error('Error adding member:', err.message);
-              },
-            });
-          } else {
-            console.error('User does not exist');
-            alert('User does not exist');
-          }
-        },
-        error: (err: any) => {
-          console.error('Error checking user existence:', err.message);
-          alert('Error checking user existence');
-        },
-      });
-    } else {
-      console.error('Group does not exist or user lacks permission.');
-    }
-  }
-
   createChannel(): void {
     if (this.newChannelName.trim() && this.group && this.userId) {
       const newChannel = new CreateChannel(

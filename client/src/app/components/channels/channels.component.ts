@@ -103,12 +103,30 @@ export class ChannelsComponent implements OnInit {
         .requestJoinChannel(this.channel._id, userId)
         .subscribe({
           next: (response) => {
-            if (response.message === 'Join request sent successfully') {
-              console.log('Join request sent.');
-            }
+            console.log(response.message);
           },
           error: (err) => {
-            console.error('error requesting to join channel:', err.message);
+            if (err.status === 400 && err.error.message) {
+              if (
+                err.error.message === 'User is already a member of the channel'
+              ) {
+                console.error('You are already a member of this channel.');
+              } else if (
+                err.error.message ===
+                'User has already requested to join the channel'
+              ) {
+                console.error(
+                  'You have already requested to join this channel.'
+                );
+              } else {
+                console.error(
+                  'Error requesting to join channel:',
+                  err.error.message
+                );
+              }
+            } else {
+              console.error('Unexpected error:', err);
+            }
           },
         });
     }

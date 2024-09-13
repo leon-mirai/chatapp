@@ -139,6 +139,27 @@ app.post("/api/groups", async (req, res) => {
     }
   });
 
+  app.delete("/api/groups/:groupId", async (req, res) => {
+    const { groupId } = req.params;
+
+    try {
+      // Convert groupId to ObjectId
+      const groupObjectId = new ObjectId(groupId);
+
+      // Delete the group using the service function
+      const result = await groupService.deleteGroup(db, groupObjectId);
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      res.status(200).json({ message: "Group deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      res.status(500).json({ message: "Failed to delete group", error });
+    }
+  });
+
   // Remove a member from a group and its channels (using ObjectId for groupId and userId)
   app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
     const { groupId, userId } = req.params;

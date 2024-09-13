@@ -44,19 +44,14 @@ export class GroupService {
   }
 
   deleteGroup(groupId: string): Observable<any> {
-    const url = `${this.apiUrl}/${groupId}`;
+    const url = `${this.apiUrl}/${groupId}`; // Make sure this is valid
     return this.http.delete(url);
   }
-
+  
   isMember(groupId: string, userId: string): Observable<boolean> {
     return this.getGroupById(groupId).pipe(
       map((group) => (group ? group.members.includes(userId) : false))
     );
-  }
-
-  addMember(groupId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/${groupId}/members`;
-    return this.http.post(url, { userId });
   }
 
   isUserAdminOfGroup(groupId: string, userId: string): Observable<boolean> {

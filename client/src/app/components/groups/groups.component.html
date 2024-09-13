@@ -1,7 +1,7 @@
 <div class="container mt-5">
   <div class="row">
     <div class="col-md-12">
-      <h1 class="text-center">Group: {{ group?.name || 'Loading...' }}</h1>
+      <h1 class="text-center">Group: {{ group?.name || "Loading..." }}</h1>
     </div>
   </div>
 
@@ -41,23 +41,6 @@
               </div>
             </li>
           </ul>
-
-          <!-- Add Member Section (Only for SuperAdmin and GroupAdmin who is an admin of the group) -->
-          <div *ngIf="isGroupAdmin(group)" class="mt-3">
-            <div class="input-group">
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="newMemberId"
-                placeholder="Enter user ID"
-              />
-              <div class="input-group-append">
-                <button class="btn btn-primary" (click)="addMember()">
-                  Add Member
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -109,7 +92,9 @@
         <div class="card-body">
           <ul class="list-group">
             <li *ngFor="let channel of channels" class="list-group-item">
-              <a [routerLink]="['/channels', channel._id]">{{ channel.name }}</a>
+              <a [routerLink]="['/channels', channel._id]">{{
+                channel.name
+              }}</a>
             </li>
           </ul>
 
@@ -130,7 +115,9 @@
             </div>
           </div>
 
-          <p *ngIf="!isGroupAdmin(group)">You are not an admin of this group.</p>
+          <p *ngIf="!isGroupAdmin(group)">
+            You are not an admin of this group.
+          </p>
         </div>
       </div>
     </div>

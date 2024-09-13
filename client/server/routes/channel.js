@@ -143,32 +143,52 @@ const route = (app, db) => {
   });
 
   // user requests to join a channel (use ObjectId for channelId and userId)
-  app.post("/api/channels/:channelId/request-join", async (req, res) => {
-    try {
-      const channelId = new ObjectId(req.params.channelId.trim());
-      const { userId } = req.body;
+app.post("/api/channels/:channelId/request-join", async (req, res) => {
+  try {
+    const channelId = new ObjectId(req.params.channelId.trim());
+    const { userId } = req.body;
 
-      if (!ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: "Invalid userId" });
-      }
-
-      const requestJoinResult = await channelService.requestJoinChannel(
-        db,
-        channelId,
-        new ObjectId(userId)
-      );
-
-      if (requestJoinResult.success) {
-        res.status(200).json({ message: "Join request sent successfully" });
-      } else {
-        res.status(400).json({ message: requestJoinResult.message });
-      }
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to request to join the channel", error });
+    // Validate the userId
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId" });
     }
-  });
+
+    console.log(`Request to join channel: ${channelId}, by user: ${userId}`);
+
+    // Fetch the channel by channelId
+    const channel = await channelService.getChannelById(db, channelId);
+    
+    if (!channel) {
+      console.error("Channel not found:", channelId);
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    // Check if the user is already a member of the channel
+    if (channel.members.some(member => member.equals(new ObjectId(userId)))) {
+      return res.status(400).json({ message: "User is already a member of the channel" });
+    }
+
+    // Check if the user has already requested to join the channel
+    if (channel.joinRequests.some(request => request.equals(new ObjectId(userId)))) {
+      return res.status(400).json({ message: "User has already requested to join the channel" });
+    }
+
+    // Proceed with adding the user to the joinRequests array
+    channel.joinRequests.push(new ObjectId(userId));
+    
+    // Log the channel object before saving to database for debugging
+    console.log("Updated channel object with join request:", channel);
+
+    await channelService.updateChannel(db, channelId, channel);
+
+    res.status(200).json({ message: "Join request sent successfully" });
+  } catch (error) {
+    console.error("Failed to request to join the channel:", error);
+    res.status(500).json({ message: "Failed to request to join the channel", error });
+  }
+});
+
+
 
   // admin approves or rejects a join request (use ObjectId for channelId and userId)
   app.post("/api/channels/:channelId/approve-join", async (req, res) => {
@@ -252,7 +272,6 @@ const route = (app, db) => {
         .json({ message: "Failed to check if user is in channel", error });
     }
   });
-  
 };
 
 module.exports = { route };

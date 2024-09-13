@@ -153,22 +153,37 @@ async function createGroup(db, group) {
   }
 }
 
-// Delete a group by ObjectId
+// Delete a group by ObjectId and remove it from users' groups array
 async function deleteGroup(db, groupId) {
   try {
     const groupObjectId = new ObjectId(groupId);
-    const result = await db
-      .collection("groups")
-      .deleteOne({ _id: groupObjectId });
+
+    // Fetch the group to retrieve the members before deletion
+    const group = await db.collection("groups").findOne({ _id: groupObjectId });
+
+    if (!group) {
+      throw new Error("Group not found");
+    }
+
+    // Delete the group from the groups collection
+    const result = await db.collection("groups").deleteOne({ _id: groupObjectId });
     if (result.deletedCount === 0) {
       throw new Error("Group not found");
     }
+
+    // Remove the groupId from each user's groups array
+    await db.collection("users").updateMany(
+      { _id: { $in: group.members } },
+      { $pull: { groups: groupObjectId } }
+    );
+
     return result;
   } catch (error) {
     console.error("Error deleting group:", error);
     throw error;
   }
 }
+
 
 // Check if a user is an admin of the group
 async function isAdminOfGroup(db, groupId, userId) {

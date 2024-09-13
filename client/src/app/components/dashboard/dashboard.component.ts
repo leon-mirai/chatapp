@@ -223,6 +223,7 @@ export class DashboardComponent implements OnInit {
   }
 
   deleteGroup(groupId: string): void {
+    console.log('Deleting group with ID:', groupId); // Check the groupId
     if (confirm('Are you sure you want to delete this group?')) {
       this.groupService.deleteGroup(groupId).subscribe({
         next: () => {

@@ -418,6 +418,24 @@ async function isUserInChannel(db, channelId, userId) {
   }
 }
 
+async function updateChannel(db, channelId, updatedChannelData) {
+  try {
+    const result = await db.collection("channels").updateOne(
+      { _id: new ObjectId(channelId) },
+      { $set: updatedChannelData }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error("Channel not found");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error updating channel:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   readChannels,
   writeChannel,
@@ -435,6 +453,7 @@ module.exports = {
   requestJoinChannel,
   approveJoinRequest,
   banUserFromChannel,
-  isUserInChannel
+  isUserInChannel,
+  updateChannel
 
 };

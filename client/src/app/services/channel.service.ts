@@ -54,13 +54,9 @@ export class ChannelService {
   }
 
   //aapproves or rejects a join request
-  approveJoinRequest(
-    channelId: string,
-    userId: string,
-    approve: boolean
-  ): Observable<any> {
-    const action = approve ? 'approve-join' : 'reject-join';
-    const url = `${this.apiUrl}/${channelId}/${action}`;
-    return this.http.post(url, { userId });
+  approveJoinRequest(channelId: string, userId: string, approve: boolean): Observable<any> {
+    const url = `${this.apiUrl}/${channelId}/approve-join`;
+    return this.http.post(url, { userId, approve });
   }
+  
 }
