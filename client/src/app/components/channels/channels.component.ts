@@ -8,6 +8,12 @@ import { CommonModule } from '@angular/common';
 import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
+import { SocketService } from '../../services/socket.service';
+
+interface ChatMessage {
+  sender: string;
+  content: string;
+}
 
 @Component({
   selector: 'app-channels',
@@ -21,6 +27,8 @@ export class ChannelsComponent implements OnInit {
   user: User | null = null;
   isAdminOfGroup: boolean = false;
   userCache: { [key: string]: string } = {};
+  newMessage: string = ''; // New message input
+  messages: ChatMessage[] = []; // Array of structured messages
 
   constructor(
     private route: ActivatedRoute,
@@ -28,7 +36,8 @@ export class ChannelsComponent implements OnInit {
     private groupService: GroupService,
     private router: Router,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private socketService: SocketService
   ) {}
 
   ngOnInit(): void {
@@ -39,6 +48,11 @@ export class ChannelsComponent implements OnInit {
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
+
+          // Subscribe to socket messages for this channel
+          this.socketService.getMessages().subscribe((message: ChatMessage) => {
+            this.messages.push(message); // Push received structured message into messages array
+          });
 
           if (this.channel.blacklist.includes(this.user!._id)) {
             this.router.navigate(['/dashboard']);
@@ -57,6 +71,18 @@ export class ChannelsComponent implements OnInit {
           console.error('error fetch for channels:', err.message);
         },
       });
+    }
+  }
+
+  sendMessage(): void {
+    if (this.newMessage.trim() && this.channel && this.user) {
+      const message: ChatMessage = {
+        sender: this.user.username, // The user's name
+        content: this.newMessage.trim(),
+      };
+
+      this.socketService.sendMessage(message); // Send the structured message to the server
+      this.newMessage = ''; // Clear the input field after sending the message
     }
   }
 
@@ -193,8 +219,6 @@ export class ChannelsComponent implements OnInit {
         });
     }
   }
-
-  
 
   isSuperAdmin(): boolean {
     return this.authService.isSuperAdmin();
