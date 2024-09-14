@@ -10,11 +10,12 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { SocketService } from '../../services/socket.service';
 import { ChatMessage, OutgoingMessage } from '../../models/chat-message.model';
+import { VideoCallComponent } from '../video-call/video-call.component';
 
 @Component({
   selector: 'app-channels',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, VideoCallComponent],
   templateUrl: './channels.component.html',
   styleUrls: ['./channels.component.css'],
 })

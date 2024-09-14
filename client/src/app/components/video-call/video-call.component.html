@@ -1,0 +1,10 @@
+<div class="video-call-container">
+    <h3>Video Call</h3>
+    <div class="video-wrapper">
+      <video #localVideo autoplay muted></video> <!-- User's own video -->
+      <video #remoteVideo autoplay></video> <!-- Remote user's video -->
+    </div>
+    <button (click)="startCall()">Start Call</button>
+    <p>Your Peer ID: {{ peerId }}</p> <!-- Display the peer ID -->
+  </div>
+  
