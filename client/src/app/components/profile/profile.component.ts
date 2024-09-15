@@ -1,117 +1,71 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../../services/auth.service'; // Import AuthService
+import { UserService } from '../../services/user.service';
+import { User } from '../../models/user.model';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css',
+  styleUrls: ['./profile.component.css'],
 })
 export class ProfileComponent implements OnInit {
-  constructor(private router: Router) {}
-  displayUsername: string = '';
-  displayBirthdate: string = '';
-  displayAge: number = 0;
-  displayEmail: string = '';
-  displayPassword: string = '';
-  displayValid: boolean = false;
+  selectedFile: File | null = null;
+  uploadSuccess: boolean = false;
+  user: User | null = null; // Store the current user
 
-  editUsername: string = '';
-  editBirthdate: string = '';
-  editAge: number = 0;
-  editEmail: string = '';
-  editPassword: string = '';
-  editValid: boolean = false;
+  constructor(private authService: AuthService, private userService: UserService) {}
 
   ngOnInit(): void {
-    const userString = localStorage.getItem('user');
-    if (userString != null) {
-      const user = JSON.parse(userString);
-      // initialise display data with sesionstorage
-      this.displayUsername = user.username;
-      this.displayBirthdate = user.birthdate;
-      this.displayAge = user.age;
-      this.displayEmail = user.email;
-      this.displayPassword = user.password;
-      this.displayValid = user.valid;
-
-      // initialise edit data
-      this.editUsername = user.username;
-      this.editBirthdate = user.birthdate;
-      this.editAge = user.age;
-      this.editEmail = user.email;
-      this.editPassword = user.password;
-      this.editValid = user.valid;
+    // Retrieve the current user from AuthService
+    this.user = this.authService.getUser();
+    
+    if (this.user) {
+      console.log('User found in local storage:', this.user);
     } else {
-      this.router.navigate(['/']);
+      console.error('No user found in local storage');
     }
   }
 
-
-  onSubmit() {
-    // update display with edited data
-    this.displayUsername = this.editUsername;
-    this.displayBirthdate = this.editBirthdate;
-    this.displayAge = this.editAge;
-    this.displayEmail = this.editEmail;
-    this.displayPassword = this.editPassword;
-    this.displayValid = this.editValid;
-
-    // Save updated data to localStorage
-    const updatedUser = {
-      username: this.displayUsername,
-      birthdate: this.displayBirthdate,
-      age: this.displayAge,
-      email: this.displayEmail,
-      password: this.displayPassword,
-      valid: this.displayValid,
-    };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    alert('Profile updated successfully');
+  // Handle file selection
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+      console.log('File selected:', this.selectedFile);
+    }
   }
 
+  onUpload(event: Event): void {
+    event.preventDefault(); // Prevent the default form submission behavior
+    console.log('Upload button clicked');
 
+    if (!this.selectedFile || !this.user) {
+      console.log('No file selected or user not set');
+      return;
+    }
 
+    // Log file data for debugging
+    console.log('Selected file:', this.selectedFile);
 
-
-  // username: string = '';
-  // birthdate: string = '';
-  // age: number = 0;
-  // email: string = '';
-  // password: string = '';
-  // valid: boolean = false;
-
-  // ngOnInit(): void {
-  //   console.log('hi');
-
-  //   const userString = localStorage.getItem('user');
-  //   if (userString != null) {
-  //     const user = JSON.parse(userString);
-  //     this.username = user.username;
-  //     this.birthdate = user.birthdate;
-  //     this.age = user.age;
-  //     this.email = user.email;
-  //     this.password = user.password;
-  //     this.valid = user.valid;
-  //   } else {
-  //     // window.location.href = 'login';
-  //     this.router.navigate(['/'])
-  //   }
-  // }
-
-  // onSubmit() {
-  //   const updatedUser = {
-  //     username: this.username,
-  //     birthdate: this.birthdate,
-  //     age: this.age,
-  //     email: this.email,
-  //     password: this.password,
-  //     valid: this.valid,
-  //   };
-  //   localStorage.setItem('user', JSON.stringify(updatedUser));
-  //   alert('Profile updated successfully');
-  // }
-  
+    // Call the upload service
+    this.userService
+      .uploadProfilePicture(this.user._id, this.selectedFile)
+      .subscribe({
+        next: (response: any) => {
+          console.log('Upload successful:', response);
+          this.uploadSuccess = true;
+          if (this.user) {
+            this.user.profilePic = response.filePath; // Update user's profile picture
+          }
+        },
+        error: (err) => {
+          console.error('Upload failed', err);
+          this.uploadSuccess = false;
+        },
+      });
+  }
 }

@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuardService] }, 
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuardService]  }, 
   { path: 'groups/:id', component: GroupsComponent, canActivate: [AuthGuardService]  },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuardService] },
   { path: 'channels/:id', component: ChannelsComponent, canActivate: [AuthGuardService]  },
   { path: '**', redirectTo: '', pathMatch: 'full' }, // wild route
 ];

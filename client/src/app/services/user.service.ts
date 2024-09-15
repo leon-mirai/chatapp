@@ -11,6 +11,23 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
+  private currentUserId: string | null = null;
+
+   // Method to get the current user's ID
+   getCurrentUserId(): string | null {
+    return this.currentUserId;
+  }
+
+  uploadProfilePicture(userId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('profilePic', file);
+
+    return this.http.post(
+      `${this.apiUrl}/${userId}/upload-profile-pic`,
+      formData
+    );
+  }
+
   // fetch all users from the backend
   getUsers(): Observable<User[]> {
     // returns Observable that gives User Array object

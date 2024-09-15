@@ -1,9 +1,107 @@
 const { ObjectId } = require("mongodb");
+const multer = require("multer"); // Import multer
+const path = require("path");
+const fs = require("fs"); // Import the fs module
 const userService = require("../services/userService");
 const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
 
+// Set up the upload directory path
+const uploadDir = "server/uploads/";
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Set up Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../uploads/")); // Path to save the file
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  },
+});
+
+// Initialize multer upload
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 }, // Limit file size to 1MB
+});
+
 const route = (app, db) => {
+  // Add the profile image upload route
+  app.post(
+    "/api/users/:userId/upload-profile-pic",
+    upload.single("profilePic"),
+    async (req, res) => {
+      try {
+        // Debugging: Log the uploaded file and userId
+        console.log("Uploaded file:", req.file);
+        console.log("User ID:", req.params.userId);
+
+        const userId = req.params.userId.trim();
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        const user = await userService.getUserById(db, new ObjectId(userId));
+        if (user) {
+          // Save the file path to the user's profile in the database
+          user.profilePic = `/uploads/${req.file.filename}`;
+
+          await userService.updateUser(db, user);
+
+          // Debugging: Check if the file exists in the uploads directory
+          fs.readdir(path.join(__dirname, "../uploads/"), (err, files) => {
+            if (err) {
+              console.error("Error reading uploads directory:", err);
+            } else {
+              console.log("Files in uploads directory:", files);
+            }
+          });
+
+          res.status(200).json({
+            message: "Profile picture uploaded successfully",
+            filePath: user.profilePic,
+          });
+        } else {
+          res.status(404).json({ message: "User not found" });
+        }
+      } catch (error) {
+        console.error("Failed to upload profile picture:", error);
+        res.status(500).json({
+          message: "Failed to upload profile picture",
+          error: error.message,
+        });
+      }
+    }
+  );
+
+  // In user.js or your user route handler
+app.get("/api/users/current", async (req, res) => {
+  try {
+    // Replace this with your actual logic to get the current user ID
+    const userId = req.session?.userId || req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const user = await userService.getUserById(db, new ObjectId(userId));
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Failed to get current user:", error);
+    res.status(500).json({ message: "Failed to get current user", error });
+  }
+});
+
+
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {

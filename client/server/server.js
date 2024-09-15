@@ -5,7 +5,7 @@ const { MongoClient } = require("mongodb");
 const http = require("http");
 const { Server } = require("socket.io");
 const { setupSocket } = require("./sockets.js");
-const { setupPeerServer } = require('./peerServer.js');  // Import the PeerServer setup
+const { setupPeerServer } = require("./peerServer.js"); // Import the PeerServer setup
 const app = express();
 const port = 3000;
 
@@ -24,7 +24,7 @@ const io = new Server(server, {
 
 // Integrate the Peer.js server with the existing HTTP server
 const peerServer = setupPeerServer(server);
-app.use('/peerjs', peerServer); // Serve PeerJS on the '/peerjs' route
+app.use("/peerjs", peerServer); // Serve PeerJS on the '/peerjs' route
 
 // Inside connectToDb()
 async function connectToDb() {
@@ -44,6 +44,9 @@ async function connectToDb() {
         allowedHeaders: ["Content-Type", "Authorization"],
       })
     );
+
+    // Serve static files from the uploads directory
+    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
     // Import and use routes
     const login = require("./routes/api-login.js");
