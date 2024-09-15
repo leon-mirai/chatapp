@@ -2,9 +2,10 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
-const http = require("http"); // Import HTTP for Socket.IO
-const { Server } = require("socket.io"); // Import Socket.IO
+const http = require("http");
+const { Server } = require("socket.io");
 const { setupSocket } = require("./sockets.js");
+const { setupPeerServer } = require('./peerServer.js');  // Import the PeerServer setup
 const app = express();
 const port = 3000;
 
@@ -20,6 +21,10 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
+
+// Integrate the Peer.js server with the existing HTTP server
+const peerServer = setupPeerServer(server);
+app.use('/peerjs', peerServer); // Serve PeerJS on the '/peerjs' route
 
 // Inside connectToDb()
 async function connectToDb() {

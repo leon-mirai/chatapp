@@ -13,6 +13,7 @@ export class VideoCallComponent implements OnInit {
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
   private peer!: Peer;
   private localStream!: MediaStream;
+  private currentCall!: MediaConnection; // Store the current call
   public peerId: string | undefined; // For displaying the peer ID
 
   ngOnInit(): void {
@@ -26,6 +27,9 @@ export class VideoCallComponent implements OnInit {
 
     // Handle incoming calls
     this.peer.on('call', (call: MediaConnection) => {
+      // Store the current call
+      this.currentCall = call;
+
       // Answer the call with the local video stream
       call.answer(this.localStream);
       call.on('stream', (remoteStream: MediaStream) => {
@@ -47,12 +51,35 @@ export class VideoCallComponent implements OnInit {
       const remotePeerId = prompt('Enter the remote peer ID:');
       if (remotePeerId) {
         const call = this.peer.call(remotePeerId, this.localStream);
+
+        // Store the current call
+        this.currentCall = call;
+
         call.on('stream', (remoteStream: MediaStream) => {
           this.remoteVideo.nativeElement.srcObject = remoteStream;
         });
       }
     } catch (error) {
       console.error('Error accessing media devices.', error);
+    }
+  }
+
+  // Method to end the call
+  endCall(): void {
+    if (this.currentCall) {
+      // Close the call
+      this.currentCall.close();
+
+      // Stop all tracks of the local stream
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => track.stop());
+      }
+
+      // Clear the video elements
+      this.localVideo.nativeElement.srcObject = null;
+      this.remoteVideo.nativeElement.srcObject = null;
+
+      console.log('Call ended.');
     }
   }
 }
