@@ -2,6 +2,7 @@
 export interface ChatMessage {
     sender: string;  // The username to display
     content: string; // The actual message content
+    profilePic?: string;
   }
   
   // Interface for outgoing messages

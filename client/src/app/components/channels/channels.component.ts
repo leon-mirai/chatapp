@@ -119,6 +119,8 @@ export class ChannelsComponent implements OnInit {
     return userId;
   }
 
+  
+
   deleteChannel(): void {
     if (
       this.channel &&

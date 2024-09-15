@@ -37,7 +37,6 @@ const route = (app, db) => {
     upload.single("profilePic"),
     async (req, res) => {
       try {
-        // Debugging: Log the uploaded file and userId
         console.log("Uploaded file:", req.file);
         console.log("User ID:", req.params.userId);
 
@@ -48,23 +47,25 @@ const route = (app, db) => {
 
         const user = await userService.getUserById(db, new ObjectId(userId));
         if (user) {
-          // Save the file path to the user's profile in the database
-          user.profilePic = `/uploads/${req.file.filename}`;
+          // Remove the old profile picture file if it exists
+          if (user.profilePic && user.profilePic.length > 0) {
+            const oldFilePath = path.join(__dirname, "..", user.profilePic[0]);
+            fs.unlink(oldFilePath, (err) => {
+              if (err) {
+                console.error("Failed to delete old profile picture:", err);
+              } else {
+                console.log("Old profile picture deleted:", oldFilePath);
+              }
+            });
+          }
+
+          // Save the new file path in the user's profilePic array
+          user.profilePic = [`/uploads/${req.file.filename}`];
 
           await userService.updateUser(db, user);
-
-          // Debugging: Check if the file exists in the uploads directory
-          fs.readdir(path.join(__dirname, "../uploads/"), (err, files) => {
-            if (err) {
-              console.error("Error reading uploads directory:", err);
-            } else {
-              console.log("Files in uploads directory:", files);
-            }
-          });
-
           res.status(200).json({
             message: "Profile picture uploaded successfully",
-            filePath: user.profilePic,
+            filePath: user.profilePic[0], // Return the new file path
           });
         } else {
           res.status(404).json({ message: "User not found" });
@@ -80,27 +81,26 @@ const route = (app, db) => {
   );
 
   // In user.js or your user route handler
-app.get("/api/users/current", async (req, res) => {
-  try {
-    // Replace this with your actual logic to get the current user ID
-    const userId = req.session?.userId || req.user?.id;
+  app.get("/api/users/current", async (req, res) => {
+    try {
+      // Replace this with your actual logic to get the current user ID
+      const userId = req.session?.userId || req.user?.id;
 
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const user = await userService.getUserById(db, new ObjectId(userId));
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      console.error("Failed to get current user:", error);
+      res.status(500).json({ message: "Failed to get current user", error });
     }
-
-    const user = await userService.getUserById(db, new ObjectId(userId));
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    console.error("Failed to get current user:", error);
-    res.status(500).json({ message: "Failed to get current user", error });
-  }
-});
-
+  });
 
   // Get all users
   app.get("/api/users", async (req, res) => {
