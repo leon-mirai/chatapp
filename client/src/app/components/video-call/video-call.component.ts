@@ -20,7 +20,13 @@ export class VideoCallComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialize PeerJS
-    this.peer = new Peer();
+    this.peer = new Peer({
+      host: '2b6f-132-234-229-55.ngrok-free.app', 
+      port: 443,                     
+      path: '/peerjs',
+      secure: true                   
+    });
+    
     
     // Display the peer ID when the peer connection is open
     this.peer.on('open', (id: string) => {

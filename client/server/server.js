@@ -39,7 +39,10 @@ async function connectToDb() {
     app.use(express.json());
     app.use(
       cors({
-        origin: "http://localhost:4200",
+        origin: [
+          "http://localhost:4200",
+          "https://2b6f-132-234-229-55.ngrok-free.app",
+        ],
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
       })
