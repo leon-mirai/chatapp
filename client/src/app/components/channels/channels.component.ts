@@ -26,6 +26,7 @@ export class ChannelsComponent implements OnInit {
   userCache: { [key: string]: { username: string; profilePic: string } } = {}; // Cache usernames and profile pics
   newMessage: string = ''; // New message input
   messages: ChatMessage[] = []; // Array of structured messages
+  selectedFile: File | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -53,16 +54,20 @@ export class ChannelsComponent implements OnInit {
           this.socketService.getMessages().subscribe((message: ChatMessage) => {
             // Check if this message was sent by the current user to avoid duplicate addition
             if (message.sender !== this.user?._id) {
-              this.fetchUserDetails(message.sender).then((userDetails) => {
-                message.senderName = userDetails.username;
-                message.profilePic = userDetails.profilePic;
-                this.messages.push(message);
-              }).catch(error => {
-                console.error('Error fetching user details for socket message:', error);
-              });
+              this.fetchUserDetails(message.sender)
+                .then((userDetails) => {
+                  message.senderName = userDetails.username;
+                  message.profilePic = userDetails.profilePic;
+                  this.messages.push(message);
+                })
+                .catch((error) => {
+                  console.error(
+                    'Error fetching user details for socket message:',
+                    error
+                  );
+                });
             }
           });
-          
 
           if (this.channel.blacklist.includes(this.user!._id)) {
             this.router.navigate(['/dashboard']);
@@ -84,20 +89,82 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
+  // Handle file selection
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      this.selectedFile = file;
+    } else {
+      console.error('Selected file is not an image.');
+    }
+  }
+
+  // Upload the image and send the message
+  async sendImage(): Promise<void> {
+    if (!this.selectedFile) {
+      console.error('No file selected');
+      return;
+    }
+
+    try {
+      // Create FormData and append the selected file
+      const formData = new FormData();
+      formData.append('image', this.selectedFile); // Make sure 'image' matches the key expected by the server
+
+      // Upload the image and get the URL
+      const response = await this.userService.uploadImage(formData).toPromise();
+
+      if (response && response.imageUrl) {
+        // Prepend the server URL (localhost:3000) to the image path
+        const imageUrl = `http://localhost:3000${response.imageUrl}`;
+
+        // Create a message with the image URL
+        if (this.channel && this.user) {
+          const message: OutgoingMessage = {
+            senderId: this.user._id,
+            senderName: this.user.username,
+            content: imageUrl, // Use the URL of the uploaded image
+            channelId: this.channel._id,
+            profilePic: this.user.profilePic
+              ? `http://localhost:3000${this.user.profilePic[0]}`
+              : undefined,
+          };
+
+          // Send the message to the server
+          await this.socketService.sendMessage(message);
+
+          // Do not push the message to the messages array here
+          // this.messages.push({
+          //   sender: this.user._id,
+          //   senderName: this.user.username,
+          //   content: imageUrl,
+          //   profilePic: this.user.profilePic,
+          // });
+        }
+      } else {
+        console.error('Image upload failed: No URL returned from server.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  }
+
   async sendMessage(): Promise<void> {
     if (this.newMessage.trim() && this.channel && this.user) {
       const message: OutgoingMessage = {
         senderId: this.user._id, // Make sure this is the ObjectId
-        senderName: this.user.username, 
+        senderName: this.user.username,
         content: this.newMessage.trim(),
         channelId: this.channel._id,
-        profilePic: this.user.profilePic ? `http://localhost:3000${this.user.profilePic[0]}` : undefined,
+        profilePic: this.user.profilePic
+          ? `http://localhost:3000${this.user.profilePic[0]}`
+          : undefined,
       };
-  
+
       try {
         // Only send the message to the server
         await this.socketService.sendMessage(message);
-  
+
         // Clear the input field after sending the message
         this.newMessage = '';
       } catch (error) {
@@ -105,7 +172,6 @@ export class ChannelsComponent implements OnInit {
       }
     }
   }
-  
 
   getChatHistory(channelId: string): void {
     this.channelService.getChatHistory(channelId).subscribe((history) => {

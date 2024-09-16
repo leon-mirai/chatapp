@@ -13,8 +13,8 @@ export class UserService {
 
   private currentUserId: string | null = null;
 
-   // Method to get the current user's ID
-   getCurrentUserId(): string | null {
+  // Method to get the current user's ID
+  getCurrentUserId(): string | null {
     return this.currentUserId;
   }
 
@@ -27,6 +27,14 @@ export class UserService {
       formData
     );
   }
+
+  uploadImage(imageData: FormData): Observable<{ imageUrl: string }> {
+    return this.http.post<{ imageUrl: string }>(
+      'http://localhost:3000/api/upload-chat-image',
+      imageData
+    );
+  }
+  
 
   // fetch all users from the backend
   getUsers(): Observable<User[]> {

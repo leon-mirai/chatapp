@@ -80,6 +80,36 @@ const route = (app, db) => {
     }
   );
 
+  // Add the chat image upload route
+  app.post(
+    "/api/upload-chat-image",
+    upload.single("image"), // 'image' should match the key used in the FormData in Angular
+    async (req, res) => {
+      try {
+        console.log("Uploaded file:", req.file);
+  
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+  
+        // Construct the file path to send back to the client
+        const imageUrl = `/uploads/${req.file.filename}`;
+  
+        res.status(200).json({
+          message: "Image uploaded successfully",
+          imageUrl: imageUrl, // Send back the image URL to be used in the chat
+        });
+      } catch (error) {
+        console.error("Failed to upload chat image:", error);
+        res.status(500).json({
+          message: "Failed to upload chat image",
+          error: error.message,
+        });
+      }
+    }
+  );
+  
+
   // In user.js or your user route handler
   app.get("/api/users/current", async (req, res) => {
     try {
