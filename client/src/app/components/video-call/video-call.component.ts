@@ -1,10 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import Peer, { MediaConnection } from 'peerjs';
 
 @Component({
   selector: 'app-video-call',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule],
   templateUrl: './video-call.component.html',
   styleUrls: ['./video-call.component.css'],
 })

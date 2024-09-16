@@ -106,29 +106,36 @@
   </div>
 
  <!-- Chat box section, only show if the user is a member -->
-<div class="row mt-4" *ngIf="isMemberOfChannel()">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header">
-        <h3>Chat</h3>
-      </div>
-      <div class="card-body" style="height: 300px; border: 1px solid #ccc; padding: 10px;">
-        <div class="chat-box" style="height: 100%; overflow-y: auto;">
-          <div *ngFor="let message of messages" class="mb-2">
-            <img
-              *ngIf="message.profilePic"
-              [src]="message.profilePic"
-              alt="Profile Picture"
-              style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;"
-            />
-            <strong>{{ message.senderName }}:</strong>
-            <span *ngIf="message.content.startsWith('http://localhost:3000/uploads/')">
-              <img [src]="message.content" alt="Uploaded Image" style="max-width: 100%; height: auto; margin-top: 5px;" />
-            </span>
-            <span *ngIf="!message.content.startsWith('http://localhost:3000/uploads/')">{{ message.content }}</span>
+  <div class="row mt-4" *ngIf="isMemberOfChannel()">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h3>Chat</h3>
+        </div>
+        <div class="card-body" style="border: 1px solid #ccc; padding: 10px;">
+          <div class="chat-box" style="overflow-y: auto;">
+            <div *ngFor="let message of messages" class="mb-2">
+              <img
+                *ngIf="message.profilePic"
+                [src]="message.profilePic"
+                alt="Profile Picture"
+                style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;"
+              />
+              <strong>{{ message.senderName }}:</strong>
+              <span *ngIf="message.content.startsWith('http://localhost:3000/uploads/')">
+                <img
+                  [src]="message.content"
+                  alt="Uploaded Image"
+                  style="max-width: 100%; height: auto; margin-top: 5px;"
+                />
+              </span>
+              <span *ngIf="!message.content.startsWith('http://localhost:3000/uploads/')">
+                {{ message.content }}
+              </span>
+            </div>
           </div>
         </div>
-
+        <!-- Card footer remains the same -->
         <div class="card-footer mt-3">
           <!-- Text message input -->
           <div class="input-group mb-3">
@@ -154,20 +161,19 @@
       </div>
     </div>
   </div>
-</div>
 
-
-    <!-- Video call section with added margin-top -->
-    <div class="row mt-5">
-      <div class="col-md-12">
-        <div class="card mt-4">
-          <div class="card-header">
-            <h3>Video Call</h3>
-          </div>
-          <div class="card-body">
-            
-          </div>
+  <!-- Video call section with added margin-top -->
+  <div class="row mt-5">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h3>Video Call</h3>
+        </div>
+        <!-- Removed fixed height from the card-body -->
+        <div class="card-body" style="border: 1px solid #ccc; padding: 10px;">
+          <app-video-call></app-video-call>
         </div>
       </div>
     </div>
   </div>
+</div>
