@@ -23,7 +23,7 @@ export class ChannelsComponent implements OnInit {
   channel: Channel | undefined;
   user: User | null = null;
   isAdminOfGroup: boolean = false;
-  userCache: { [key: string]: string } = {};
+  userCache: { [key: string]: { username: string; profilePic: string } } = {}; // Cache usernames and profile pics
   newMessage: string = ''; // New message input
   messages: ChatMessage[] = []; // Array of structured messages
 
@@ -51,7 +51,11 @@ export class ChannelsComponent implements OnInit {
 
           // Subscribe to socket messages for this channel
           this.socketService.getMessages().subscribe((message: ChatMessage) => {
-            this.messages.push(message); // Push received structured message into messages array
+            this.fetchUserDetails(message.sender).then((userDetails) => {
+              message.senderName = userDetails.username;
+              message.profilePic = userDetails.profilePic;
+              this.messages.push(message); // Push received structured message into messages array
+            });
           });
 
           if (this.channel.blacklist.includes(this.user!._id)) {
@@ -74,52 +78,83 @@ export class ChannelsComponent implements OnInit {
     }
   }
 
-  sendMessage(): void {
-    if (this.newMessage.trim() && this.channel && this.user) {
-      const message: OutgoingMessage = {
-        senderId: this.user._id,       // Send the ObjectId for storage
-        senderName: this.user.username, // Send the username for display
-        content: this.newMessage.trim(),
-        channelId: this.channel._id,    // Include channelId
+  async sendMessage(): Promise<void> {
+  if (this.newMessage.trim() && this.channel && this.user) {
+    const message: OutgoingMessage = {
+      senderId: this.user._id, // Send the ObjectId for storage
+      senderName: this.user.username, // Send the username for display
+      content: this.newMessage.trim(),
+      channelId: this.channel._id, // Include channelId
+      profilePic: this.user.profilePic ? `http://localhost:3000${this.user.profilePic[0]}` : undefined, // Add profile picture
+    };
+
+    try {
+      // Immediately send the message to the server
+      await this.socketService.sendMessage(message);
+
+      // Fetch user details and update message object before adding to messages array
+      const userDetails = await this.fetchUserDetails(this.user._id);
+      const messageWithDetails: ChatMessage = {
+        sender: this.user._id, // Include the sender ObjectId
+        senderName: userDetails.username,
+        content: message.content,
+        profilePic: userDetails.profilePic,
       };
-  
-      this.socketService.sendMessage(message); // Send the structured message to the server
-      this.newMessage = '';                    // Clear the input field after sending the message
+
+      // Add the message to the chat
+      this.messages.push(messageWithDetails);
+
+      // Clear the input field after sending the message
+      this.newMessage = '';
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   }
+}
+
 
   getChatHistory(channelId: string): void {
     this.channelService.getChatHistory(channelId).subscribe((history) => {
-      // For each message, fetch the sender's username
       history.forEach((message) => {
-        this.userService.getUserById(message.sender).subscribe((user) => {
-          message.sender = user.username; // Replace the ObjectId with the username
+        this.fetchUserDetails(message.sender).then((userDetails) => {
+          message.senderName = userDetails.username;
+          message.profilePic = userDetails.profilePic;
         });
       });
-      this.messages = history; // Populate the messages array with chat history from backend
+      this.messages = history;
     });
   }
 
-  getUserName(userId: string): string {
+  async fetchUserDetails(userId: string): Promise<{ username: string; profilePic: string }> {
     if (this.userCache[userId]) {
       return this.userCache[userId];
     }
+  
+    try {
+      const user = await this.userService.getUserById(userId).toPromise();
+      const userDetails = {
+        username: user ? user.username : 'Unknown',
+        profilePic: user && user.profilePic ? `http://localhost:3000${user.profilePic[0]}` : '',
+      };
+      this.userCache[userId] = userDetails;
+      return userDetails;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      return { username: 'Unknown', profilePic: '' };
+    }
+  }
+  
+  getUserName(userId: string): string {
+    if (this.userCache[userId]) {
+      return this.userCache[userId].username;
+    }
 
-    this.userService.getUserById(userId).subscribe({
-      next: (user) => {
-        if (user) {
-          this.userCache[userId] = user.username;
-        }
-      },
-      error: (err) => {
-        console.error('error fetch user:', err.message);
-      },
+    this.fetchUserDetails(userId).then((userDetails) => {
+      this.userCache[userId] = userDetails;
     });
 
-    return userId;
+    return 'Loading...';
   }
-
-  
 
   deleteChannel(): void {
     if (
@@ -230,7 +265,7 @@ export class ChannelsComponent implements OnInit {
             console.log(`User ${userId} removed from channel.`);
           },
           error: (err) => {
-            console.error('eror removing user from channel:', err.message);
+            console.error('error removing user from channel:', err.message);
           },
         });
     }

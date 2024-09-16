@@ -1,15 +1,15 @@
-// Interface for incoming chat messages
+// chat-message.model.ts
 export interface ChatMessage {
-    sender: string;  // The username to display
-    content: string; // The actual message content
-    profilePic?: string;
-  }
-  
-  // Interface for outgoing messages
-  export interface OutgoingMessage {
-    senderId: string;    // The ObjectId of the sender
-    senderName: string;  // The username to display
-    content: string;     // The actual message content
-    channelId: string;   // The ID of the channel the message is being sent to
-  }
-  
+  sender: string;  // The ObjectId of the sender
+  senderName: string;  // The username to display
+  content: string;
+  profilePic?: string; // Optional profile picture URL
+}
+
+export interface OutgoingMessage {
+  senderId: string; // The ObjectId for storage
+  senderName: string; // The username for display
+  content: string;
+  channelId: string;
+  profilePic?: string; // Optional profile picture URL
+}
