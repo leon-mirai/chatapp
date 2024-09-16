@@ -41,7 +41,9 @@ async function getUserById(db, userId) {
     }
 
     // Fetch the user by ObjectId
-    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) });
     return user;
   } catch (error) {
     console.error("Error getting user by ID:", error);
@@ -195,6 +197,11 @@ async function removeGroupFromUser(db, userId, groupId) {
   }
 }
 
+async function getUserByUsername(db, username) {
+  return db.collection('users').findOne({ username: username });
+}
+
+
 module.exports = {
   generateUserId,
   readUsers,
@@ -206,4 +213,5 @@ module.exports = {
   createUser,
   removeGroupFromUsers,
   removeGroupFromUser,
+  getUserByUsername
 };

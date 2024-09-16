@@ -51,12 +51,18 @@ export class ChannelsComponent implements OnInit {
 
           // Subscribe to socket messages for this channel
           this.socketService.getMessages().subscribe((message: ChatMessage) => {
-            this.fetchUserDetails(message.sender).then((userDetails) => {
-              message.senderName = userDetails.username;
-              message.profilePic = userDetails.profilePic;
-              this.messages.push(message); // Push received structured message into messages array
-            });
+            // Check if this message was sent by the current user to avoid duplicate addition
+            if (message.sender !== this.user?._id) {
+              this.fetchUserDetails(message.sender).then((userDetails) => {
+                message.senderName = userDetails.username;
+                message.profilePic = userDetails.profilePic;
+                this.messages.push(message);
+              }).catch(error => {
+                console.error('Error fetching user details for socket message:', error);
+              });
+            }
           });
+          
 
           if (this.channel.blacklist.includes(this.user!._id)) {
             this.router.navigate(['/dashboard']);
@@ -79,39 +85,27 @@ export class ChannelsComponent implements OnInit {
   }
 
   async sendMessage(): Promise<void> {
-  if (this.newMessage.trim() && this.channel && this.user) {
-    const message: OutgoingMessage = {
-      senderId: this.user._id, // Send the ObjectId for storage
-      senderName: this.user.username, // Send the username for display
-      content: this.newMessage.trim(),
-      channelId: this.channel._id, // Include channelId
-      profilePic: this.user.profilePic ? `http://localhost:3000${this.user.profilePic[0]}` : undefined, // Add profile picture
-    };
-
-    try {
-      // Immediately send the message to the server
-      await this.socketService.sendMessage(message);
-
-      // Fetch user details and update message object before adding to messages array
-      const userDetails = await this.fetchUserDetails(this.user._id);
-      const messageWithDetails: ChatMessage = {
-        sender: this.user._id, // Include the sender ObjectId
-        senderName: userDetails.username,
-        content: message.content,
-        profilePic: userDetails.profilePic,
+    if (this.newMessage.trim() && this.channel && this.user) {
+      const message: OutgoingMessage = {
+        senderId: this.user._id, // Make sure this is the ObjectId
+        senderName: this.user.username, 
+        content: this.newMessage.trim(),
+        channelId: this.channel._id,
+        profilePic: this.user.profilePic ? `http://localhost:3000${this.user.profilePic[0]}` : undefined,
       };
-
-      // Add the message to the chat
-      this.messages.push(messageWithDetails);
-
-      // Clear the input field after sending the message
-      this.newMessage = '';
-    } catch (error) {
-      console.error('Error sending message:', error);
+  
+      try {
+        // Only send the message to the server
+        await this.socketService.sendMessage(message);
+  
+        // Clear the input field after sending the message
+        this.newMessage = '';
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   }
-}
-
+  
 
   getChatHistory(channelId: string): void {
     this.channelService.getChatHistory(channelId).subscribe((history) => {
@@ -125,25 +119,34 @@ export class ChannelsComponent implements OnInit {
     });
   }
 
-  async fetchUserDetails(userId: string): Promise<{ username: string; profilePic: string }> {
+  async fetchUserDetails(
+    userId: string
+  ): Promise<{ username: string; profilePic: string }> {
     if (this.userCache[userId]) {
       return this.userCache[userId];
     }
-  
+
     try {
       const user = await this.userService.getUserById(userId).toPromise();
-      const userDetails = {
-        username: user ? user.username : 'Unknown',
-        profilePic: user && user.profilePic ? `http://localhost:3000${user.profilePic[0]}` : '',
-      };
-      this.userCache[userId] = userDetails;
-      return userDetails;
+      if (user) {
+        const userDetails = {
+          username: user.username,
+          profilePic: user.profilePic
+            ? `http://localhost:3000${user.profilePic[0]}`
+            : '',
+        };
+        this.userCache[userId] = userDetails;
+        return userDetails;
+      } else {
+        console.error('User not found');
+        return { username: 'Unknown', profilePic: '' };
+      }
     } catch (error) {
       console.error('Error fetching user details:', error);
       return { username: 'Unknown', profilePic: '' };
     }
   }
-  
+
   getUserName(userId: string): string {
     if (this.userCache[userId]) {
       return this.userCache[userId].username;

@@ -112,11 +112,18 @@ const route = (app, db) => {
     }
   });
 
-  // Get user by ID (ensure userId is converted to ObjectId)
+  // Get user by ID or username
   app.get("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     try {
-      const user = await userService.getUserById(db, new ObjectId(userId)); // Use new ObjectId
+      let user;
+      if (ObjectId.isValid(userId)) {
+        // Find by ObjectId
+        user = await userService.getUserById(db, new ObjectId(userId));
+      } else {
+        // Assume it's a username and find by username
+        user = await userService.getUserByUsername(db, userId);
+      }
       if (user) {
         res.status(200).json(user);
       } else {
