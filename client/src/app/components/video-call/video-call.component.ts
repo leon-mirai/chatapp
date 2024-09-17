@@ -20,14 +20,8 @@ export class VideoCallComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialize PeerJS
-    this.peer = new Peer({
-      host: '2b6f-132-234-229-55.ngrok-free.app', 
-      port: 443,                     
-      path: '/peerjs',
-      secure: true                   
-    });
-    
-    
+    this.peer = new Peer();
+
     // Display the peer ID when the peer connection is open
     this.peer.on('open', (id: string) => {
       this.peerId = id;
@@ -80,7 +74,7 @@ export class VideoCallComponent implements OnInit {
 
       // Stop all tracks of the local stream
       if (this.localStream) {
-        this.localStream.getTracks().forEach(track => track.stop());
+        this.localStream.getTracks().forEach((track) => track.stop());
       }
 
       // Clear the video elements

@@ -132,14 +132,6 @@ export class ChannelsComponent implements OnInit {
 
           // Send the message to the server
           await this.socketService.sendMessage(message);
-
-          // Do not push the message to the messages array here
-          // this.messages.push({
-          //   sender: this.user._id,
-          //   senderName: this.user.username,
-          //   content: imageUrl,
-          //   profilePic: this.user.profilePic,
-          // });
         }
       } else {
         console.error('Image upload failed: No URL returned from server.');
