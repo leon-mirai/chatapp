@@ -116,7 +116,7 @@ export class ChannelsComponent implements OnInit {
 
       if (response && response.imageUrl) {
         // Prepend the server URL (localhost:3000) to the image path
-        const imageUrl = `http://localhost:3000${response.imageUrl}`;
+        const imageUrl = `${response.imageUrl}`;
 
         // Create a message with the image URL
         if (this.channel && this.user) {
@@ -126,7 +126,7 @@ export class ChannelsComponent implements OnInit {
             content: imageUrl, // Use the URL of the uploaded image
             channelId: this.channel._id,
             profilePic: this.user.profilePic
-              ? `http://localhost:3000${this.user.profilePic[0]}`
+              ? `${this.user.profilePic[0]}`
               : undefined,
           };
 
@@ -149,7 +149,7 @@ export class ChannelsComponent implements OnInit {
         content: this.newMessage.trim(),
         channelId: this.channel._id,
         profilePic: this.user.profilePic
-          ? `http://localhost:3000${this.user.profilePic[0]}`
+          ? `${this.user.profilePic[0]}`
           : undefined,
       };
 
@@ -190,7 +190,7 @@ export class ChannelsComponent implements OnInit {
         const userDetails = {
           username: user.username,
           profilePic: user.profilePic
-            ? `http://localhost:3000${user.profilePic[0]}`
+            ? `${user.profilePic[0]}`
             : '',
         };
         this.userCache[userId] = userDetails;

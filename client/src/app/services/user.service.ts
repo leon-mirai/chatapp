@@ -7,7 +7,7 @@ import { User } from '../models/user.model';
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/api/users';
+  private apiUrl = '/api/users';
 
   constructor(private http: HttpClient) {}
 
@@ -30,7 +30,7 @@ export class UserService {
 
   uploadImage(imageData: FormData): Observable<{ imageUrl: string }> {
     return this.http.post<{ imageUrl: string }>(
-      'http://localhost:3000/api/upload-chat-image',
+      '/api/upload-chat-image',
       imageData
     );
   }
@@ -106,7 +106,7 @@ export class UserService {
     console.log(`Deleting user with ObjectId: ${userId}`);
     // Ensure the correct URL
     return this.http.delete(
-      `http://localhost:3000/api/users/${userId}/delete-user`
+      `/api/users/${userId}/delete-user`
     );
   }
 

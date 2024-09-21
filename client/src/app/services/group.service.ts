@@ -8,7 +8,7 @@ import { CreateGroup } from '../models/create-group.model';
   providedIn: 'root',
 })
 export class GroupService {
-  private apiUrl = 'http://localhost:3000/api/groups';
+  private apiUrl = '/api/groups';
 
   constructor(private http: HttpClient) {}
 
@@ -40,7 +40,7 @@ export class GroupService {
   }
 
   addGroup(newGroup: CreateGroup): Observable<Group> {
-    return this.http.post<Group>('http://localhost:3000/api/groups', newGroup);
+    return this.http.post<Group>(this.apiUrl, newGroup); // 'http://localhost:3000/api/groups'
   }
 
   deleteGroup(groupId: string): Observable<any> {

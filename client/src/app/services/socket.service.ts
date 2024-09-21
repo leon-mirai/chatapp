@@ -9,13 +9,15 @@ import { ChatMessage, OutgoingMessage } from '../models/chat-message.model'; // 
 export class SocketService {
   private socket: Socket;
 
+  // socket.service.ts
   constructor() {
-    this.socket = io('http://localhost:3000'); // Connect to the server
+    this.socket = io("https://chat-api.leonlee.au"); 
   }
 
   // Send a message to the server
   sendMessage(message: OutgoingMessage): void {
     this.socket.emit('message', message);
+    console.log('test3');
   }
 
   // Receive messages from the server

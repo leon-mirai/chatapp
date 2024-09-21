@@ -34,9 +34,8 @@ export class LoginComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        console.error('Login failed', error);
-        this.errorMessage =
-          'Login failed. Please check your credentials and try again.';
+        console.error('nog', error);
+        this.errorMessage = 'mphgg;e';
       },
       complete: () => console.log('login process completed'),
     });

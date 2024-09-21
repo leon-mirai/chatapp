@@ -122,14 +122,14 @@
                 style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;"
               />
               <strong>{{ message.senderName }}:</strong>
-              <span *ngIf="message.content.startsWith('http://localhost:3000/uploads/')">
+              <span *ngIf="message.content.startsWith('/uploads/')">
                 <img
                   [src]="message.content"
                   alt="Uploaded Image"
                   style="max-width: 100%; height: auto; margin-top: 5px;"
                 />
               </span>
-              <span *ngIf="!message.content.startsWith('http://localhost:3000/uploads/')">
+              <span *ngIf="!message.content.startsWith('/uploads/')">
                 {{ message.content }}
               </span>
             </div>

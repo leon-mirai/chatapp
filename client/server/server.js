@@ -17,7 +17,10 @@ const client = new MongoClient(mongoUrl);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:4200", // Replace with your frontend URL
+    origin: [
+            "http://localhost:4200",
+            "https://chat.leonlee.au/",
+          ], 
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -37,16 +40,16 @@ async function connectToDb() {
     // Middleware
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
-    app.use(
-      cors({
-        origin: [
-          "http://localhost:4200",
-          "https://2b6f-132-234-229-55.ngrok-free.app",
-        ],
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-      })
-    );
+    // app.use(
+    //   cors({
+    //     origin: [
+    //       "http://localhost:4200",
+    //       "https://chat.leonlee.au/",
+    //     ],
+    //     methods: ["GET", "POST", "PUT", "DELETE"],
+    //     allowedHeaders: ["Content-Type", "Authorization"],
+    //   })
+    // );
 
     // Serve static files from the uploads directory
     app.use("/uploads", express.static(path.join(__dirname, "uploads")));

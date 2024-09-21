@@ -6,7 +6,6 @@ import { User } from '../../models/user.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { IdService } from '../../services/id.service';
 import { UserService } from '../../services/user.service';
 import { CreateGroup } from '../../models/create-group.model';
 
