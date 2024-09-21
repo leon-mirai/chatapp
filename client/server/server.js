@@ -10,7 +10,7 @@ const app = express();
 const port = 3000;
 
 // MongoDB connection URI
-const mongoUrl = "mongodb://127.0.0.1:27017";
+const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017";
 const client = new MongoClient(mongoUrl);
 
 // Create an HTTP server and integrate it with Socket.IO
