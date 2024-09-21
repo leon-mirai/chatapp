@@ -73,7 +73,7 @@ async function connectToDb() {
       response.sendFile(
         path.resolve(
           __dirname,
-          "/client/server/public/client/browser/index.html"
+          "/client/server/public/index.html"
         ) // ../dist/client/browser/index.html
       );
     });

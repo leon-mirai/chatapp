@@ -11,7 +11,7 @@ export class SocketService {
 
   // socket.service.ts
   constructor() {
-    this.socket = io("https://chat-api.leonlee.au"); 
+    this.socket = io(); 
   }
 
   // Send a message to the server
