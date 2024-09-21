@@ -9,6 +9,9 @@ const { setupPeerServer } = require("./peerServer.js"); // Import the PeerServer
 const app = express();
 const port = 3000;
 
+// static files for frontend
+app.use(express.static("public"));
+
 // MongoDB connection URI
 const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017";
 const client = new MongoClient(mongoUrl);
@@ -17,10 +20,7 @@ const client = new MongoClient(mongoUrl);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-            "http://localhost:4200",
-            "https://chat.leonlee.au/",
-          ], 
+    origin: ["http://localhost:4200", "https://chat.leonlee.au/"],
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -71,7 +71,10 @@ async function connectToDb() {
     // Catch-all route to serve the Angular app
     app.get("*", (request, response) => {
       response.sendFile(
-        path.resolve(__dirname, "../dist/client/browser/index.html")
+        path.resolve(
+          __dirname,
+          "/client/server/public/client/browser/index.html"
+        ) // ../dist/client/browser/index.html
       );
     });
 

@@ -1,5 +1,5 @@
-# Use Node.js 22 with Debian Bookworm for Angular
-FROM node:22-bookworm
+# Stage 1: Build Angular app
+FROM node:22-bookworm AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,11 +13,17 @@ RUN npm install
 # Copy the rest of the Angular client code
 COPY . .
 
-# Build the Angular app (this will create static files in the dist folder)
+# Build the Angular app for production
 RUN npm run build --prod
 
-# Expose the default Angular development server port
-EXPOSE 4200
+# Stage 2: Serve with NGINX
+FROM nginx:alpine
 
-# Start the Angular development server
-CMD ["npm", "start"]
+# Copy built Angular app from Stage 1 to NGINX's web directory
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Expose port 80 for HTTP traffic
+EXPOSE 80
+
+# Start NGINX server
+CMD ["nginx", "-g", "daemon off;"]

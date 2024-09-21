@@ -9,33 +9,25 @@ services:
       - mongodb-data:/data/db
     ports:
       - "27017:27017" # Expose MongoDB for access
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
 
   # Combined Server-side (Node.js) and Client-side (Angular served by NGINX)
   app:
     build:
       context: . # Points to the root directory where the combined Dockerfile is located
       dockerfile: Dockerfile
-    volumes:
-      - ./client:/client # Adjusted to point to the client folder (for Angular app)
-      - ./server:/server # Adjusted to point to the server folder (for Node.js app)
+    # volumes:
+    #   - ./client:/client # Adjusted to point to the client folder (for Angular app)
+    #   - ./server:/server # Adjusted to point to the server folder (for Node.js app)
     ports:
-      - "80:80" # Expose NGINX (Angular app) on port 80
+      # - "80:80" # Expose NGINX (Angular app) on port 80
       - "3000:3000" # Expose Node.js API on port 3000
     depends_on:
       - db
     environment:
       - MONGO_URL=mongodb://db:27017/chatappDB
-    networks:
-      - frontend
 
 volumes:
   mongodb-data:
-
-networks:
-  frontend:
 # version: '3.8'
 
 # services:
