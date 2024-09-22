@@ -34,10 +34,10 @@ export class LoginComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        console.error('nog', error);
+        console.error('Invalid email or password.', error);
         this.errorMessage = 'mphgg;e';
       },
-      complete: () => console.log('login process completed'),
+      complete: () => console.log('Login process completed'),
     });
   }
 

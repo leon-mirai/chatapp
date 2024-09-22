@@ -17,7 +17,6 @@ export class SocketService {
   // Send a message to the server
   sendMessage(message: OutgoingMessage): void {
     this.socket.emit('message', message);
-    console.log('test3');
   }
 
   // Receive messages from the server
