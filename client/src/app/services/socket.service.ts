@@ -44,5 +44,6 @@ export class SocketService {
   // Emit 'leave-channel' event to the server
   leaveChannel(channelId: string, userId: string, userName: string): void {
     this.socket.emit('leave-channel', { channelId, userId, userName });
+    console.log("Usser left channel");
   }
 }
