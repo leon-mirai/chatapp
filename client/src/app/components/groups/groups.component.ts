@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { CreateChannel } from '../../models/create-channel.model';
+import { SocketService } from '../../services/socket.service';
 
 @Component({
   selector: 'app-groups',
@@ -30,7 +31,8 @@ export class GroupsComponent implements OnInit {
     private groupService: GroupService,
     private channelService: ChannelService,
     private userService: UserService,
-    private authService: AuthService
+    private authService: AuthService,
+    private socketService: SocketService
   ) {}
 
   ngOnInit(): void {
@@ -187,16 +189,20 @@ export class GroupsComponent implements OnInit {
   }
 
   leaveChannel(channelId: string): void {
-    const userId = this.authService.getUser()?._id;
+    const user = this.authService.getUser();
 
-    if (channelId && userId) {
-      this.channelService.leaveChannel(channelId, userId).subscribe({
+    if (channelId && user && user._id) {
+      this.channelService.leaveChannel(channelId, user._id).subscribe({
         next: () => {
           console.log('Successfully left the channel');
-          // Optionally, remove the channel from the UI or redirect the user
+          
+          // Remove the channel from the UI
           this.channels = this.channels.filter(
             (channel) => channel._id !== channelId
           );
+
+          // Emit the 'leave-channel' event to the server via Socket.IO
+          this.socketService.leaveChannel(channelId, user._id, user.username);
         },
         error: (err) => {
           console.error('Failed to leave the channel:', err.message);

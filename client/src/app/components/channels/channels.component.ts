@@ -41,15 +41,15 @@ export class ChannelsComponent implements OnInit {
   ngOnInit(): void {
     this.user = this.authService.getUser();
     const channelId = this.route.snapshot.params['id'];
-
+  
     if (channelId && this.user) {
       this.channelService.getChannelById(channelId).subscribe({
         next: (channel: Channel) => {
           this.channel = channel;
-
+  
           // Fetch chat history
           this.getChatHistory(channelId);
-
+  
           // Subscribe to socket messages for this channel
           this.socketService.getMessages().subscribe((message: ChatMessage) => {
             // Check if this message was sent by the current user to avoid duplicate addition
@@ -68,7 +68,15 @@ export class ChannelsComponent implements OnInit {
                 });
             }
           });
-
+  
+          // Subscribe to 'user-joined' event to know when a new user joins the channel
+          this.socketService.onUserJoined().subscribe((data) => {
+            if (data.channelId === channelId) {
+              console.log(`User ${data.userName} joined the channel.`);
+              // Optionally, display a notification or update the UI here
+            }
+          });
+  
           if (this.channel.blacklist.includes(this.user!._id)) {
             this.router.navigate(['/dashboard']);
           } else {
@@ -88,6 +96,7 @@ export class ChannelsComponent implements OnInit {
       });
     }
   }
+  
 
   // Handle file selection
   onFileSelected(event: any): void {
@@ -271,12 +280,20 @@ export class ChannelsComponent implements OnInit {
   }
 
   approveJoinRequest(userId: string, approve: boolean): void {
-    if (this.channel) {
+    const channelId = this.channel?._id; // Optional chaining to safely access channel ID
+  
+    if (channelId) {
       this.channelService
-        .approveJoinRequest(this.channel._id, userId, approve)
+        .approveJoinRequest(channelId, userId, approve)
         .subscribe({
           next: () => {
             this.reloadChannel();
+  
+            // Emit the 'approve-join-request' event to notify other users
+            if (approve) {
+              const userName = this.user?.username || 'Unknown User'; // Safely access username or fallback
+              this.socketService.approveJoinRequest(channelId, userId, userName, approve);
+            }
           },
           error: (err) => {
             console.error(
@@ -287,6 +304,8 @@ export class ChannelsComponent implements OnInit {
         });
     }
   }
+  
+  
 
   reloadChannel(): void {
     if (this.channel) {

@@ -9,9 +9,8 @@ import { ChatMessage, OutgoingMessage } from '../models/chat-message.model'; // 
 export class SocketService {
   private socket: Socket;
 
-  // socket.service.ts
   constructor() {
-    this.socket = io(); 
+    this.socket = io();
   }
 
   // Send a message to the server
@@ -26,5 +25,24 @@ export class SocketService {
         observer.next(message);
       });
     });
+  }
+
+  // Listen for 'user-joined' event when someone is approved to join the channel
+  onUserJoined(): Observable<{ userId: string, userName: string, channelId: string }> {
+    return new Observable((observer) => {
+      this.socket.on('user-joined', (data) => {
+        observer.next(data);
+      });
+    });
+  }
+
+  // Emit 'approve-join-request' event when admin approves join request
+  approveJoinRequest(channelId: string, userId: string, userName: string, approve: boolean): void {
+    this.socket.emit('approve-join-request', { channelId, userId, userName, approve });
+  }
+
+  // Emit 'leave-channel' event to the server
+  leaveChannel(channelId: string, userId: string, userName: string): void {
+    this.socket.emit('leave-channel', { channelId, userId, userName });
   }
 }
