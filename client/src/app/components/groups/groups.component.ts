@@ -20,6 +20,7 @@ import { SocketService } from '../../services/socket.service';
 })
 export class GroupsComponent implements OnInit {
   group: Group | undefined;
+  groups: Group[] = [];
   channels: Channel[] = [];
   newMemberId: string = '';
   newChannelName: string = '';
@@ -38,6 +39,10 @@ export class GroupsComponent implements OnInit {
   ngOnInit(): void {
     const user = this.authService.getUser(); // Get user from AuthService
     console.log('Retrieved user in GroupsComponent:', user); // Log the user object
+
+    if (this.userId) {
+      this.loadGroups();
+    }
 
     if (user && user._id) {
       this.userId = user._id; // Assign user._id to userId
@@ -59,6 +64,7 @@ export class GroupsComponent implements OnInit {
       });
     }
   }
+
   fetchChannels(groupId: string): void {
     this.channelService.getChannelsByGroupId(groupId).subscribe({
       next: (channels: Channel[]) => {
@@ -68,6 +74,21 @@ export class GroupsComponent implements OnInit {
         console.error('Error fetching channels:', err.message);
       },
     });
+  }
+
+  // Method to load the groups for the current user
+  loadGroups(): void {
+    if (this.userId) {
+      this.groupService.getGroups(this.userId).subscribe({
+        next: (groups: Group[]) => {
+          this.groups = groups;
+          console.log('Groups loaded:', groups);
+        },
+        error: (err) => {
+          console.error('Error loading groups:', err.message);
+        },
+      });
+    }
   }
 
   getUserName(memberId: string): string {
@@ -113,11 +134,13 @@ export class GroupsComponent implements OnInit {
 
     this.groupService.removeUserFromGroup(groupId, memberId).subscribe({
       next: () => {
+        
         // Remove the member locally from the group's member list
         this.group!.members = this.group!.members.filter(
           (member) => member !== memberId
         );
         this.fetchChannels(groupId); // Refresh channels
+        this.loadGroups();
       },
       error: (err: any) => {
         console.error('Error removing member:', err.message);
@@ -148,6 +171,7 @@ export class GroupsComponent implements OnInit {
         next: (createdChannel) => {
           this.channels.push(createdChannel); // Add the new channel to the list
           this.newChannelName = ''; // Clear the input field
+          this.loadGroups();
         },
         error: (err: any) => {
           console.error('Error creating channel:', err.message);
@@ -164,6 +188,7 @@ export class GroupsComponent implements OnInit {
           this.group!.joinRequests = this.group!.joinRequests.filter(
             (id) => id !== userId
           );
+          this.loadGroups();
         },
         error: (err: any) => {
           console.error('Error approving join request:', err.message);
@@ -180,6 +205,7 @@ export class GroupsComponent implements OnInit {
           this.group!.joinRequests = this.group!.joinRequests.filter(
             (id) => id !== userId
           );
+          this.loadGroups();
         },
         error: (err: any) => {
           console.error('Error rejecting join request:', err.message);
@@ -195,7 +221,7 @@ export class GroupsComponent implements OnInit {
       this.channelService.leaveChannel(channelId, user._id).subscribe({
         next: () => {
           console.log('Successfully left the channel');
-          
+
           // Remove the channel from the UI
           this.channels = this.channels.filter(
             (channel) => channel._id !== channelId
@@ -203,6 +229,7 @@ export class GroupsComponent implements OnInit {
 
           // Emit the 'leave-channel' event to the server via Socket.IO
           this.socketService.leaveChannel(channelId, user._id, user.username);
+          this.loadGroups();
         },
         error: (err) => {
           console.error('Failed to leave the channel:', err.message);
