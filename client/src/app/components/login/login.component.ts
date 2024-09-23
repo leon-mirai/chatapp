@@ -35,7 +35,7 @@ export class LoginComponent {
       },
       error: (error) => {
         console.error('Invalid email or password.', error);
-        this.errorMessage = 'mphgg;e';
+        this.errorMessage = 'Invalid email or password';
       },
       complete: () => console.log('Login process completed'),
     });
