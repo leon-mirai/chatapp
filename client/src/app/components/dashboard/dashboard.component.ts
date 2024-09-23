@@ -226,6 +226,7 @@ export class DashboardComponent implements OnInit {
       this.groupService.deleteGroup(groupId).subscribe({
         next: () => {
           this.groups = this.groups.filter((group) => group._id !== groupId);
+          this.loadGroups();
         },
         error: (err) => {
           console.error('Error deleting group:', err);
@@ -241,6 +242,7 @@ export class DashboardComponent implements OnInit {
           // remove the group from the user's list of groups
           this.groups = this.groups.filter((group) => group._id !== groupId);
           console.log('Left group successfully');
+          this.loadGroups();
         },
         error: (err) => {
           console.error('Error leaving group:', err);

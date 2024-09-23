@@ -248,6 +248,9 @@ export class ChannelsComponent implements OnInit {
         .subscribe({
           next: (response) => {
             console.log(response.message);
+
+            // Immediately reload the channel to reflect changes
+            this.reloadChannel();
           },
           error: (err) => {
             if (err.status === 400 && err.error.message) {
