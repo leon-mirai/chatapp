@@ -5,7 +5,7 @@ const { MongoClient } = require("mongodb");
 const http = require("http");
 const { Server } = require("socket.io");
 const { setupSocket } = require("./sockets.js");
-const { setupPeerServer } = require("./peerServer.js"); // Import the PeerServer setup
+const { setupPeerServer } = require("./peerServer.js"); 
 const app = express();
 const port = 3000;
 

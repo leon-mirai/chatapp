@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -17,5 +17,10 @@
     "peer": "^1.0.2",
     "peers": "^0.1.0",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
+    "supertest": "^7.0.0"
   }
 }
