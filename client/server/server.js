@@ -5,7 +5,7 @@ const { MongoClient } = require("mongodb");
 const http = require("http");
 const { Server } = require("socket.io");
 const { setupSocket } = require("./sockets.js");
-const { setupPeerServer } = require("./peerServer.js"); 
+const { setupPeerServer } = require("./peerServer.js");
 const app = express();
 const port = 3000;
 
@@ -61,10 +61,7 @@ async function connectToDb() {
     // Catch-all route to serve the Angular app
     app.get("*", (request, response) => {
       response.sendFile(
-        path.resolve(
-          __dirname,
-          "/client/server/public/index.html"
-        ) // ../dist/client/browser/index.html
+        path.resolve(__dirname, "/client/server/public/index.html") // ../dist/client/browser/index.html
       );
     });
 
