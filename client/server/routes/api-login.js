@@ -1,3 +1,5 @@
+// routes/api-login.js
+
 const { ObjectId } = require("mongodb");
 
 const route = (app, db) => {
@@ -5,7 +7,6 @@ const route = (app, db) => {
     const { email, password } = req.body;
 
     try {
-      // Query the MongoDB for a user matching the email and password
       const user = await db.collection("users").findOne({
         email: email,
         password: password, // In production, use hashed passwords!
@@ -30,11 +31,11 @@ const route = (app, db) => {
         res.status(401).json({ message: "Invalid username or password" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Error during login", error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error during login", error: error.message });
     }
   });
 };
 
-module.exports = {
-  route,
-};
+module.exports = { route };
