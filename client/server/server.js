@@ -29,6 +29,11 @@ const io = new Server(server, {
 const peerServer = setupPeerServer(server);
 app.use("/peerjs", peerServer); // Serve PeerJS on the '/peerjs' route
 
+// Add root route to fix the 404 issue in your tests
+app.get("/", (req, res) => {
+  res.status(200).send("Server is up and running!");
+});
+
 // Inside connectToDb()
 async function connectToDb() {
   try {
