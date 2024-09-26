@@ -7,22 +7,33 @@ const clientIo = require('socket.io-client'); // Import the client
 let io, server, client;
 
 describe('Socket.IO Basic Test', () => {
+  let port; // Store the port number
+
   beforeEach((done) => {
     // Create a new HTTP server and Socket.IO instance before each test
     server = createServer();
-    io = new Server(server);
 
-    // Mock the database object
-    const mockDb = {
-      collection: () => ({}), // Simplify the mock without collection methods
-    };
+    // Start the server on a random available port
+    server.listen(0, () => {
+      // Get the assigned port
+      port = server.address().port;
+      console.log(`Server started on port ${port}`);
 
-    // Setup the socket with the mocked db
-    setupSocket(io, mockDb); // Pass mockDb as the db
+      // Initialize Socket.IO after the server starts
+      io = new Server(server);
 
-    // Start the server on port 3000
-    server.listen(3000, () => {
-      console.log('Server started on port 3000');
+      // Mock the database object
+      const mockDb = {
+        collection: () => ({
+          // Mock any required collection methods if needed
+          findOne: async () => null,
+          insertOne: async () => null,
+        }),
+      };
+
+      // Setup the socket with the mocked db
+      setupSocket(io, mockDb); // Pass mockDb as the db
+
       done(); // Ensure the server is started before tests run
     });
   });
@@ -34,13 +45,20 @@ describe('Socket.IO Basic Test', () => {
       console.log('Client disconnected');
     }
 
-    // No need to close the server or socket
-    done();
+    // Close the server to free up the port
+    if (server && server.listening) {
+      server.close(() => {
+        console.log('Server closed');
+        done();
+      });
+    } else {
+      done();
+    }
   });
 
   it('should handle basic socket connection', (done) => {
-    // Connect a socket.io-client to the server
-    client = clientIo('http://localhost:3000'); // Use the imported clientIo
+    // Connect a socket.io-client to the server using the assigned port
+    client = clientIo(`http://localhost:${port}`);
 
     // Handle 'connect' event
     client.on('connect', () => {
@@ -49,7 +67,7 @@ describe('Socket.IO Basic Test', () => {
       done(); // End the test
     });
 
-    client.on('error', (err) => {
+    client.on('connect_error', (err) => {
       console.error('Client connection error:', err);
       done(err); // Fail the test if there's a connection error
     });

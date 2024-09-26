@@ -6,32 +6,32 @@ const userService = require("../services/userService");
 const groupService = require("../services/groupService");
 const channelService = require("../services/channelService");
 
-// Set up the upload directory path
+// set up the upload directory path
 const uploadDir = "server/uploads/";
 
-// Ensure the upload directory exists
+// ensure the upload directory exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Set up Multer for file uploads
+// set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads/")); // Path to save the file
+    cb(null, path.join(__dirname, "../uploads/")); 
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    cb(null, Date.now() + path.extname(file.originalname)); // unique filename
   },
 });
 
-// Initialize multer upload
+// initialize multer upload
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 }, // Limit file size to 1MB
+  limits: { fileSize: 1000000 }, // limit file size to 1MB
 });
 
 const route = (app, db) => {
-  // Add the profile image upload route
+  // add the profile image upload route
   app.post(
     "/api/users/:userId/upload-profile-pic",
     upload.single("profilePic"),
@@ -47,7 +47,7 @@ const route = (app, db) => {
 
         const user = await userService.getUserById(db, new ObjectId(userId));
         if (user) {
-          // Remove the old profile picture file if it exists
+          // remove the old profile picture file if it exists
           if (user.profilePic && user.profilePic.length > 0) {
             const oldFilePath = path.join(__dirname, "..", user.profilePic[0]);
             fs.unlink(oldFilePath, (err) => {
@@ -59,7 +59,7 @@ const route = (app, db) => {
             });
           }
 
-          // Save the new file path in the user's profilePic array
+          // save the new file path in the user's profilePic array
           user.profilePic = [`/uploads/${req.file.filename}`];
 
           await userService.updateUser(db, user);
@@ -379,8 +379,8 @@ const route = (app, db) => {
 
   // Remove user from a specific group (both userId and groupId as ObjectId)
   app.post("/api/groups/:groupId/remove-member/:userId", async (req, res) => {
-    const groupId = new ObjectId(req.params.groupId.trim()); // Convert groupId to ObjectId
-    const userId = new ObjectId(req.params.userId.trim()); // Convert userId to ObjectId
+    const groupId = new ObjectId(req.params.groupId.trim()); 
+    const userId = new ObjectId(req.params.userId.trim()); 
 
     try {
       const result = await groupService.removeUserFromGroup(
@@ -397,46 +397,7 @@ const route = (app, db) => {
     }
   });
 
-  // Remove group from user's groups (test-only)
-  app.post("/api/users/:userId/remove-group/:groupId", async (req, res) => {
-    const userId = new ObjectId(req.params.userId.trim()); // Convert userId to ObjectId
-    const groupId = new ObjectId(req.params.groupId.trim()); // Convert groupId to ObjectId
-
-    try {
-      // Remove group from user's groups array
-      await userService.removeGroupFromUser(db, userId, groupId);
-      res.status(200).json({ message: "Group removed from user" });
-    } catch (error) {
-      console.error("Error:", error.message);
-      res.status(500).json({
-        message: "Failed to remove group from user",
-        error: error.message,
-      });
-    }
-  });
-
-  // Test-only route to remove user from all channels within a group
-  app.post(
-    "/api/groups/:groupId/remove-member-from-channels/:userId",
-    async (req, res) => {
-      const groupId = req.params.groupId.trim();
-      const userId = req.params.userId.trim();
-
-      try {
-        // Ensure both userId and groupId are treated as ObjectId
-        await channelService.removeUserFromGroupChannels(db, groupId, userId);
-        res
-          .status(200)
-          .json({ message: "User removed from all channels in the group" });
-      } catch (error) {
-        console.error("Error:", error.message);
-        res.status(500).json({
-          message: "Failed to remove user from channels",
-          error: error.message,
-        });
-      }
-    }
-  );
+ 
 
   // Leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {

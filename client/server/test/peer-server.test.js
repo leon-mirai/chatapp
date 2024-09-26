@@ -17,15 +17,27 @@ describe("PeerServer", () => {
     peerServer = setupPeerServer(server);
     app.use("/peerjs", peerServer); // Attach PeerServer to the express app
 
-    // Start the server
-    server.listen(3000, () => {
+    // Start the server on a random available port
+    server.listen(0, () => {
+      // Get the assigned port if needed
+      const port = server.address().port;
+      console.log(`Server is listening on port ${port}`);
       done(); // Ensure the server has started before running tests
     });
   });
 
   afterEach((done) => {
     // Close the server after each test to avoid issues
-    server.close(done);
+    if (server && server.listening) {
+      server.close((err) => {
+        if (err) {
+          console.error("Error closing server:", err);
+        }
+        done(err);
+      });
+    } else {
+      done();
+    }
   });
 
   it("should return a valid PeerServer function", () => {
@@ -43,6 +55,6 @@ describe("PeerServer", () => {
     // You can also check that the server is listening
     expect(server.listening).to.be.true;
 
-    // The PeerServer doesn't register as an express route directly, so we focus on ensuring it's initialized properly.
+    // Additional checks can be added here to verify PeerServer functionality
   });
 });

@@ -1,38 +1,38 @@
-const request = require("supertest"); // Using Supertest for HTTP requests
-const chai = require("chai"); // Using Chai for assertions
+const chai = require("chai");
+const chaiHttp = require("chai-http");
 const express = require("express");
 const { route } = require("../routes/api-login");
-const { expect } = chai; // Extract 'expect' from Chai
+const { expect } = chai;
+
+chai.use(chaiHttp); // Use Chai-HTTP plugin
 
 let app, db;
 
-before(() => {
+beforeEach(() => {
   // Create mock Express app
   app = express();
   app.use(express.json());
 
-  // Mock the database object (default behavior for "no user found")
+  // Default mock database behavior (no user found)
   db = {
     collection: () => ({
-      findOne: async () => null, // Mock findOne to return null (user not found)
+      findOne: async () => null, // Return null by default
     }),
   };
-
-  // Apply routes with mocked db
-  route(app, db);
 });
 
 describe("POST /api/auth", () => {
   it("should return 401 when no user is found", async () => {
-    const res = await request(app)
+    // Apply routes with mocked db
+    route(app, db);
+
+    const res = await chai
+      .request(app)
       .post("/api/auth")
       .send({ email: "test@example.com", password: "wrongpassword" });
 
     expect(res.status).to.equal(401);
-    expect(res.body).to.have.property(
-      "message",
-      "Invalid username or password"
-    );
+    expect(res.body).to.have.property("message", "Invalid username or password");
   });
 
   it("should return 200 when user is valid", async () => {
@@ -42,12 +42,16 @@ describe("POST /api/auth", () => {
         _id: "605c72ef35073e2f58c0286e",
         email: "test@example.com",
         username: "testuser",
-        password: "correctpassword",  // Include password in the mock
+        password: "correctpassword", // Include password in the mock
         valid: true, // Simulate a valid user account
       }),
     });
 
-    const res = await request(app)
+    // Re-apply routes with the updated db
+    route(app, db);
+
+    const res = await chai
+      .request(app)
       .post("/api/auth")
       .send({ email: "test@example.com", password: "correctpassword" });
 
@@ -57,22 +61,26 @@ describe("POST /api/auth", () => {
   });
 
   it("should return 401 when the password is incorrect", async () => {
-    // Mock the database to return a user
+    // Mock the database to return a user with a correct password
     db.collection = () => ({
       findOne: async () => ({
-        _id: '12345',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'correctpassword',  // Mock the correct password in the DB
+        _id: "12345",
+        email: "test@example.com",
+        username: "testuser",
+        password: "correctpassword", // Mock the correct password in the DB
         valid: true,
       }),
     });
 
-    const res = await request(app)
-      .post('/api/auth')
-      .send({ email: 'test@example.com', password: 'wrongpassword' });
+    // Re-apply routes with the updated db
+    route(app, db);
+
+    const res = await chai
+      .request(app)
+      .post("/api/auth")
+      .send({ email: "test@example.com", password: "wrongpassword" });
 
     expect(res.status).to.equal(401);
-    expect(res.body).to.have.property('message', 'Invalid username or password');
+    expect(res.body).to.have.property("message", "Invalid username or password");
   });
 });

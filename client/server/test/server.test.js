@@ -1,11 +1,14 @@
 const { MongoClient } = require("mongodb");
-const { expect } = require("chai");
+const chai = require("chai");
+const chaiHttp = require("chai-http");
 const http = require("http");
 const { Server } = require("socket.io");
-const request = require("supertest");
 const express = require("express");
 const { setupSocket } = require("../sockets.js");
 const { setupPeerServer } = require("../peerServer.js");
+
+chai.use(chaiHttp); 
+const { expect } = chai; 
 
 describe("Server", () => {
   let server, io, app;
@@ -52,7 +55,7 @@ describe("Server", () => {
   it("should successfully connect to MongoDB and return 200 status", async () => {
     // Simulate successful db connection
     const db = MongoClient.prototype.db(); // Now properly mocked
-    const res = await request(app).get("/");
+    const res = await chai.request(app).get("/");
     expect(res.status).to.equal(200);
     expect(res.text).to.equal("Server is running");
   });
@@ -62,6 +65,11 @@ describe("Server", () => {
     MongoClient.prototype.connect = async () =>
       Promise.reject(new Error("Failed to connect"));
 
+    // Initialize express app without mocking the successful connection
+    app = express();
+    server = http.createServer(app);
+
+    // Attempt to connect to MongoDB
     try {
       await MongoClient.prototype.connect();
     } catch (err) {

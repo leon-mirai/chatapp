@@ -1,8 +1,12 @@
-const request = require('supertest');
+const chai = require('chai');
+const chaiHttp = require('chai-http');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
+
+chai.use(chaiHttp);
+const { expect } = chai;
 
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
@@ -17,12 +21,12 @@ describe('Static Files', () => {
     app = express();
     app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-    // Create a mock image file for the test. jpeg hexadecimals
+    // Create a mock image file for the test with minimal JPEG data
     const jpegData = Buffer.from([
-      0xff
-    ]);  
+      0xff, 0xd8, 0xff // JPEG SOI marker
+    ]);
 
-    await writeFile(sampleImagePath, jpegData); // Write mock JPEG content
+    await writeFile(sampleImagePath, jpegData);
   });
 
   // Clean up the test image after each test
@@ -33,9 +37,13 @@ describe('Static Files', () => {
   });
 
   it('should serve static files from /uploads', (done) => {
-    request(app)
-      .get('/uploads/sample-image.jpg')  // Ensure the file is served
-      .expect('Content-Type', /image\/jpeg/)  // Expect correct content type for JPEG
-      .expect(200, done);
+    chai.request(app)
+      .get('/uploads/sample-image.jpg')
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res).to.have.status(200);
+        expect(res).to.have.header('content-type', /^image\/jpeg/);
+        done();
+      });
   });
 });
