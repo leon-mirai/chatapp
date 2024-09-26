@@ -17,7 +17,7 @@ if (!fs.existsSync(uploadDir)) {
 // set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads/")); 
+    cb(null, path.join(__dirname, "../uploads/"));
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname)); // unique filename
@@ -87,14 +87,14 @@ const route = (app, db) => {
     async (req, res) => {
       try {
         console.log("Uploaded file:", req.file);
-  
+
         if (!req.file) {
           return res.status(400).json({ message: "No file uploaded" });
         }
-  
+
         // Construct the file path to send back to the client
         const imageUrl = `/uploads/${req.file.filename}`;
-  
+
         res.status(200).json({
           message: "Image uploaded successfully",
           imageUrl: imageUrl, // Send back the image URL to be used in the chat
@@ -108,7 +108,6 @@ const route = (app, db) => {
       }
     }
   );
-  
 
   // In user.js or your user route handler
   app.get("/api/users/current", async (req, res) => {
@@ -379,8 +378,8 @@ const route = (app, db) => {
 
   // Remove user from a specific group (both userId and groupId as ObjectId)
   app.post("/api/groups/:groupId/remove-member/:userId", async (req, res) => {
-    const groupId = new ObjectId(req.params.groupId.trim()); 
-    const userId = new ObjectId(req.params.userId.trim()); 
+    const groupId = new ObjectId(req.params.groupId.trim());
+    const userId = new ObjectId(req.params.userId.trim());
 
     try {
       const result = await groupService.removeUserFromGroup(
@@ -396,8 +395,6 @@ const route = (app, db) => {
       });
     }
   });
-
- 
 
   // Leave a group
   app.post("/api/users/:userId/groups/:groupId/leave", async (req, res) => {

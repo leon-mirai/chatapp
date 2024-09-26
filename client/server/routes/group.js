@@ -55,41 +55,46 @@ const route = (app, db) => {
   }
 
   // POST /api/groups route to create a group
-app.post("/api/groups", async (req, res) => {
-  const newGroup = req.body;
+  app.post("/api/groups", async (req, res) => {
+    const newGroup = req.body;
 
-  console.log("Admin User ID (before conversion):", newGroup.admins[0]);
+    console.log("Admin User ID (before conversion):", newGroup.admins[0]);
 
-  try {
-    // Validation and group creation logic here
-    if (!newGroup.admins || newGroup.admins.length === 0) {
-      return res.status(400).json({ message: "Admin user is required" });
+    try {
+      // Validation and group creation logic here
+      if (!newGroup.admins || newGroup.admins.length === 0) {
+        return res.status(400).json({ message: "Admin user is required" });
+      }
+
+      // Check if the ID is valid
+      if (!isValidObjectId(newGroup.admins[0])) {
+        console.log("Invalid Admin User ID:", newGroup.admins[0]);
+        return res.status(400).json({ message: "Invalid Admin User ID" });
+      }
+
+      const adminUser = await userService.getUserById(
+        db,
+        new ObjectId(newGroup.admins[0])
+      );
+
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      newGroup.members = [adminUser._id];
+
+      const groupCreationResult = await groupService.createGroup(db, newGroup);
+      adminUser.groups.push(groupCreationResult.insertedId);
+      await userService.updateUser(db, adminUser);
+
+      res
+        .status(201)
+        .json({ message: "Group created successfully", group: newGroup });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      res.status(500).json({ message: "Failed to create group", error });
     }
-
-    // Check if the ID is valid
-    if (!isValidObjectId(newGroup.admins[0])) {
-      console.log("Invalid Admin User ID:", newGroup.admins[0]);
-      return res.status(400).json({ message: "Invalid Admin User ID" });
-    }
-
-    const adminUser = await userService.getUserById(db, new ObjectId(newGroup.admins[0]));
-
-    if (!adminUser) {
-      return res.status(404).json({ message: "Admin user not found" });
-    }
-
-    newGroup.members = [adminUser._id];
-
-    const groupCreationResult = await groupService.createGroup(db, newGroup);
-    adminUser.groups.push(groupCreationResult.insertedId);
-    await userService.updateUser(db, adminUser);
-
-    res.status(201).json({ message: "Group created successfully", group: newGroup });
-  } catch (error) {
-    console.error("Error creating group:", error);
-    res.status(500).json({ message: "Failed to create group", error });
-  }
-});
+  });
 
   // Update a group by ID (using ObjectId for groupId)
   app.put("/api/groups/:groupId", async (req, res) => {
@@ -163,11 +168,11 @@ app.post("/api/groups", async (req, res) => {
   // Remove a member from a group and its channels (using ObjectId for groupId and userId)
   app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
     const { groupId, userId } = req.params;
-
+  
     try {
       const group = await groupService.getGroupById(db, new ObjectId(groupId));
       const user = await userService.getUserById(db, new ObjectId(userId));
-
+  
       if (group && user) {
         await groupService.removeUserFromGroup(
           db,
@@ -184,17 +189,17 @@ app.post("/api/groups", async (req, res) => {
           new ObjectId(userId),
           new ObjectId(groupId)
         );
-
-        res
-          .status(200)
-          .json({ message: "Member removed and cascade deletion successful" });
+  
+        res.status(200).json({ message: "Member removed and cascade deletion successful" });
       } else {
         res.status(404).json({ message: "Group or User not found" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Failed to remove member", error });
+      console.error("Error removing user from group:", error); // Log the error
+      res.status(500).json({ message: "Failed to remove member", error: error.message });
     }
   });
+  
 
   // Add an admin to a group (using ObjectId for groupId and userId)
   app.post("/api/groups/:groupId/admins", async (req, res) => {
