@@ -34,7 +34,6 @@ export class UserService {
       imageData
     );
   }
-  
 
   // fetch all users from the backend
   getUsers(): Observable<User[]> {
@@ -105,9 +104,7 @@ export class UserService {
   deleteUser(userId: string): Observable<any> {
     console.log(`Deleting user with ObjectId: ${userId}`);
     // Ensure the correct URL
-    return this.http.delete(
-      `/api/users/${userId}/delete-user`
-    );
+    return this.http.delete(`/api/users/${userId}/delete-user`);
   }
 
   // leave a group

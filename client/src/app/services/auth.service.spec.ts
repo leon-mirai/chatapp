@@ -1,6 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing'; // To mock the router
 import { Router } from '@angular/router';
 
@@ -11,10 +14,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule, // Provides HttpClient mock
-        RouterTestingModule // Mocks the router for navigation in the service
-      ],
+      imports: [HttpClientTestingModule, RouterTestingModule],
       providers: [AuthService],
     }).compileComponents();
 
@@ -24,7 +24,7 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify(); // Verifies that no outstanding HTTP calls are made
+    httpMock.verify();
   });
 
   it('should be created', () => {
@@ -32,20 +32,28 @@ describe('AuthService', () => {
   });
 
   it('should send a login request', () => {
-    const mockResponse = { token: 'abc123', user: { _id: '123', email: 'test@example.com' } };
+    const mockResponse = {
+      token: 'abc123',
+      user: { _id: '123', email: 'test@example.com' },
+    };
 
-    service.login('test@example.com', 'password123').subscribe(response => {
+    service.login('test@example.com', 'password123').subscribe((response) => {
       expect(response).toEqual(mockResponse);
     });
 
     const req = httpMock.expectOne('/api/auth');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ email: 'test@example.com', password: 'password123' });
-    req.flush(mockResponse); 
+    expect(req.request.body).toEqual({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+    req.flush(mockResponse);
   });
 
   it('should return true when user is logged in', () => {
-    spyOn(localStorage, 'getItem').and.returnValue(JSON.stringify({ _id: '123', email: 'test@example.com' }));
+    spyOn(localStorage, 'getItem').and.returnValue(
+      JSON.stringify({ _id: '123', email: 'test@example.com' })
+    );
     expect(service.isLoggedIn()).toBeTrue();
   });
 
@@ -57,9 +65,9 @@ describe('AuthService', () => {
   it('should logout the user and navigate to home', () => {
     const spyNavigate = spyOn(router, 'navigate');
     spyOn(localStorage, 'removeItem');
-    
+
     service.logout();
-    
+
     expect(localStorage.removeItem).toHaveBeenCalledWith('user');
     expect(spyNavigate).toHaveBeenCalledWith(['/']);
   });
