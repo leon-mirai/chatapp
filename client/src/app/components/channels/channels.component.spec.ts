@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ChannelsComponent } from './channels.component';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ChannelService } from '../../services/channel.service';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ChannelsComponent } from './channels.component';
 
 describe('ChannelsComponent', () => {
   let component: ChannelsComponent;
@@ -11,16 +10,12 @@ describe('ChannelsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChannelsComponent, HttpClientTestingModule],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            params: of({ groupId: 'testGroupId' }), 
-          },
-        },
-        ChannelService,
+      imports: [
+        ChannelsComponent,
+        HttpClientTestingModule,
+        RouterTestingModule,
       ],
+      providers: [ChannelsComponent, AuthService]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ChannelsComponent);
