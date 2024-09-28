@@ -168,11 +168,11 @@ const route = (app, db) => {
   // Remove a member from a group and its channels (using ObjectId for groupId and userId)
   app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
     const { groupId, userId } = req.params;
-  
+
     try {
       const group = await groupService.getGroupById(db, new ObjectId(groupId));
       const user = await userService.getUserById(db, new ObjectId(userId));
-  
+
       if (group && user) {
         await groupService.removeUserFromGroup(
           db,
@@ -189,17 +189,20 @@ const route = (app, db) => {
           new ObjectId(userId),
           new ObjectId(groupId)
         );
-  
-        res.status(200).json({ message: "Member removed and cascade deletion successful" });
+
+        res
+          .status(200)
+          .json({ message: "Member removed and cascade deletion successful" });
       } else {
         res.status(404).json({ message: "Group or User not found" });
       }
     } catch (error) {
       console.error("Error removing user from group:", error); // Log the error
-      res.status(500).json({ message: "Failed to remove member", error: error.message });
+      res
+        .status(500)
+        .json({ message: "Failed to remove member", error: error.message });
     }
   });
-  
 
   // Add an admin to a group (using ObjectId for groupId and userId)
   app.post("/api/groups/:groupId/admins", async (req, res) => {

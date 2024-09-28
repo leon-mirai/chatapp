@@ -1,11 +1,10 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
 const route = require("../routes/user").route;
-const createMockDB = require("../services/mockDB");
+const createMockDB = require("../helpers/mockDB");
 const proxyquire = require("proxyquire");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const { getUserById } = require("../services/userService");
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -505,17 +504,18 @@ describe(" put- /api/users/:userId (Update User)", () => {
       .send(updatedUserData)
       .end((err, res) => {
         if (err) return done(err);
-        expect(res).to.have.status(200);  // Expect a 200 status for success
+        expect(res).to.have.status(200); // Expect a 200 status for success
         expect(res.body).to.be.an("object");
         expect(res.body).to.have.property("username", "updatedUser");
         expect(res.body).to.have.property("email", "updated@example.com");
-        
+
         // Compare ObjectId objects directly
         expect(res.body.groups).to.be.an("array");
         res.body.groups.forEach((groupId, index) => {
-          expect(new ObjectId(groupId).equals(updatedUser.groups[index])).to.be.true;
+          expect(new ObjectId(groupId).equals(updatedUser.groups[index])).to.be
+            .true;
         });
-        
+
         done();
       });
   });
@@ -541,14 +541,14 @@ describe(" put- /api/users/:userId (Update User)", () => {
       .send({ username: "updatedUser", email: "updated@example.com" })
       .end((err, res) => {
         if (err) return done(err);
-        expect(res).to.have.status(404);  // Expect a 404 status for "User not found"
+        expect(res).to.have.status(404); // Expect a 404 status for "User not found"
         expect(res.body).to.have.property("message", "User not found");
         done();
       });
   });
 });
 
-describe("POST /api/users/:userId/promote (promotion)", () => {
+describe("post /api/users/:userId/promote (promotion)", () => {
   let app;
   let mockUserService;
 
@@ -649,6 +649,330 @@ describe("POST /api/users/:userId/promote (promotion)", () => {
         expect(res.body).to.have.property(
           "message",
           `User is already a ${newRole}`
+        );
+        done();
+      });
+  });
+});
+
+describe("del /api/users/:userId (self delete)", () => {
+  let app;
+  let mockUserService;
+  let mockGroupService;
+  let mockChannelService;
+  let mockDB;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+
+    // Initialize the mock services
+    mockUserService = {
+      getUserById: async (db, userId) => ({
+        _id: new ObjectId(userId),
+        username: "testUser",
+        email: "test@example.com",
+      }),
+      deleteUser: async (db, userId) => ({ deletedCount: 1 }),
+    };
+
+    mockGroupService = {
+      removeUserFromGroups: async (db, userId) => true,
+    };
+
+    mockChannelService = {
+      removeUserFromChannels: async (db, userId) => true,
+    };
+
+    // Mock DB
+    mockDB = createMockDB();
+
+    // Use proxyquire to mock services and inject them into the route
+    const route = proxyquire("../routes/user", {
+      "../services/userService": mockUserService,
+      "../services/groupService": mockGroupService,
+      "../services/channelService": mockChannelService,
+    }).route;
+
+    // Register the route
+    route(app, mockDB);
+  });
+
+  it("should delete the user successfully", (done) => {
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property(
+          "message",
+          "User deleted successfully"
+        );
+        done();
+      });
+  });
+
+  it("should return 404 if user is not found", (done) => {
+    // Modify the mockUserService to simulate the user not being found
+    mockUserService.getUserById = async () => null;
+
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(404);
+        expect(res.body).to.have.property("message", "User not found");
+        done();
+      });
+  });
+
+  it("should return 500 if there is an error during deletion", (done) => {
+    // Modify the mockUserService to simulate an error
+    mockUserService.deleteUser = async () => {
+      throw new Error("Failed to delete user");
+    };
+
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.have.property("message", "Failed to delete user");
+        done();
+      });
+  });
+});
+
+describe("del /api/users/:userId/delete-user (admin delete)", () => {
+  let app;
+  let mockUserService;
+  let mockGroupService;
+  let mockChannelService;
+  let mockDB;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+
+    // Initialize the mock services
+    mockUserService = {
+      getUserById: async (db, userId) => ({
+        _id: new ObjectId(userId),
+        username: "testUser",
+        email: "test@example.com",
+      }),
+      deleteUser: async (db, userId) => ({ deletedCount: 1 }),
+    };
+
+    mockGroupService = {
+      removeUserFromGroups: async (db, userId) => true,
+    };
+
+    mockChannelService = {
+      removeUserFromChannels: async (db, userId) => true,
+    };
+
+    mockDB = createMockDB();
+
+    const route = proxyquire("../routes/user", {
+      "../services/userService": mockUserService,
+      "../services/groupService": mockGroupService,
+      "../services/channelService": mockChannelService,
+    }).route;
+
+    route(app, mockDB);
+  });
+
+  it("should delete the user successfully", (done) => {
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}/delete-user`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property(
+          "message",
+          "User deleted successfully"
+        );
+        done();
+      });
+  });
+
+  it("should return 404 if user is not found", (done) => {
+    // Modify the mockUserService to simulate the user not being found
+    mockUserService.getUserById = async () => null;
+
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}/delete-user`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(404);
+        expect(res.body).to.have.property("message", "User not found");
+        done();
+      });
+  });
+
+  it("should return 500 if there is an error during deletion", (done) => {
+    // Modify the mockUserService to simulate an error
+    mockUserService.deleteUser = async () => {
+      throw new Error("Failed to delete user");
+    };
+
+    const userId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .delete(`/api/users/${userId}/delete-user`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.have.property("message", "Failed to delete user");
+        done();
+      });
+  });
+});
+
+describe("pos /api/users/:userId/groups/:groupId/register-interest", () => {
+  let app;
+  let mockUserService;
+  let mockGroupService;
+  let mockDB;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+
+    // Initialize the mock services
+    mockUserService = {
+      getUserById: async (db, userId) => ({
+        _id: new ObjectId(userId),
+        username: "testUser",
+        email: "test@example.com",
+      }),
+    };
+
+    mockGroupService = {
+      getGroupById: async (db, groupId) => ({
+        _id: new ObjectId(groupId),
+        joinRequests: [],
+      }),
+      updateGroup: async (db, group) => ({ modifiedCount: 1 }),
+    };
+
+    // Mock DB
+    mockDB = createMockDB();
+
+    // Use proxyquire to mock services and inject them into the route
+    const route = proxyquire("../routes/user", {
+      "../services/userService": mockUserService,
+      "../services/groupService": mockGroupService,
+    }).route;
+
+    // Register the route
+    route(app, mockDB);
+  });
+
+  it("should register interest successfully", (done) => {
+    const userId = new ObjectId().toHexString();
+    const groupId = new ObjectId().toHexString();
+
+    chai
+      .request(app)
+      .post(`/api/users/${userId}/groups/${groupId}/register-interest`)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property(
+          "message",
+          "Interest registered successfully"
+        );
+        done();
+      });
+  });
+});
+
+describe("del /api/groups/:groupId/members/:userId (leave group)", () => {
+  let app;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+  });
+
+  it("should remove the user from the group and clean up successfully", (done) => {
+    const groupId = new ObjectId(); // Sample groupId
+    const userId = new ObjectId(); // Sample userId
+
+    // Mock the groupService and userService behavior
+    const mockDB = createMockDB();
+    const mockGroupService = {
+      getGroupById: async (db, groupId) => {
+        return { _id: groupId, members: [userId] }; // Simulate a group with the user as a member
+      },
+      removeUserFromGroup: async (db, user, group) => {
+        return { success: true }; // Simulate a success response
+      },
+    };
+
+    const mockUserService = {
+      getUserById: async (db, userId) => {
+        return { _id: userId, groups: [groupId] }; // Ensure a valid user with the group
+      },
+      removeGroupFromUser: async (db, userId, groupId) => {
+        // Simulate removing the group from the user's groups
+        return { success: true };
+      },
+    };
+
+    const mockChannelService = {
+      removeUserFromGroupChannels: async (db, groupId, userId) => {
+        return { success: true }; // Simulate channel removal
+      },
+    };
+
+    // Use proxyquire to mock groupService, userService, and channelService in the route
+    const { route: groupRoute } = proxyquire("../routes/group", {
+      "../services/groupService": mockGroupService, // Proxy groupService
+      "../services/userService": mockUserService, // Proxy userService
+      "../services/channelService": mockChannelService, // Proxy channelService
+    });
+
+    // Register the route with the app and mockDB
+    groupRoute(app, mockDB);
+
+    chai
+      .request(app)
+      .delete(
+        `/api/groups/${groupId.toHexString()}/members/${userId.toHexString()}`
+      ) // Correct endpoint for deleting member
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res).to.have.status(200); // Expect a 200 status for success
+        expect(res.body).to.be.an("object");
+        expect(res.body).to.have.property(
+          "message",
+          "Member removed and cascade deletion successful"
         );
         done();
       });
