@@ -271,10 +271,14 @@ export class DashboardComponent implements OnInit {
   }
 
   requestToJoin(groupId: string): void {
-    if (!this.user._id) return;
+    if (!this.user._id) {
+      console.error('User ID is undefined');
+      return;
+    }
 
     this.groupService.requestToJoinGroup(groupId, this.user._id).subscribe({
       next: () => {
+        console.log('Request to join successful');
         this.availableGroups = this.availableGroups.filter(
           (group) => group._id !== groupId
         );
