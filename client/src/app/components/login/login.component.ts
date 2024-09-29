@@ -46,12 +46,12 @@ export class LoginComponent {
       next: (response) => {
         console.log('aaccount request successful', response);
         this.requestMessage =
-          'account request has been sent to the SuperAdmin. Please wait for approval.';
+          'Account request has been sent to the SuperAdmin. Please wait for approval.';
       },
       error: (error) => {
         console.error('account request failed', error);
         this.requestMessage =
-          'failed to request account creation. Please try again later.';
+          'Failed to request account creation. Please try again later.';
       },
     });
   }
