@@ -56,7 +56,7 @@ ng build
 ## Git Repository Layout
 
 The client directory contains all the auto-generated files necessary for the Angular. The project files are inside the `src/app`
-subdirectory. There are four component directories: login, dashboard, groups, and channels.
+subdirectory. There are six component directories: channels, dashboard, groups, login, profile, video-call
 
 The server directory contains the files necessary to run the backend express server.
 
@@ -96,11 +96,14 @@ The main branches I worked with are:
 1. main (this is the stable version)
 2. dev (this is where development occurs and where features are added)
 3. dev2 (this is another branch for testing out new developments)
+4. chatapp (this is a branch for developing the chatapp fully offline)
+5. chatsocket (this is a branch for setting up socket.io for chatapp and peerjs)
+6. mongo (this is the branch that was used to refactor the backend from )
 
 ## Data Structures
 
 The application uses the following data structures to represent users, groups, and channels. These structures are
-essential fro both the client and server sides of the application, enabling consistent data management and
+essential for both the client and server sides of the application, enabling consistent data management and
 communication across the system.
 
 - Javascript/TypeScript Arrays: These were used for storing iterables like a list of users, groups, or channels
@@ -160,7 +163,8 @@ members of that group and can be administered by one or more group admins.
 ```
 
 A **Channel** is a communication channel within a group. It allows members ofa group to communicate through text messages. Each
-channel belongs to a specific group and can have its own set of members, along with a blacklist of banned users.
+channel belongs to a specific group and can have its own set of members, along with a blacklist of banned users. Also
+has the message property which has the object that has the attributes of sender and content.
 
 ```json
 {
@@ -403,6 +407,7 @@ For Phase 2, the user's data is stored used mongoDB.
     - **Description:** Allows a user to request to join a specific channel
 
   - **POST /api/channels/approve-join**
+
     - **Parameters:**
       - `channelId` in the URL
     - **Return Values**
@@ -412,6 +417,7 @@ For Phase 2, the user's data is stored used mongoDB.
     - **Description:** Approves or rejects a user's request to join a channel. Only channel administrators are allowed to approve or reject join requests.
 
   - **GET /api/channels/messages**
+
     - **Parameters**
       - `channelId` in the URL
     - **Return Values**
@@ -590,6 +596,8 @@ Components represent the building blocks of the user interface (UI). They are re
 - **channel**: Displays a chat channel, including user list, name, chat box, and actions to join, ban users, or delete the channel (for SuperAdmin/GroupAdmin).
 - **group**: Shows the group name, members, channels, and actions to create channels, add/remove members, or accept/reject requests (for SuperAdmin/GroupAdmin).
 - **dashboard**: Displays available groups based on the user's role. It provides options to request joining groups, manage accounts, logout, and leave groups (for ChatUsers) or create/manage groups (for GroupAdmin).
+- **profile** This is the component where you upload your profile image.
+- **video-call** This is where I set up peerjs to set up PeerId to exchange ids and connect the videos
 
 Also, the lifecycle hook ngOnInit is used to initialise data by fetching them from the backend. Additionally, CommonModules and FormModules were used to manage
 states and views by using *ngIf and *ngForOf.
