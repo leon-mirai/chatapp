@@ -2,6 +2,9 @@
 
 This repository uses the MEAN stack (MongoDB, Express, Angular, Node.js) along with `socket.io` and `Peer.js` to create a real-time text/video chatting application with different groups and channels. It provides various roles with different access levels: Super Admin, Group Admin, and Chat Users.
 
+READ THIS IMPORTANT!: THE LINK TO THE WEBSITE IS THE FOLLOWING:
+[chat.leonlee.au](chat.leonlee.au)
+
 ## Installation
 
 1. Clone the repository to your local machine:
