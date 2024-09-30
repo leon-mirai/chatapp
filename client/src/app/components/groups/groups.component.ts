@@ -37,26 +37,26 @@ export class GroupsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const user = this.authService.getUser(); // Get user from AuthService
-    console.log('Retrieved user in GroupsComponent:', user); // Log the user object
+    const user = this.authService.getUser(); // get user from AuthService
+    console.log('Retrieved user in GroupsComponent:', user); // log the user object
 
     if (this.userId) {
       this.loadGroups();
     }
 
     if (user && user._id) {
-      this.userId = user._id; // Assign user._id to userId
+      this.userId = user._id; // assign user._id to userId
     } else {
       console.error('User data is missing or invalid.');
-      return; // Stop further execution if user data is invalid
+      return; // stop further execution if user data is invalid
     }
 
-    const groupId = this.route.snapshot.params['id']; // Get groupId from route
+    const groupId = this.route.snapshot.params['id']; // get groupId from route
     if (groupId) {
       this.groupService.getGroupById(groupId).subscribe({
         next: (group: Group) => {
           this.group = group;
-          this.fetchChannels(groupId); // Fetch the channels after getting the group
+          this.fetchChannels(groupId); // fetch the channels after getting the group
         },
         error: (err: any) => {
           console.error('Error fetching group:', err.message);
@@ -76,7 +76,7 @@ export class GroupsComponent implements OnInit {
     });
   }
 
-  // Method to load the groups for the current user
+  // method to load the groups for the current user
   loadGroups(): void {
     if (this.userId) {
       this.groupService.getGroups(this.userId).subscribe({
@@ -97,7 +97,7 @@ export class GroupsComponent implements OnInit {
       return this.userCache[memberId];
     }
 
-    // Fetch the user from the user service if not cached
+    // ffetch the user from the user service if not cached
     this.userService.getUserById(memberId).subscribe({
       next: (user) => {
         if (user) {
@@ -109,14 +109,14 @@ export class GroupsComponent implements OnInit {
       },
     });
 
-    // Return memberId as a fallback while fetching the name
+    // rturn memberId as a fallback while fetching the name
     return memberId;
   }
 
   isUserInChannel(channel: Channel): boolean {
     const userId = this.authService.getUser()?._id;
 
-    // Ensure userId is not undefined before checking membership
+    // ensure userId is not undefined before checking membership
     if (!userId) {
       return false;
     }
@@ -130,16 +130,16 @@ export class GroupsComponent implements OnInit {
       return;
     }
 
-    const groupId = this.group._id; // Store the groupId locally
+    const groupId = this.group._id;
 
     this.groupService.removeUserFromGroup(groupId, memberId).subscribe({
       next: () => {
         
-        // Remove the member locally from the group's member list
+        // rmove the member locally from the group's member list
         this.group!.members = this.group!.members.filter(
           (member) => member !== memberId
         );
-        this.fetchChannels(groupId); // Refresh channels
+        this.fetchChannels(groupId); 
         this.loadGroups();
       },
       error: (err: any) => {
@@ -169,8 +169,8 @@ export class GroupsComponent implements OnInit {
 
       this.channelService.addChannel(newChannel).subscribe({
         next: (createdChannel) => {
-          this.channels.push(createdChannel); // Add the new channel to the list
-          this.newChannelName = ''; // Clear the input field
+          this.channels.push(createdChannel); 
+          this.newChannelName = ''; 
           this.loadGroups();
         },
         error: (err: any) => {
@@ -222,7 +222,7 @@ export class GroupsComponent implements OnInit {
         next: () => {
           console.log('Successfully left the channel');
 
-          // Remove the channel from the UI
+          
           this.channels = this.channels.filter(
             (channel) => channel._id !== channelId
           );

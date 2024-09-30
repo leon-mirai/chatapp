@@ -16,12 +16,12 @@ let app;
 describe('Static Files', () => {
   const sampleImagePath = path.join(__dirname, '../uploads/sample-image.jpg');
 
-  // Before each test, set up the express app and create a test image
+  // before each test, set up the express app and create a test image
   beforeEach(async () => {
     app = express();
     app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-    // Create a mock image file for the test with minimal JPEG data
+    // create a mock image file for the test with minimal JPEG data
     const jpegData = Buffer.from([
       0xff, 0xd8, 0xff // JPEG SOI marker
     ]);
@@ -29,7 +29,7 @@ describe('Static Files', () => {
     await writeFile(sampleImagePath, jpegData);
   });
 
-  // Clean up the test image after each test
+  // clean up the test image after each test
   afterEach(async () => {
     if (fs.existsSync(sampleImagePath)) {
       await unlink(sampleImagePath);

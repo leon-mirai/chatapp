@@ -31,7 +31,7 @@ export class AuthService {
     if (userData) {
       const parsedUser = JSON.parse(userData);
       if (parsedUser && parsedUser.id) {
-        parsedUser._id = parsedUser.id; // Ensure _id is properly mapped
+        parsedUser._id = parsedUser.id; 
       }
       this.currentUser = parsedUser;
       return this.currentUser;

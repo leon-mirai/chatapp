@@ -4,7 +4,7 @@ const channelService = require("../services/channelService");
 const groupService = require("../services/groupService");
 
 const route = (app, db) => {
-  // Get every single group that exists (e.g., admin route)
+  // get every single group that exists (e.g., admin route)
   app.get("/api/groups", async (req, res) => {
     try {
       const groups = await groupService.readGroups(db);
@@ -14,14 +14,14 @@ const route = (app, db) => {
     }
   });
 
-  // Get all groups for a specific user (using ObjectId for userId)
+  // get all groups for a specific user (using ObjectId for userId)
   app.get("/api/users/:userId/groups", async (req, res) => {
-    const userId = new ObjectId(req.params.userId.trim()); // Convert to ObjectId
+    const userId = new ObjectId(req.params.userId.trim()); // convert to ObjectId
 
     try {
       const groups = await groupService.readGroups(db);
 
-      // Filter groups by membership and join requests
+      // filter groups by membership and join requests
       const userGroups = groups.filter(
         (group) =>
           group.members.some((member) => member.equals(userId)) ||
@@ -35,7 +35,7 @@ const route = (app, db) => {
     }
   });
 
-  // Get a group by ID (using ObjectId for groupId)
+  // get a group by ID (using ObjectId for groupId)
   app.get("/api/groups/:groupId", async (req, res) => {
     const { groupId } = req.params;
     try {

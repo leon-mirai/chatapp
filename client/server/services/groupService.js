@@ -1,6 +1,6 @@
 const { ObjectId } = require("mongodb");
 
-// Get all groups
+// gt all groups
 async function readGroups(db) {
   try {
     const groupsCollection = db.collection("groups");
@@ -12,7 +12,7 @@ async function readGroups(db) {
   }
 }
 
-// Write group to the database (add or update)
+// write group to the database (add or update)
 async function writeGroup(db, group) {
   try {
     const groupsCollection = db.collection("groups");
@@ -27,7 +27,7 @@ async function writeGroup(db, group) {
   }
 }
 
-// Check if user is an admin of the group
+// check if user is an admin of the group
 function checkGroupAdmin(db) {
   return async function (req, res, next) {
     try {
@@ -61,7 +61,7 @@ function checkGroupAdmin(db) {
   };
 }
 
-// Remove user from a specific group
+// rmove user from a specific group
 async function removeUserFromGroup(db, userId, groupId) {
   try {
     const result = await db.collection("groups").updateOne(
@@ -84,15 +84,15 @@ async function removeUserFromGroup(db, userId, groupId) {
   }
 }
 
-// Remove user from all groups
+// rmove user from all groups
 async function removeUserFromGroups(db, userId) {
   try {
     const result = await db.collection("groups").updateMany(
       {}, // Update all groups
       {
         $pull: {
-          members: new ObjectId(userId), // Remove userId as ObjectId from members array
-          admins: new ObjectId(userId), // Remove userId as ObjectId from admins array
+          members: new ObjectId(userId), 
+          admins: new ObjectId(userId), 
         },
       }
     );
@@ -108,7 +108,7 @@ async function removeUserFromGroups(db, userId) {
   }
 }
 
-// Get group by ObjectId
+// get group by ObjectId
 async function getGroupById(db, groupId) {
   try {
     const groupObjectId = new ObjectId(groupId);
@@ -120,12 +120,12 @@ async function getGroupById(db, groupId) {
   }
 }
 
-// Update a group in the database by ObjectId
+// update a group in the database by ObjectId
 async function updateGroup(db, groupId, updatedGroupData) {
   try {
     const result = await db.collection("groups").updateOne(
-      { _id: new ObjectId(groupId) }, // Match group by ObjectId
-      { $set: updatedGroupData } // Update only the specified fields
+      { _id: new ObjectId(groupId) }, // match
+      { $set: updatedGroupData } // update
     );
     return result;
   } catch (error) {
@@ -134,16 +134,16 @@ async function updateGroup(db, groupId, updatedGroupData) {
   }
 }
 
-// Create a new group (ensure admins and other relevant fields use ObjectId)
+// create a new group (ensure admins and other relevant fields use ObjectId)
 async function createGroup(db, group) {
   try {
-    // Ensure admins array contains ObjectId
+    // ensure admins array contains ObjectId
     group.admins = group.admins.map((adminId) => new ObjectId(adminId));
 
-    // Assign a new ObjectId to the group
+    // assign a new ObjectId to the group
     group._id = new ObjectId();
 
-    // Insert the group into the database
+    // insert the group into the database
     const result = await db.collection("groups").insertOne(group);
 
     return result;
@@ -153,25 +153,25 @@ async function createGroup(db, group) {
   }
 }
 
-// Delete a group by ObjectId and remove it from users' groups array
+// delete a group by ObjectId and remove it from users' groups array
 async function deleteGroup(db, groupId) {
   try {
     const groupObjectId = new ObjectId(groupId);
 
-    // Fetch the group to retrieve the members before deletion
+    // fetch the group to retrieve the members before deletion
     const group = await db.collection("groups").findOne({ _id: groupObjectId });
 
     if (!group) {
       throw new Error("Group not found");
     }
 
-    // Delete the group from the groups collection
+    // delete the group from the groups collection
     const result = await db.collection("groups").deleteOne({ _id: groupObjectId });
     if (result.deletedCount === 0) {
       throw new Error("Group not found");
     }
 
-    // Remove the groupId from each user's groups array
+    // remove the groupId from each user's groups array
     await db.collection("users").updateMany(
       { _id: { $in: group.members } },
       { $pull: { groups: groupObjectId } }
@@ -185,14 +185,14 @@ async function deleteGroup(db, groupId) {
 }
 
 
-// Check if a user is an admin of the group
+// check if a user is an admin of the group
 async function isAdminOfGroup(db, groupId, userId) {
   const group = await getGroupById(db, groupId);
   if (!group) throw new Error("Group not found");
   return group.admins.includes(new ObjectId(userId));
 }
 
-// Remove an admin from a group
+// remove an admin from a group
 async function removeAdminFromGroup(db, groupId, userId) {
   try {
     const groupObjectId = new ObjectId(groupId);
@@ -212,12 +212,12 @@ async function removeAdminFromGroup(db, groupId, userId) {
   }
 }
 
-// Remove a channel from a group's channels array
+// remove a channel from a group's channels array
 async function removeChannelFromGroup(db, groupId, channelId) {
   try {
     const result = await db.collection("groups").updateOne(
       { _id: groupId },
-      { $pull: { channels: channelId } } // Remove channelId from channels array
+      { $pull: { channels: channelId } } // remove channelId from channels array
     );
 
     if (result.modifiedCount === 0) {
@@ -233,15 +233,15 @@ async function removeChannelFromGroup(db, groupId, channelId) {
   }
 }
 
-// Add a channel to a group
+// add a channel to a group
 async function addChannelToGroup(db, groupId, channelId) {
   try {
-    const groupObjectId = new ObjectId(groupId); // Ensure groupId is ObjectId
-    const channelObjectId = new ObjectId(channelId); // Ensure channelId is ObjectId
+    const groupObjectId = new ObjectId(groupId); 
+    const channelObjectId = new ObjectId(channelId); 
 
     const result = await db.collection("groups").updateOne(
-      { _id: groupObjectId }, // Match by ObjectId
-      { $addToSet: { channels: channelObjectId } } // Add channelId as ObjectId, ensure no duplicates
+      { _id: groupObjectId }, // match by ObjectId
+      { $addToSet: { channels: channelObjectId } } // add channelId as ObjectId, ensure no duplicates
     );
 
     if (result.matchedCount === 0) {

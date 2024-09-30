@@ -22,28 +22,28 @@ describe("Server", () => {
     // Mock MongoDB's `db()` method
     originalMongoClientDb = MongoClient.prototype.db;
     MongoClient.prototype.db = () => ({
-      collection: () => ({}), // Stub collection method
+      collection: () => ({}), // stub collection 
     });
 
-    // Initialize express and socket
+    // init expres and sokcet
     app = express();
     server = http.createServer(app);
     io = new Server(server, {
       cors: { origin: ["http://localhost:4200"], methods: ["GET", "POST"] },
     });
 
-    // Define a simple root route to test the server
+    // define a simple root route to test the server
     app.get("/", (req, res) => {
       res.status(200).send("Server is running");
     });
 
-    // Mock routes and socket setup manually
-    setupSocket(io, {}); // Stub the socket setup
-    setupPeerServer(server); // Mock Peer server setup
+    // mock routes and socket setup manually
+    setupSocket(io, {}); // stub the socket setup
+    setupPeerServer(server); // mock Peer server setup
   });
 
   afterEach(() => {
-    // Restore original MongoDB client connect and db behavior
+    // restore original MongoDB client connect and db behavior
     MongoClient.prototype.connect = originalMongoClientConnect;
     MongoClient.prototype.db = originalMongoClientDb;
 
@@ -53,23 +53,23 @@ describe("Server", () => {
   });
 
   it("should successfully connect to MongoDB and return 200 status", async () => {
-    // Simulate successful db connection
-    const db = MongoClient.prototype.db(); // Now properly mocked
+    // simulate successful db connection
+    const db = MongoClient.prototype.db(); 
     const res = await chai.request(app).get("/");
     expect(res.status).to.equal(200);
     expect(res.text).to.equal("Server is running");
   });
 
   it("should fail to connect to MongoDB and handle error", async () => {
-    // Manually mock the error for MongoDB connection failure
+    // manually mock the error for MongoDB connection failure
     MongoClient.prototype.connect = async () =>
       Promise.reject(new Error("Failed to connect"));
 
-    // Initialize express app without mocking the successful connection
+    // initialize express app without mocking the successful connection
     app = express();
     server = http.createServer(app);
 
-    // Attempt to connect to MongoDB
+    // attempt to connect to MongoDB
     try {
       await MongoClient.prototype.connect();
     } catch (err) {

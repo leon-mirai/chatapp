@@ -5,18 +5,18 @@ function setupSocket(io, db) {
   io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 
-    // Handle incoming messages
+    // handle incoming messages
     socket.on('message', async (message) => {
       console.log('Received message:', message);
 
       try {
-        // Add the message to the channel in the database
+        // add the message to the channel in the database
         await channelService.addMessageToChannel(db, message.channelId, {
           sender: new ObjectId(message.senderId),
           content: message.content,
         });
 
-        // Emit the message to all clients in the channel
+        //emit the message to all clients in the channel
         io.emit('message', {
           sender: message.senderName,
           content: message.content,
@@ -26,13 +26,13 @@ function setupSocket(io, db) {
       }
     });
 
-    // Emit a notification when a user is approved to join the channel
+    // emit a notification when a user is approved to join the channel
     socket.on('approve-join-request', async ({ channelId, userId, userName, approve }) => {
       try {
         if (approve) {
           console.log(`User ${userName} approved to join channel ${channelId}`);
 
-          // Emit 'user-joined' event to all users in the channel
+          // emit 'user-joined' event to all users in the channel
           io.emit('user-joined', { userId, userName, channelId });
         }
       } catch (err) {
@@ -40,7 +40,19 @@ function setupSocket(io, db) {
       }
     });
 
-    // Handle user disconnecting (leaving channel)
+    //emit a notification when a user is removed from the channel
+    socket.on('remove-user', async ({ channelId, userId, userName }) => {
+      try {
+        console.log(`User ${userName} removed from channel ${channelId}`);
+
+        //emit 'user-removed' event to all users in the channel
+        io.emit('user-removed', { userId, userName, channelId });
+      } catch (err) {
+        console.error('Error handling user removal:', err);
+      }
+    });
+
+    //handle user disconnecting (leaving channel)
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
     });

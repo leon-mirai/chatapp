@@ -15,7 +15,7 @@ describe("GET - /api/channels (get all channels)", () => {
     app.use(express.json());
   });
 
-  // Test Case 1: Successfully retrieving all channels
+  // Test Case 1: successfully retrieving all channels
   it("should return a list of channels", (done) => {
     const mockChannels = [
       { _id: "channel1", name: "General", members: [] },
@@ -23,14 +23,14 @@ describe("GET - /api/channels (get all channels)", () => {
     ];
 
     const mockChannelService = {
-      readChannels: async () => mockChannels, // Simulate a successful call to get channels
+      readChannels: async () => mockChannels, // simulate a successful call to get channels
     };
 
     const route = proxyquire("../routes/channel", {
       "../services/channelService": mockChannelService,
     }).route;
 
-    const mockDB = {}; // Mock DB object
+    const mockDB = {}; 
     route(app, mockDB);
 
     chai
@@ -41,26 +41,26 @@ describe("GET - /api/channels (get all channels)", () => {
 
         expect(res).to.have.status(200);
         expect(res.body).to.be.an("array");
-        expect(res.body.length).to.equal(2); // Should return two channels
+        expect(res.body.length).to.equal(2); // should return 2 cahnels
         expect(res.body[0]).to.have.property("name", "General");
         expect(res.body[1]).to.have.property("name", "Tech");
         done();
       });
   });
 
-  // Test Case 2: Simulating a failure when retrieving channels
+  // Test Case 2: simulating a failure when retrieving channels
   it("should return 500 if there's an error retrieving channels", (done) => {
     const mockChannelService = {
       readChannels: async () => {
         throw new Error("Database error");
-      }, // Simulate an error
+      }, 
     };
 
     const route = proxyquire("../routes/channel", {
       "../services/channelService": mockChannelService,
     }).route;
 
-    const mockDB = {}; // Mock DB object
+    const mockDB = {};
     route(app, mockDB);
 
     chai
@@ -164,7 +164,7 @@ describe("GET - /api/channels/:channelId (get channel by ID)", () => {
 
   // Test Case 1: Successfully retrieving a channel by channelId
   it("should return a channel by the specified ID", (done) => {
-    const channelId = new ObjectId(); // Valid channel ID
+    const channelId = new ObjectId(); 
     const mockChannel = {
       _id: channelId,
       name: "General",
@@ -179,7 +179,7 @@ describe("GET - /api/channels/:channelId (get channel by ID)", () => {
       "../services/channelService": mockChannelService,
     }).route;
 
-    const mockDB = {}; // Mock DB object
+    const mockDB = {}; 
     route(app, mockDB);
 
     chai
@@ -202,14 +202,14 @@ describe("GET - /api/channels/:channelId (get channel by ID)", () => {
     const channelId = new ObjectId(); // Valid channel ID
 
     const mockChannelService = {
-      getChannelById: async (db, id) => null, // Simulate channel not found
+      getChannelById: async (db, id) => null, 
     };
 
     const route = proxyquire("../routes/channel", {
       "../services/channelService": mockChannelService,
     }).route;
 
-    const mockDB = {}; // Mock DB object
+    const mockDB = {}; 
     route(app, mockDB);
 
     chai
@@ -224,7 +224,7 @@ describe("GET - /api/channels/:channelId (get channel by ID)", () => {
       });
   });
 
-  // Test Case 3: Error during channel retrieval (e.g., invalid ObjectId)
+  // Test Case 3: Error during channel retrieval
   it("should return 500 if there is an error retrieving the channel", (done) => {
     const invalidChannelId = "invalid-channel-id"; // Invalid channel ID
 
@@ -238,7 +238,7 @@ describe("GET - /api/channels/:channelId (get channel by ID)", () => {
       "../services/channelService": mockChannelService,
     }).route;
 
-    const mockDB = {}; // Mock DB object
+    const mockDB = {};
     route(app, mockDB);
 
     chai
@@ -267,8 +267,8 @@ describe("POST - /api/channels (create new channel)", () => {
 
   // Test Case 1: Successfully creating a new channel and adding it to the group
   it("should create a new channel and add it to the group", (done) => {
-    const groupId = new ObjectId(); // Valid group ID
-    const channelId = new ObjectId(); // Simulate channel ID
+    const groupId = new ObjectId(); 
+    const channelId = new ObjectId(); 
     const newChannel = {
       name: "General",
       groupId: groupId.toString(),

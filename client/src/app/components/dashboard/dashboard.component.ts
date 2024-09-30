@@ -40,7 +40,7 @@ export class DashboardComponent implements OnInit {
     if (userData) {
       this.user = JSON.parse(userData);
 
-      // Check if the user object contains `id` instead of `_id` and assign accordingly
+      // check if the user object contains `id` instead of `_id` and assign accordingly
       if (!this.user._id && this.user.id) {
         this.user._id = this.user.id; // Temporarily assign id to _id
         console.log('Temporary fix applied: Using `id` for `_id`');
@@ -271,10 +271,14 @@ export class DashboardComponent implements OnInit {
   }
 
   requestToJoin(groupId: string): void {
-    if (!this.user._id) return;
+    if (!this.user._id) {
+      console.error('User ID is undefined');
+      return;
+    }
 
     this.groupService.requestToJoinGroup(groupId, this.user._id).subscribe({
       next: () => {
+        console.log('Request to join successful');
         this.availableGroups = this.availableGroups.filter(
           (group) => group._id !== groupId
         );

@@ -2,6 +2,10 @@
 
 This repository uses the MEAN stack (MongoDB, Express, Angular, Node.js) along with `socket.io` and `Peer.js` to create a real-time text/video chatting application with different groups and channels. It provides various roles with different access levels: Super Admin, Group Admin, and Chat Users.
 
+READ THIS IMPORTANT!: THE LINK TO THE WEBSITE IS THE FOLLOWING:
+[chat.leonlee.au](chat.leonlee.au)
+Git Repo: [https://github.com/leon-mirai/chatapp](https://github.com/leon-mirai/chatapp)
+
 ## Installation
 
 1. Clone the repository to your local machine:
@@ -19,6 +23,7 @@ This repository uses the MEAN stack (MongoDB, Express, Angular, Node.js) along w
 ng version`
 3. Git - Make sure you installed Git to at least 2.46.0:
    `git --version`
+4.
 
 ## Running the Project
 
@@ -40,10 +45,22 @@ ng build
    `ng serve --host 0.0.0.0 --port 4200`
 3. Open web browser and navigate to 'https://localhost:4200' to view the application
 
+### VM Server Run Using Docker
+
+1. Go to UBUNTU
+2. ssh -L 27017:localhost:27017 ubuntu@<"your IP address VM instance">
+3. gh repo clone leon-mirai/chatapp
+4. cd chatapp
+5. git checkout test1
+6. git pull
+7. docker compose down
+8. docker compose up --build -d
+9. Navigate to chat.leonlee.au
+
 ## Git Repository Layout
 
 The client directory contains all the auto-generated files necessary for the Angular. The project files are inside the `src/app`
-subdirectory. There are four component directories: login, dashboard, groups, and channels.
+subdirectory. There are six component directories: channels, dashboard, groups, login, profile, video-call
 
 The server directory contains the files necessary to run the backend express server.
 
@@ -53,17 +70,22 @@ client/ (Angular frontend code):
 
 - src/
   - app/
-    - components/ // UI components (channels, groups, login, dashboard)
-    - models/ // Angular data structures
+    - components/ // UI components (channels, groups, login, dashboard, video-call, profile)
+    - models/ // Angular data structures (channel, chat-message, create-channel, create-group, group, user)
     - services/ // Services for handling API requests
     - index.html // Main Angular HTML file
     - main.ts // Angular bootstrap file
     - styles.css // Global application styles
 - server/ (Node.js backend code):
   - data/ // JSON data storage (users, groups, channels)
+  - helpers/ // Stores helper functions for mock tests
   - routes/ // API route handlers (login, user, group, channel)
   - services/ // Business logic and data manipulation services
+  - test/ // stores test on the backend using mocha, proxyquire, chai
+  - uploads/ // stores profile image or chat-images
+  - peerServer.js // sets up video chat
   - server.js // Node.js server entry point
+  - sockets.js // sets up real-time chatapp and actions
 - README.md // Documentation file
 - .gitignore // Specifies files ignored by Git
 
@@ -78,11 +100,14 @@ The main branches I worked with are:
 1. main (this is the stable version)
 2. dev (this is where development occurs and where features are added)
 3. dev2 (this is another branch for testing out new developments)
+4. chatapp (this is a branch for developing the chatapp fully offline)
+5. chatsocket (this is a branch for setting up socket.io for chatapp and peerjs)
+6. mongo (this is the branch that was used to refactor the backend from )
 
 ## Data Structures
 
 The application uses the following data structures to represent users, groups, and channels. These structures are
-essential fro both the client and server sides of the application, enabling consistent data management and
+essential for both the client and server sides of the application, enabling consistent data management and
 communication across the system.
 
 - Javascript/TypeScript Arrays: These were used for storing iterables like a list of users, groups, or channels
@@ -107,6 +132,7 @@ const user: User = {
   groups: ["groupA", "groupB"],
   password: "123",
   valid: true,
+  profilePic: "/uploads/super_admin.jpg",
 };
 ```
 
@@ -120,7 +146,8 @@ const user: User = {
   "roles": ["ChatUser", "GroupAdmin"],
   "groups": ["groupA", "groupB"],
   "password": "123",
-  "valid": true
+  "valid": true,
+  "profilePic": "/uploads/super_admin.jpg"
 }
 ```
 
@@ -134,12 +161,14 @@ members of that group and can be administered by one or more group admins.
   "admins": ["2222", "6666"],
   "members": ["1111", "2222", "9999", "6666"],
   "channels": ["channel1", "channel2"],
-  "joinRequests": ["4444", "3333"]
+  "joinRequests": ["4444", "3333"],
+  "blacklist": ["1111", "2222"]
 }
 ```
 
 A **Channel** is a communication channel within a group. It allows members ofa group to communicate through text messages. Each
-channel belongs to a specific group and can have its own set of members, along with a blacklist of banned users.
+channel belongs to a specific group and can have its own set of members, along with a blacklist of banned users. Also
+has the message property which has the object that has the attributes of sender and content.
 
 ```json
 {
@@ -148,7 +177,8 @@ channel belongs to a specific group and can have its own set of members, along w
   "groupId": "group1",
   "members": ["2222", "9999", "6666", "1111"],
   "joinRequests": ["3333"],
-  "blacklist": ["1111"]
+  "blacklist": ["1111"],
+  "messages": [{ "sender": "2222", "content": "hi" }]
 }
 ```
 
@@ -381,6 +411,7 @@ For Phase 2, the user's data is stored used mongoDB.
     - **Description:** Allows a user to request to join a specific channel
 
   - **POST /api/channels/approve-join**
+
     - **Parameters:**
       - `channelId` in the URL
     - **Return Values**
@@ -388,6 +419,24 @@ For Phase 2, the user's data is stored used mongoDB.
       - `200: { message: "Join request rejected " }`
       - `400: { message: " Channel not found "}`
     - **Description:** Approves or rejects a user's request to join a channel. Only channel administrators are allowed to approve or reject join requests.
+
+  - **GET /api/channels/messages**
+
+    - **Parameters**
+      - `channelId` in the URL
+    - **Return Values**
+      - `200: Returns the chat history of the specified channel `
+      - `500: { error: "Failed to fetch chat history" }`
+
+  - **POST /api/channels/messages**
+    - **Parameters**
+      - `channelId` in the URL
+      - Request body containing:
+        - sender: The user sending the message
+        - content: The message content
+    - **Return Values**
+      - `200: { message: "Message added successfully", result }`
+      - `500: { message: "Failed to add message", error }`
 
 ### Groups Routes
 
@@ -551,6 +600,8 @@ Components represent the building blocks of the user interface (UI). They are re
 - **channel**: Displays a chat channel, including user list, name, chat box, and actions to join, ban users, or delete the channel (for SuperAdmin/GroupAdmin).
 - **group**: Shows the group name, members, channels, and actions to create channels, add/remove members, or accept/reject requests (for SuperAdmin/GroupAdmin).
 - **dashboard**: Displays available groups based on the user's role. It provides options to request joining groups, manage accounts, logout, and leave groups (for ChatUsers) or create/manage groups (for GroupAdmin).
+- **profile** This is the component where you upload your profile image.
+- **video-call** This is where I set up peerjs to set up PeerId to exchange ids and connect the videos
 
 Also, the lifecycle hook ngOnInit is used to initialise data by fetching them from the backend. Additionally, CommonModules and FormModules were used to manage
 states and views by using *ngIf and *ngForOf.
@@ -568,9 +619,10 @@ Services are reusable classes that encapsulate application logic and data access
 
 ### Models
 
-- User
-- Channel
 - Group
+- Channel
+- User
+-
 
 ```typescript
 export class Group {
@@ -586,14 +638,56 @@ export class Group {
 ```
 
 ```typescript
+// the meta-data pre data that is used to set up the actual
+// message sent
+export interface ChatMessage {
+  sender: string; // the sender _id
+  senderName: string; // the sender's username
+  content: string; // the actual message
+  profilePic?: string; // profile picture URL
+}
+// the displayed message
+export interface OutgoingMessage {
+  senderId: string; // the sender's _id
+  senderName: string; // sender name
+  content: string; // what's written
+  channelId: string; // the channel it is sent to
+  profilePic?: string; // picture id
+}
+//helper function to create a channel
+export class CreateChannel {
+  constructor(
+    public name: string, // channel name
+    public groupId: string, // group objectid
+    public members: string[] = [], // member ids
+    public channels: string[] = [], // channel ids
+    public joinRequests: string[] = [], // member ids
+    public blacklist: string[] = [] // member ids
+  ) {}
+}
+
+// helper function to create a group
+export class CreateGroup {
+  constructor(
+    public name: string,
+    public admins: string[] = [],
+    public members: string[] = [],
+    public channels: string[] = [],
+    public joinRequests: string[] = []
+  ) {}
+}
+```
+
+```typescript
 export class Channel {
   constructor(
-    public id: string, // unique identifier for the channel
-    public name: string, // name of the channel
-    public groupId: string, // ID of the group this channel belongs to
-    public members: string[] = [], // array of user IDs who are members of the channel
-    public joinRequests: string[] = [], // join request for users interested in the channel
-    public blacklist: string[] = [] // array of users banned from channel
+    public _id: string, // MongoDB ObjectId for the channel
+    public name: string, // channel name
+    public groupId: string, // group to which this channel belongs
+    public members: string[] = [], // members of the channel
+    public joinRequests: string[] = [], // pending join requests
+    public blacklist: string[] = [], // blacklisted users
+    public messages: { sender: string; content: string; timestamp: Date }[] = [] // chat messages
   ) {}
 }
 ```
@@ -607,7 +701,8 @@ class User {
     public roles: string[] = [], // Role permissions e.g. ['Chatuser', 'GroupAdmin', 'SuperAdmin']
     public groups: string[] = [], // array of groupIds that the user is a member of
     public password?: string, // user's password is hidden
-    public valid?: boolean // indicates if user's account is active and used as token
+    public valid?: boolean, // indicates if user's account is active and used as token
+    public profilePic?: string
   ) {}
 }
 ```

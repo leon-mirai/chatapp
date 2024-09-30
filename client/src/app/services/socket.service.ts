@@ -28,7 +28,11 @@ export class SocketService {
   }
 
   // Listen for 'user-joined' event when someone is approved to join the channel
-  onUserJoined(): Observable<{ userId: string, userName: string, channelId: string }> {
+  onUserJoined(): Observable<{
+    userId: string;
+    userName: string;
+    channelId: string;
+  }> {
     return new Observable((observer) => {
       this.socket.on('user-joined', (data) => {
         observer.next(data);
@@ -37,12 +41,40 @@ export class SocketService {
   }
 
   // Emit 'approve-join-request' event when admin approves join request
-  approveJoinRequest(channelId: string, userId: string, userName: string, approve: boolean): void {
-    this.socket.emit('approve-join-request', { channelId, userId, userName, approve });
+  approveJoinRequest(
+    channelId: string,
+    userId: string,
+    userName: string,
+    approve: boolean
+  ): void {
+    this.socket.emit('approve-join-request', {
+      channelId,
+      userId,
+      userName,
+      approve,
+    });
   }
 
   // Emit 'leave-channel' event to the server
   leaveChannel(channelId: string, userId: string, userName: string): void {
     this.socket.emit('leave-channel', { channelId, userId, userName });
+  }
+
+  // Emit 'remove-user' event
+  removeUser(channelId: string, userId: string, userName: string): void {
+    this.socket.emit('remove-user', { channelId, userId, userName });
+  }
+
+  // Listen for 'user-removed' event
+  onUserRemoved(): Observable<{
+    userId: string;
+    userName: string;
+    channelId: string;
+  }> {
+    return new Observable((observer) => {
+      this.socket.on('user-removed', (data) => {
+        observer.next(data);
+      });
+    });
   }
 }
