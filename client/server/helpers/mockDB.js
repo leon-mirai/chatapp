@@ -22,7 +22,6 @@ function createMockDB(collectionBehavior = {}) {
           modifiedCount: 0, // Indicate no document was modified
         })),
 
-      // Optionally, you could add other behaviors like deleteOne
       deleteOne:
         collectionBehavior.deleteOne ||
         (async () => ({

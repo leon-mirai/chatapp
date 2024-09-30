@@ -20,7 +20,7 @@ import {
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   animations: [
-    // fade-In Animation
+    // fade in 
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0.9)' }),
@@ -30,7 +30,7 @@ import {
         ),
       ]),
     ]),
-    // Shake Animation
+    // shaking
     trigger('shake', [
       transition(':enter', []),
       transition('* => *', [
@@ -51,7 +51,7 @@ import {
         ),
       ]),
     ]),
-    // slide-In Animation
+    // slide-In 
     trigger('slideIn', [
       transition(':enter', [
         style({ transform: 'translateY(50%)', opacity: 0 }),
