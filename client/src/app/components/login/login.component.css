@@ -1,0 +1,30 @@
+/* Spinning Box Container */
+.spinning-box-container {
+  display: flex;
+  justify-content: center;
+}
+
+/* Spinning Box Styles */
+.spinning-box {
+  width: 50px;
+  height: 50px;
+  background-color: #007bff;
+  margin: 0 auto;
+  animation: spin 2s linear infinite;
+  transform-style: preserve-3d;
+}
+
+/* Spin Animation */
+@keyframes spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+/* Optional: Pause on Hover */
+.spinning-box:hover {
+  animation-play-state: paused;
+}

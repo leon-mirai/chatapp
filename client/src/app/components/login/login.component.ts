@@ -20,23 +20,45 @@ import {
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   animations: [
+    // fade-In Animation
     trigger('fadeIn', [
       transition(':enter', [
-        style({ opacity: 0 }),
-        animate('600ms ease-in', style({ opacity: 1 })),
+        style({ opacity: 0, transform: 'scale(0.9)' }),
+        animate(
+          '1500ms ease-in-out',
+          style({ opacity: 1, transform: 'scale(1)' })
+        ),
       ]),
     ]),
+    // Shake Animation
     trigger('shake', [
-      transition(':enter', []), // No animation on enter
+      transition(':enter', []),
       transition('* => *', [
-        animate('500ms', keyframes([
-          style({ transform: 'translateX(0)' }),
-          style({ transform: 'translateX(-10px)' }),
-          style({ transform: 'translateX(10px)' }),
-          style({ transform: 'translateX(-10px)' }),
-          style({ transform: 'translateX(10px)' }),
-          style({ transform: 'translateX(0)' }),
-        ])),
+        animate(
+          '1000ms ease-in-out',
+          keyframes([
+            style({ transform: 'translateX(0)', offset: 0 }),
+            style({ transform: 'translateX(-20px)', offset: 0.1 }),
+            style({ transform: 'translateX(20px)', offset: 0.2 }),
+            style({ transform: 'translateX(-15px)', offset: 0.3 }),
+            style({ transform: 'translateX(15px)', offset: 0.4 }),
+            style({ transform: 'translateX(-10px)', offset: 0.5 }),
+            style({ transform: 'translateX(10px)', offset: 0.6 }),
+            style({ transform: 'translateX(-5px)', offset: 0.7 }),
+            style({ transform: 'translateX(5px)', offset: 0.8 }),
+            style({ transform: 'translateX(0)', offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+    // slide-In Animation
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ transform: 'translateY(50%)', opacity: 0 }),
+        animate(
+          '1200ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+          style({ transform: 'translateY(0)', opacity: 1 })
+        ),
       ]),
     ]),
   ],
@@ -64,7 +86,7 @@ export class LoginComponent {
       error: (error) => {
         console.error('Invalid email or password.', error);
         this.errorMessage = 'Invalid email or password';
-        // The shake animation will trigger when errorMessage changes
+        // the shake animation will trigger when errorMessage changes
       },
       complete: () => console.log('Login process completed'),
     });
