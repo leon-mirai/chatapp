@@ -4,6 +4,7 @@ This repository uses the MEAN stack (MongoDB, Express, Angular, Node.js) along w
 
 READ THIS IMPORTANT!: THE LINK TO THE WEBSITE IS THE FOLLOWING:
 [chat.leonlee.au](chat.leonlee.au)
+Git Repo: [https://github.com/leon-mirai/chatapp](https://github.com/leon-mirai/chatapp)
 
 ## Installation
 
