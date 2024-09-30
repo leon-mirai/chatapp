@@ -40,6 +40,18 @@ function setupSocket(io, db) {
       }
     });
 
+    // Emit a notification when a user is removed from the channel
+    socket.on('remove-user', async ({ channelId, userId, userName }) => {
+      try {
+        console.log(`User ${userName} removed from channel ${channelId}`);
+
+        // Emit 'user-removed' event to all users in the channel
+        io.emit('user-removed', { userId, userName, channelId });
+      } catch (err) {
+        console.error('Error handling user removal:', err);
+      }
+    });
+
     // Handle user disconnecting (leaving channel)
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
