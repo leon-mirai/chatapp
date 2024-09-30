@@ -4,6 +4,14 @@ import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+  keyframes,
+} from '@angular/animations';
 
 @Component({
   selector: 'app-login',
@@ -11,6 +19,27 @@ import { Router } from '@angular/router';
   imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('600ms ease-in', style({ opacity: 1 })),
+      ]),
+    ]),
+    trigger('shake', [
+      transition(':enter', []), // No animation on enter
+      transition('* => *', [
+        animate('500ms', keyframes([
+          style({ transform: 'translateX(0)' }),
+          style({ transform: 'translateX(-10px)' }),
+          style({ transform: 'translateX(10px)' }),
+          style({ transform: 'translateX(-10px)' }),
+          style({ transform: 'translateX(10px)' }),
+          style({ transform: 'translateX(0)' }),
+        ])),
+      ]),
+    ]),
+  ],
 })
 export class LoginComponent {
   email: string = '';
@@ -24,7 +53,6 @@ export class LoginComponent {
     private router: Router
   ) {}
 
-  // login submission form
   onSubmit() {
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
@@ -36,6 +64,7 @@ export class LoginComponent {
       error: (error) => {
         console.error('Invalid email or password.', error);
         this.errorMessage = 'Invalid email or password';
+        // The shake animation will trigger when errorMessage changes
       },
       complete: () => console.log('Login process completed'),
     });
@@ -44,12 +73,12 @@ export class LoginComponent {
   requestAccount() {
     this.userService.requestUserCreation().subscribe({
       next: (response) => {
-        console.log('aaccount request successful', response);
+        console.log('Account request successful', response);
         this.requestMessage =
           'Account request has been sent to the SuperAdmin. Please wait for approval.';
       },
       error: (error) => {
-        console.error('account request failed', error);
+        console.error('Account request failed', error);
         this.requestMessage =
           'Failed to request account creation. Please try again later.';
       },

@@ -1,7 +1,7 @@
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-md-6">
-      <div class="card">
+      <div class="card" [@fadeIn]>
         <div class="card-header text-center">
           <h3>Login</h3>
         </div>
@@ -20,7 +20,7 @@
                 required
               />
             </div>
-            <!-- password fieldd -->
+            <!-- password field -->
             <div class="form-group mb-3">
               <label for="password">Password:</label>
               <input
@@ -33,7 +33,7 @@
               />
             </div>
             <!-- error display -->
-            <div *ngIf="errorMessage" class="alert alert-danger">
+            <div *ngIf="errorMessage" class="alert alert-danger" [@shake]>
               {{ errorMessage }}
             </div>
             <!-- login button -->
@@ -51,7 +51,7 @@
             </button>
           </div>
 
-          <!--   request message display -->
+          <!-- request message display -->
           <div *ngIf="requestMessage" class="alert alert-info mt-3">
             {{ requestMessage }}
           </div>
