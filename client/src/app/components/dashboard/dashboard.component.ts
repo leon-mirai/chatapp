@@ -40,7 +40,7 @@ export class DashboardComponent implements OnInit {
     if (userData) {
       this.user = JSON.parse(userData);
 
-      // Check if the user object contains `id` instead of `_id` and assign accordingly
+      // check if the user object contains `id` instead of `_id` and assign accordingly
       if (!this.user._id && this.user.id) {
         this.user._id = this.user.id; // Temporarily assign id to _id
         console.log('Temporary fix applied: Using `id` for `_id`');

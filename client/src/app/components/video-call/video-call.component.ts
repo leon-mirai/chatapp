@@ -15,24 +15,24 @@ export class VideoCallComponent implements OnInit {
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
   private peer!: Peer;
   private localStream!: MediaStream;
-  private currentCall!: MediaConnection; // Store the current call
-  public peerId: string | undefined; // For displaying the peer ID
+  private currentCall!: MediaConnection; 
+  public peerId: string | undefined; 
 
   ngOnInit(): void {
-    // Initialize PeerJS
+    // initialize PeerJS
     this.peer = new Peer();
 
-    // Display the peer ID when the peer connection is open
+    // display the peer ID when the peer connection is open
     this.peer.on('open', (id: string) => {
       this.peerId = id;
     });
 
-    // Handle incoming calls
+    // handle incoming calls
     this.peer.on('call', (call: MediaConnection) => {
-      // Store the current call
+      // store the current call
       this.currentCall = call;
 
-      // Answer the call with the local video stream
+      // answer the call with the local video stream
       call.answer(this.localStream);
       call.on('stream', (remoteStream: MediaStream) => {
         this.remoteVideo.nativeElement.srcObject = remoteStream;
@@ -42,19 +42,19 @@ export class VideoCallComponent implements OnInit {
 
   async startCall(): Promise<void> {
     try {
-      // Get the local video stream
+      // get the local video stream
       this.localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
       this.localVideo.nativeElement.srcObject = this.localStream;
 
-      // Make a call to the remote peer
+      // make a call to the remote peer
       const remotePeerId = prompt('Enter the remote peer ID:');
       if (remotePeerId) {
         const call = this.peer.call(remotePeerId, this.localStream);
 
-        // Store the current call
+        // store the current call
         this.currentCall = call;
 
         call.on('stream', (remoteStream: MediaStream) => {
@@ -66,18 +66,18 @@ export class VideoCallComponent implements OnInit {
     }
   }
 
-  // Method to end the call
+  // method to end the call
   endCall(): void {
     if (this.currentCall) {
-      // Close the call
+      // close the call
       this.currentCall.close();
 
-      // Stop all tracks of the local stream
+      // stop all tracks of the local stream
       if (this.localStream) {
         this.localStream.getTracks().forEach((track) => track.stop());
       }
 
-      // Clear the video elements
+      // clear the video elements
       this.localVideo.nativeElement.srcObject = null;
       this.remoteVideo.nativeElement.srcObject = null;
 

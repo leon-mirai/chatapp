@@ -56,8 +56,8 @@ describe(" get - /api/groups (get all groups)", () => {
         expect(res).to.have.status(200);
         expect(res.body).to.be.an("array");
         expect(res.body.length).to.equal(2); // Expect two groups
-        expect(res.body[0]).to.have.property("name", "Tech Enthusiasts"); // Corrected
-        expect(res.body[1]).to.have.property("name", "Book Club"); // Corrected
+        expect(res.body[0]).to.have.property("name", "Tech Enthusiasts"); 
+        expect(res.body[1]).to.have.property("name", "Book Club");
         done();
       });
   });
@@ -72,7 +72,7 @@ describe("get - /api/users/:userId/groups (get all groups for a user)", () => {
   });
 
   it("should return a list of groups for the user", (done) => {
-    const userId = new ObjectId("614c1b3e4c13ab1cce000004"); // Mock userId
+    const userId = new ObjectId("614c1b3e4c13ab1cce000004"); 
 
     const groups = [
       {

@@ -16,17 +16,17 @@ describe(" get - /api/users/current (get crrent users)", () => {
     app = express();
     app.use(express.json());
 
-    // Set up session middleware
+    // set up session middleware
     app.use((req, res, next) => {
-      req.session = {}; // Simulate session
+      req.session = {}; // simulate session
       next();
     });
   });
 
   it("should return the current user when authenticated", (done) => {
-    const userId = "605c72ef35073e2f58c0286e"; // Sample ObjectId
+    const userId = "605c72ef35073e2f58c0286e"; 
 
-    // Middleware to set req.session.userId
+    // middleware to set req.session.userId
     app.use((req, res, next) => {
       req.session.userId = userId;
       next();
@@ -46,7 +46,7 @@ describe(" get - /api/users/current (get crrent users)", () => {
       },
     });
 
-    // Register the route with the mock DB
+    // rregister the route with the mock DB
     route(app, mockDB);
 
     chai
@@ -117,22 +117,22 @@ describe(" - get /api/users (get all users}", () => {
       { _id: new ObjectId(), username: "user2", email: "user2@example.com" },
     ];
 
-    // Create a mock for the userService
+    // create a mock for the userService
     const mockUserService = {
       readUsers: async () => users,
     };
 
-    // Use proxyquire to replace userService in routes/user.js
+    // use proxyquire to replace userService in routes/user.js
     const route = proxyquire("../routes/user", {
       "../services/userService": mockUserService,
     }).route;
 
-    const mockDb = {}; // Mock DB object
+    const mockDb = {}; // mock DB object
 
-    // Register the route
+    // register the route
     route(app, mockDb);
 
-    // Make a GET request to /api/users
+    // mke a GET request to /api/users
     chai
       .request(app)
       .get("/api/users")
@@ -158,29 +158,29 @@ describe(" - get /api/users/:userId", () => {
   });
 
   it("should return a user when a valid ObjectId is provided", (done) => {
-    const userId = "605c72ef35073e2f58c0286e"; // Mock valid ObjectId
+    const userId = "605c72ef35073e2f58c0286e"; // mock valid ObjectId
 
-    // Create a mock for the userService
+    // create a mock for the userService
     const mockUserService = {
       getUserById: async (db, id) => ({
         _id: id,
         username: "testUser",
         email: "test@example.com",
       }),
-      getUserByUsername: async () => null, // Should not be called in this test
+      getUserByUsername: async () => null, // should not be called in this test
     };
 
-    // Use proxyquire to replace userService in routes/user.js
+    // use proxyquire to replace userService in routes/user.js
     const route = proxyquire("../routes/user", {
       "../services/userService": mockUserService,
     }).route;
 
-    const mockDb = {}; // Mock DB object
+    const mockDb = {}; // mck DB object
 
-    // Register the route
+    // register the route
     route(app, mockDb);
 
-    // Make a GET request to /api/users/:userId
+    // make a GET request to /api/users/:userId
     chai
       .request(app)
       .get(`/api/users/${userId}`)
@@ -195,9 +195,9 @@ describe(" - get /api/users/:userId", () => {
   });
 
   it("should return a user when a valid username is provided", (done) => {
-    const username = "testUser"; // Mock valid username
+    const username = "testUser"; // mock valid username
 
-    // Create a mock for the userService
+    // create a mock for the userService
     const mockUserService = {
       getUserById: async () => null, // Should not be called in this test
       getUserByUsername: async (db, name) => ({
@@ -206,17 +206,17 @@ describe(" - get /api/users/:userId", () => {
       }),
     };
 
-    // Use proxyquire to replace userService in routes/user.js
+    // use proxyquire to replace userService in routes/user.js
     const route = proxyquire("../routes/user", {
       "../services/userService": mockUserService,
     }).route;
 
-    const mockDb = {}; // Mock DB object
+    const mockDb = {}; // mock DB object
 
-    // Register the route
+    // register the route
     route(app, mockDb);
 
-    // Make a GET request to /api/users/:userId (where userId is a username)
+    // make a GET request to /api/users/:userId (where userId is a username)
     chai
       .request(app)
       .get(`/api/users/${username}`)
@@ -233,23 +233,23 @@ describe(" - get /api/users/:userId", () => {
   it("should return 404 if user is not found by ObjectId", (done) => {
     const userId = "605c72ef35073e2f58c0286e"; // Mock valid ObjectId
 
-    // Create a mock for the userService
+    // create a mock for the userService
     const mockUserService = {
-      getUserById: async () => null, // Return null to simulate user not found
-      getUserByUsername: async () => null, // Should not be called in this test
+      getUserById: async () => null, // return null to simulate user not found
+      getUserByUsername: async () => null, // should not be called in this test
     };
 
-    // Use proxyquire to replace userService in routes/user.js
+    // use proxyquire to replace userService in routes/user.js
     const route = proxyquire("../routes/user", {
       "../services/userService": mockUserService,
     }).route;
 
-    const mockDb = {}; // Mock DB object
+    const mockDb = {}; // mock DB object
 
-    // Register the route
+    // register the route
     route(app, mockDb);
 
-    // Make a GET request to /api/users/:userId
+    // mmake a GET request to /api/users/:userId
     chai
       .request(app)
       .get(`/api/users/${userId}`)
@@ -265,13 +265,13 @@ describe(" - get /api/users/:userId", () => {
   it("should return 404 if user is not found by username", (done) => {
     const username = "nonexistentUser"; // Mock invalid username
 
-    // Create a mock for the userService
+    // create a mock for the userService
     const mockUserService = {
-      getUserById: async () => null, // Should not be called in this test
-      getUserByUsername: async () => null, // Return null to simulate user not found
+      getUserById: async () => null, // should not be called in this test
+      getUserByUsername: async () => null, //return null to simulate user not found
     };
 
-    // Use proxyquire to replace userService in routes/user.js
+    // use proxyquire to replace userService in routes/user.js
     const route = proxyquire("../routes/user", {
       "../services/userService": mockUserService,
     }).route;

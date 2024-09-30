@@ -1,6 +1,6 @@
 export class Group {
   constructor(
-    public _id: string,  // MongoDB ObjectId for Group
+    public _id: string,  
     public name: string,
     public admins: string[] = [],
     public members: string[] = [],

@@ -32,7 +32,7 @@ async function getChannelById(db, channelId) {
   try {
     const channel = await db
       .collection("channels")
-      .findOne({ _id: new ObjectId(channelId) }); // Use ObjectId for channel ID
+      .findOne({ _id: new ObjectId(channelId) }); 
     if (!channel) {
       console.error(`Channel with ID ${channelId} not found.`);
       return null;
@@ -47,7 +47,7 @@ async function getChannelById(db, channelId) {
 // Check if user is in the group associated with the channel
 async function isUserInGroup(db, groupId, userId) {
   try {
-    const groupObjectId = new ObjectId(groupId); // Convert to ObjectId
+    const groupObjectId = new ObjectId(groupId); 
     const groupsCollection = db.collection("groups");
     const group = await groupsCollection.findOne({ _id: groupObjectId });
 
@@ -65,7 +65,7 @@ async function isUserInGroup(db, groupId, userId) {
 // Join a channel
 async function joinChannel(db, channelId, userId) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert to ObjectId
+    const channelObjectId = new ObjectId(channelId); 
     const channelsCollection = db.collection("channels");
     const channel = await channelsCollection.findOne({
       _id: channelObjectId,
@@ -158,8 +158,8 @@ async function removeUserFromChannels(db, userId) {
 // Remove user from all channels within a group
 async function removeUserFromGroupChannels(db, groupId, userId) {
   try {
-    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
-    const userObjectId = new ObjectId(userId); // Convert userId to ObjectId
+    const groupObjectId = new ObjectId(groupId); 
+    const userObjectId = new ObjectId(userId); 
 
     // Log for debugging
     console.log(
@@ -192,7 +192,7 @@ async function removeUserFromGroupChannels(db, groupId, userId) {
 
 async function deleteGroupChannels(db, groupId) {
   try {
-    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
+    const groupObjectId = new ObjectId(groupId); 
     const result = await db
       .collection("channels")
       .deleteMany({ groupId: groupObjectId });
@@ -214,7 +214,7 @@ async function deleteGroupChannels(db, groupId) {
 
 async function getChannelsByGroupId(db, groupId) {
   try {
-    const groupObjectId = new ObjectId(groupId); // Convert groupId to ObjectId
+    const groupObjectId = new ObjectId(groupId); 
     console.log("Looking for channels with group ID: ", groupObjectId);
 
     const channels = await db
@@ -268,7 +268,7 @@ async function updateChannelById(db, channelId, updatedData) {
 
 async function deleteChannelById(db, channelId) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
+    const channelObjectId = new ObjectId(channelId); 
     const result = await db
       .collection("channels")
       .deleteOne({ _id: channelObjectId });
@@ -318,8 +318,8 @@ async function requestJoinChannel(db, channelId, userId) {
 
 async function approveJoinRequest(db, channelId, userId, approve) {
   try {
-    const channelObjectId = new ObjectId(channelId); // Convert channelId to ObjectId
-    const userObjectId = new ObjectId(userId); // Convert userId to ObjectId
+    const channelObjectId = new ObjectId(channelId); 
+    const userObjectId = new ObjectId(userId); 
     const channelsCollection = db.collection("channels");
 
     const channel = await channelsCollection.findOne({ _id: channelObjectId });

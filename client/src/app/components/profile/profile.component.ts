@@ -15,12 +15,12 @@ import { FormsModule } from '@angular/forms';
 export class ProfileComponent implements OnInit {
   selectedFile: File | null = null;
   uploadSuccess: boolean = false;
-  user: User | null = null; // Store the current user
+  user: User | null = null; 
 
   constructor(private authService: AuthService, private userService: UserService) {}
 
   ngOnInit(): void {
-    // Retrieve the current user from AuthService
+    // retrieve the current user from AuthService
     this.user = this.authService.getUser();
     
     if (this.user) {
@@ -30,7 +30,7 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  // Handle file selection
+  // handle file selection
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -40,7 +40,7 @@ export class ProfileComponent implements OnInit {
   }
 
   onUpload(event: Event): void {
-    event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault(); // prevent the default form submission behavior
     console.log('Upload button clicked');
 
     if (!this.selectedFile || !this.user) {
@@ -48,10 +48,10 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    // Log file data for debugging
+    // log file data for debugging
     console.log('Selected file:', this.selectedFile);
 
-    // Call the upload service
+    // call the upload service
     this.userService
       .uploadProfilePicture(this.user._id, this.selectedFile)
       .subscribe({
@@ -59,7 +59,7 @@ export class ProfileComponent implements OnInit {
           console.log('Upload successful:', response);
           this.uploadSuccess = true;
           if (this.user) {
-            this.user.profilePic = response.filePath; // Update user's profile picture
+            this.user.profilePic = response.filePath; // update user's profile picture
           }
         },
         error: (err) => {

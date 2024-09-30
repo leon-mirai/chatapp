@@ -4,26 +4,26 @@ const express = require("express");
 const { route } = require("../routes/api-login");
 const { expect } = chai;
 
-chai.use(chaiHttp); // Use Chai-HTTP plugin
+chai.use(chaiHttp); 
 
 let app, db;
 
 beforeEach(() => {
-  // Create mock Express app
+  
   app = express();
   app.use(express.json());
 
   // Default mock database behavior (no user found)
   db = {
     collection: () => ({
-      findOne: async () => null, // Return null by default
+      findOne: async () => null, 
     }),
   };
 });
 
 describe("POST /api/auth", () => {
   it("should return 401 when no user is found", async () => {
-    // Apply routes with mocked db
+    
     route(app, db);
 
     const res = await chai
@@ -36,18 +36,18 @@ describe("POST /api/auth", () => {
   });
 
   it("should return 200 when user is valid", async () => {
-    // Modify the db mock to simulate a valid user found in the database
+    
     db.collection = () => ({
       findOne: async () => ({
         _id: "605c72ef35073e2f58c0286e",
         email: "test@example.com",
         username: "testuser",
-        password: "correctpassword", // Include password in the mock
-        valid: true, // Simulate a valid user account
+        password: "correctpassword", 
+        valid: true, 
       }),
     });
 
-    // Re-apply routes with the updated db
+    
     route(app, db);
 
     const res = await chai
@@ -61,18 +61,18 @@ describe("POST /api/auth", () => {
   });
 
   it("should return 401 when the password is incorrect", async () => {
-    // Mock the database to return a user with a correct password
+    
     db.collection = () => ({
       findOne: async () => ({
         _id: "12345",
         email: "test@example.com",
         username: "testuser",
-        password: "correctpassword", // Mock the correct password in the DB
+        password: "correctpassword", 
         valid: true,
       }),
     });
 
-    // Re-apply routes with the updated db
+    
     route(app, db);
 
     const res = await chai
