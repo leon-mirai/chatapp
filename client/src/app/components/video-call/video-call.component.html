@@ -4,6 +4,8 @@
     <video #remoteVideo autoplay></video> <!-- Remote user's video -->
   </div>
   <button (click)="startCall()">Start Call</button>
-  <button (click)="endCall()">End Call</button> <!-- Add End Call button -->
+  <button (click)="endCall()">End Call</button>
+  <button (click)="shareScreen()">Share Screen</button> <!-- Add Screen Share button -->
+  <button (click)="stopScreenShare()">Stop Screen Share</button> <!-- Add Stop Screen Share button -->
   <p>Your Peer ID: {{ peerId }}</p> <!-- Display the peer ID -->
 </div>

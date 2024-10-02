@@ -16,7 +16,8 @@ export class VideoCallComponent implements OnInit {
   private peer!: Peer;
   private localStream!: MediaStream;
   private currentCall!: MediaConnection; 
-  public peerId: string | undefined; 
+  public peerId: string | undefined;
+  private screenStream!: MediaStream; // Store screen stream reference
 
   ngOnInit(): void {
     // initialize PeerJS
@@ -66,6 +67,50 @@ export class VideoCallComponent implements OnInit {
     }
   }
 
+  // method to start screen sharing
+  async shareScreen(): Promise<void> {
+    try {
+      // get the screen stream
+      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+
+      // Replace the local video stream with the screen stream
+      this.localVideo.nativeElement.srcObject = this.screenStream;
+
+      // Replace the stream being sent to the current call
+      this.currentCall.peerConnection.getSenders().forEach((sender) => {
+        if (sender.track?.kind === 'video') {
+          sender.replaceTrack(this.screenStream.getVideoTracks()[0]);
+        }
+      });
+
+      console.log('Screen sharing started.');
+    } catch (error) {
+      console.error('Error starting screen sharing.', error);
+    }
+  }
+
+  // method to stop screen sharing
+  stopScreenShare(): void {
+    if (this.screenStream) {
+      // stop the screen stream
+      this.screenStream.getTracks().forEach((track) => track.stop());
+
+      // Switch back to the local video stream
+      this.localVideo.nativeElement.srcObject = this.localStream;
+
+      // Replace the screen stream with the camera stream in the current call
+      this.currentCall.peerConnection.getSenders().forEach((sender) => {
+        if (sender.track?.kind === 'video') {
+          sender.replaceTrack(this.localStream.getVideoTracks()[0]);
+        }
+      });
+
+      console.log('Screen sharing stopped.');
+    }
+  }
+
   // method to end the call
   endCall(): void {
     if (this.currentCall) {
@@ -75,6 +120,11 @@ export class VideoCallComponent implements OnInit {
       // stop all tracks of the local stream
       if (this.localStream) {
         this.localStream.getTracks().forEach((track) => track.stop());
+      }
+
+      // stop all tracks of the screen stream
+      if (this.screenStream) {
+        this.screenStream.getTracks().forEach((track) => track.stop());
       }
 
       // clear the video elements
