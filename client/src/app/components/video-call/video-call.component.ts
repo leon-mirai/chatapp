@@ -15,7 +15,7 @@ export class VideoCallComponent implements OnInit {
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
   private peer!: Peer;
   private localStream!: MediaStream;
-  private currentCall!: MediaConnection; 
+  private currentCall!: MediaConnection;
   public peerId: string | undefined;
   private screenStream!: MediaStream; // Store screen stream reference
 
@@ -49,6 +49,7 @@ export class VideoCallComponent implements OnInit {
         audio: true,
       });
       this.localVideo.nativeElement.srcObject = this.localStream;
+      this.localVideo.nativeElement.muted = true; // Mute local video
 
       // make a call to the remote peer
       const remotePeerId = prompt('Enter the remote peer ID:');
@@ -74,20 +75,22 @@ export class VideoCallComponent implements OnInit {
       this.screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
       });
-  
+
       // Replace the local video stream with the screen stream locally
       this.localVideo.nativeElement.srcObject = this.screenStream;
-  
+
       // Replace the stream being sent to the current call, if a call exists
       if (this.currentCall) {
         const videoTrack = this.screenStream.getVideoTracks()[0];
-  
+
         // Replace the video track for the current connection
-        const videoSender = this.currentCall.peerConnection.getSenders().find((sender) => sender.track?.kind === 'video');
+        const videoSender = this.currentCall.peerConnection
+          .getSenders()
+          .find((sender) => sender.track?.kind === 'video');
         if (videoSender) {
           videoSender.replaceTrack(videoTrack);
         }
-  
+
         console.log('Screen sharing started.');
       } else {
         console.warn('No active call to share the screen.');
@@ -96,7 +99,6 @@ export class VideoCallComponent implements OnInit {
       console.error('Error starting screen sharing.', error);
     }
   }
-  
 
   // method to stop screen sharing
   stopScreenShare(): void {

@@ -1,47 +1,47 @@
 describe('Login Success Test', () => {
   beforeEach(() => {
-    // Visit the login page before each test
+    // visit the login page before each test
     cy.visit('https://chat.leonlee.au/');
   });
 
-  // Test for valid username and password
+  // test for valid username and password
   it('valid username and password', () => {
-    // Enter valid email
+    // enter valid email
     cy.get('input[name="email"]').type('chatuser@example.com');
     
-    // Enter valid password
+    // enter valid password
     cy.get('input[name="password"]').type('123');
 
-    // Click login
+    // click login
     cy.get('button').contains('Login').click();
 
-    // Check if redirected to the dashboard
+    // check if redirected to the dashboard
     cy.url().should('include', '/dashboard');
 
-    // Wait for a short period to ensure localStorage/sessionStorage is set
+    // wait for a short period to ensure localStorage/sessionStorage is set
     cy.wait(500);
 
-    // Log localStorage and sessionStorage to the Cypress console for debugging
+    // log localStorage and sessionStorage to the Cypress console for debugging
     cy.window().then((window) => {
       console.log('LocalStorage:', window.localStorage);
       console.log('SessionStorage:', window.sessionStorage);
     });
 
-    // Check localStorage or sessionStorage for the 'user' key
+    // check localStorage or sessionStorage for the 'user' key
     cy.window().then((window) => {
       const localStorageUser = window.localStorage.getItem('user');
       const sessionStorageUser = window.sessionStorage.getItem('user');
 
       if (localStorageUser) {
-        // Assert user exists in localStorage
+        // assert user exists in localStorage
         const user = JSON.parse(localStorageUser);
         expect(user.email).to.equal('chatuser@example.com');
       } else if (sessionStorageUser) {
-        // If not found in localStorage, check sessionStorage
+        // if not found in localStorage, check sessionStorage
         const user = JSON.parse(sessionStorageUser);
         expect(user.email).to.equal('chatuser@example.com');
       } else {
-        // Fail the test if neither storage contains the user
+        // fail the test if neither storage contains the user
         throw new Error('User data not found in localStorage or sessionStorage');
       }
     });

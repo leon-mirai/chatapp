@@ -3,11 +3,11 @@ const { ExpressPeerServer } = require("peer");
 function setupPeerServer(server) {
   const peerServer = ExpressPeerServer(server, {
     path: "/peerjs",
-    debug: true, // Enable debugging to help track connection issues
-    allow_discovery: true, // Allows peers to discover each other
+    debug: true, // enable debugging to help track connection issues
+    allow_discovery: true, // allows peers to discover each other
   });
 
-  // Log incoming connections for debugging purposes
+  // log incoming connections for debugging purposes
   peerServer.on('connection', (client) => {
     console.log(`Peer connected: ${client.getId()}`);
   });
