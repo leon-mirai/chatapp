@@ -12,20 +12,20 @@ export class AuthService {
   private currentUser: User | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
-
+  // login compares with database 
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}`, { email, password });
   }
-
+  // token to check if they are valid user
   isLoggedIn(): boolean {
     return !!localStorage.getItem('user');
   }
-
+  // logout buttoin
   logout(): void {
     localStorage.removeItem('user');
     this.router.navigate(['/']);
   }
-
+  // get user's info
   getUser(): User | null {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -38,15 +38,15 @@ export class AuthService {
     }
     return null;
   }
-
+  // check is admin
   isSuperAdmin(): boolean {
     return !!this.currentUser && this.currentUser.roles.includes('SuperAdmin');
   }
-
+  // check 
   isGroupAdmin(): boolean {
     return !!this.currentUser && this.currentUser.roles.includes('GroupAdmin');
   }
-
+  // checck
   isChatUser(): boolean {
     return !!this.currentUser && this.currentUser.roles.includes('ChatUser');
   }

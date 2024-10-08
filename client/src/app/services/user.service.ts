@@ -13,11 +13,11 @@ export class UserService {
 
   private currentUserId: string | null = null;
 
-  // Method to get the current user's ID
+  // method to get the current user's ID
   getCurrentUserId(): string | null {
     return this.currentUserId;
   }
-
+  // upload profile picture with userId
   uploadProfilePicture(userId: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('profilePic', file);
@@ -27,7 +27,7 @@ export class UserService {
       formData
     );
   }
-
+  // upload image to chat
   uploadImage(imageData: FormData): Observable<{ imageUrl: string }> {
     return this.http.post<{ imageUrl: string }>(
       '/api/upload-chat-image',
@@ -47,7 +47,7 @@ export class UserService {
     console.log(`Fetching user with ID: ${userId}`);
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
-
+  // user requests an account to be made
   requestUserCreation(): Observable<any> {
     console.log('Requesting new user account creation...');
     const newUser = {
@@ -61,7 +61,7 @@ export class UserService {
     };
     return this.http.post(`${this.apiUrl}`, newUser);
   }
-
+  // generate ObjectId
   private generateId(): string {
     return Math.random().toString(36).slice(2, 6).toUpperCase();
   }

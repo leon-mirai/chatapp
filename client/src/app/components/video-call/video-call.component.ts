@@ -49,7 +49,7 @@ export class VideoCallComponent implements OnInit {
         audio: true,
       });
       this.localVideo.nativeElement.srcObject = this.localStream;
-      this.localVideo.nativeElement.muted = true; // Mute local video
+      this.localVideo.nativeElement.muted = true; // mute local video
 
       // make a call to the remote peer
       const remotePeerId = prompt('Enter the remote peer ID:');
@@ -76,14 +76,14 @@ export class VideoCallComponent implements OnInit {
         video: true,
       });
 
-      // Replace the local video stream with the screen stream locally
+      // replace the local video stream with the screen stream locally
       this.localVideo.nativeElement.srcObject = this.screenStream;
 
-      // Replace the stream being sent to the current call, if a call exists
+      // replace the stream being sent to the current call, if a call exists
       if (this.currentCall) {
         const videoTrack = this.screenStream.getVideoTracks()[0];
 
-        // Replace the video track for the current connection
+        // replace the video track for the current connection
         const videoSender = this.currentCall.peerConnection
           .getSenders()
           .find((sender) => sender.track?.kind === 'video');
@@ -106,10 +106,10 @@ export class VideoCallComponent implements OnInit {
       // stop the screen stream
       this.screenStream.getTracks().forEach((track) => track.stop());
 
-      // Switch back to the local video stream
+      // switch back to the local video stream
       this.localVideo.nativeElement.srcObject = this.localStream;
 
-      // Replace the screen stream with the camera stream in the current call
+      // replace the screen stream with the camera stream in the current call
       this.currentCall.peerConnection.getSenders().forEach((sender) => {
         if (sender.track?.kind === 'video') {
           sender.replaceTrack(this.localStream.getVideoTracks()[0]);

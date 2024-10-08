@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
-import { ChatMessage, OutgoingMessage } from '../models/chat-message.model'; // Import both interfaces
+import { ChatMessage, OutgoingMessage } from '../models/chat-message.model'; 
 
 @Injectable({
   providedIn: 'root',
@@ -13,12 +13,12 @@ export class SocketService {
     this.socket = io();
   }
 
-  // Send a message to the server
+  // send a message to the server
   sendMessage(message: OutgoingMessage): void {
     this.socket.emit('message', message);
   }
 
-  // Receive messages from the server
+  // receive messages from the server
   getMessages(): Observable<ChatMessage> {
     return new Observable<ChatMessage>((observer) => {
       this.socket.on('message', (message: ChatMessage) => {
@@ -27,7 +27,7 @@ export class SocketService {
     });
   }
 
-  // Listen for 'user-joined' event when someone is approved to join the channel
+  // listen for 'user-joined' event when someone is approved to join the channel
   onUserJoined(): Observable<{
     userId: string;
     userName: string;
@@ -40,7 +40,7 @@ export class SocketService {
     });
   }
 
-  // Emit 'approve-join-request' event when admin approves join request
+  // emit 'approve-join-request' event when admin approves join request
   approveJoinRequest(
     channelId: string,
     userId: string,
@@ -55,17 +55,17 @@ export class SocketService {
     });
   }
 
-  // Emit 'leave-channel' event to the server
+  // emit 'leave-channel' event to the server
   leaveChannel(channelId: string, userId: string, userName: string): void {
     this.socket.emit('leave-channel', { channelId, userId, userName });
   }
 
-  // Emit 'remove-user' event
+  // emit 'remove-user' event
   removeUser(channelId: string, userId: string, userName: string): void {
     this.socket.emit('remove-user', { channelId, userId, userName });
   }
 
-  // Listen for 'user-removed' event
+  // listen for 'user-removed' event
   onUserRemoved(): Observable<{
     userId: string;
     userName: string;
