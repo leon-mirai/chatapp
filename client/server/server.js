@@ -12,11 +12,11 @@ const port = 3000;
 // static files for frontend
 app.use(express.static("public"));
 
-// MongoDB connection URI
+// mongoDB connection URI
 const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017";
 const client = new MongoClient(mongoUrl);
 
-// Create an HTTP server and integrate it with Socket.IO
+// create an HTTP server and integrate it with Socket.IO
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -25,31 +25,31 @@ const io = new Server(server, {
   },
 });
 
-// Integrate the Peer.js server with the existing HTTP server
+// integrate the Peer.js server with the existing HTTP server
 const peerServer = setupPeerServer(server);
 app.use("/peerjs", peerServer); // Serve PeerJS on the '/peerjs' route
 
-// Add root route to fix the 404 issue in your tests
+// add root route to fix the 404 issue in your tests
 app.get("/", (req, res) => {
   res.status(200).send("Server is up and running!");
 });
 
-// Inside connectToDb()
+// inside connectToDb()
 async function connectToDb() {
   try {
     await client.connect();
     console.log("Connected to MongoDB");
 
-    const db = client.db("chatappDB"); // Ensure 'db' is selected properly
+    const db = client.db("chatappDB");
 
-    // Middleware
+    // middleware
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
 
-    // Serve static files from the uploads directory
+    // sserve static files from the uploads directory
     app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-    // Import and use routes
+    // import and use routes
     const login = require("./routes/api-login.js");
     const user = require("./routes/user.js");
     const group = require("./routes/group.js");
@@ -60,17 +60,17 @@ async function connectToDb() {
     group.route(app, db);
     channel.route(app, db);
 
-    // Set up socket handling and pass 'db'
-    setupSocket(io, db); // Pass 'db' to the socket
+    // set up socket handling and pass 'db'
+    setupSocket(io, db); 
 
-    // Catch-all route to serve the Angular app
+    // catch-all route to serve the Angular app
     app.get("*", (request, response) => {
       response.sendFile(
         path.resolve(__dirname, "/client/server/public/index.html") // ../dist/client/browser/index.html
       );
     });
 
-    // Start the server
+    // start the server
     server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });

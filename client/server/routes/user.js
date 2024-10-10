@@ -10,17 +10,18 @@ const channelService = require("../services/channelService");
 const uploadDir = "server/uploads/";
 
 // ensure the upload directory exists
-if (!fs.existsSync(uploadDir)) {
+if (!fs.existsSync(uploadDir)) { // 
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // set up multer for file uploads
-const storage = multer.diskStorage({
+const storage = multer.diskStorage({ // define where to store uploaded files and name them
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads/"));
+    cb(null, path.join(__dirname, "../uploads/")); // dynamicallyy make sure paths are connected across os
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // unique filename
+    cb(null, Date.now() + path.extname(file.originalname)); // unique filename. extract extension from the uploaded file's name
+    // to make file is saved iwth correct file extension
   },
 });
 
@@ -50,7 +51,7 @@ const route = (app, db) => {
           // remove the old profile picture file if it exists
           if (user.profilePic && user.profilePic.length > 0) {
             const oldFilePath = path.join(__dirname, "..", user.profilePic[0]);
-            fs.unlink(oldFilePath, (err) => {
+            fs.unlink(oldFilePath, (err) => { // unlink deletes the old profile
               if (err) {
                 console.error("Failed to delete old profile picture:", err);
               } else {
@@ -109,10 +110,9 @@ const route = (app, db) => {
     }
   );
 
-  // In user.js or your user route handler
   app.get("/api/users/current", async (req, res) => {
     try {
-      // Replace this with your actual logic to get the current user ID
+      
       const userId = req.session?.userId || req.user?.id;
 
       if (!userId) {
@@ -131,7 +131,7 @@ const route = (app, db) => {
     }
   });
 
-  // Get all users
+  // get all users
   app.get("/api/users", async (req, res) => {
     try {
       const users = await userService.readUsers(db);
@@ -141,16 +141,16 @@ const route = (app, db) => {
     }
   });
 
-  // Get user by ID or username
+  // get user by ID or username
   app.get("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     try {
       let user;
       if (ObjectId.isValid(userId)) {
-        // Find by ObjectId
+        // find by ObjectId
         user = await userService.getUserById(db, new ObjectId(userId));
       } else {
-        // Assume it's a username and find by username
+        // assume it's a username and find by username
         user = await userService.getUserByUsername(db, userId);
       }
       if (user) {
@@ -163,7 +163,7 @@ const route = (app, db) => {
     }
   });
 
-  // User requests account creation with minimal details
+  // user requests account creation with minimal details
   app.post("/api/users", async (req, res) => {
     try {
       const newUser = {
@@ -176,7 +176,7 @@ const route = (app, db) => {
         valid: false,
       };
 
-      // Insert user into the database
+      // insert user into the database
       await userService.createUser(db, newUser);
 
       res
@@ -188,7 +188,7 @@ const route = (app, db) => {
     }
   });
 
-  // SuperAdmin completes user registration
+  // ssuperAdmin completes user registration
   app.put("/api/users/:userId/complete-registration", async (req, res) => {
     const { userId } = req.params;
     const { username, email } = req.body;
@@ -196,7 +196,7 @@ const route = (app, db) => {
     try {
       const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
-        // Check for existing username or email
+        // check for existing username or email
         const existingUser = await userService.findUserByUsernameOrEmail(
           db,
           username,
@@ -209,7 +209,7 @@ const route = (app, db) => {
             .json({ message: "Username or email already exists" });
         }
 
-        // Complete registration and mark as valid
+        // complete registration and mark as valid
         const updatedUser = { ...user, username, email, valid: true };
         await userService.updateUser(db, updatedUser);
         res
@@ -232,7 +232,7 @@ const route = (app, db) => {
     try {
       const user = await userService.getUserById(db, new ObjectId(userId)); // Convert to ObjectId
       if (user) {
-        // Convert strings in groups array to ObjectId
+        // convert strings in groups array to ObjectId
         if (updatedUser.groups && Array.isArray(updatedUser.groups)) {
           updatedUser.groups = updatedUser.groups.map(
             (groupId) => new ObjectId(groupId)
@@ -250,7 +250,7 @@ const route = (app, db) => {
     }
   });
 
-  // Delete a user account (self-delete)
+  // delete a user account (self-delete)
   app.delete("/api/users/:userId", async (req, res) => {
     const userId = req.params.userId.trim();
     try {
