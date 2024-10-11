@@ -22,19 +22,5 @@ services:
     environment:
       - MONGO_URL=mongodb://db:27017/chatappDB
 
-  # Cypress Service for End-to-End Testing
-  cypress:
-    image: cypress/included:13.15.0
-    depends_on:
-      - app # Cypress depends on the app service being available
-    environment:
-      - CYPRESS_baseUrl=http://app:3000 # Cypress will run tests against the app at port 3000
-    working_dir: /e2e
-    volumes:
-      - ./cypress:/e2e # Mount your Cypress tests folder into the container
-    entrypoint: ["cypress", "run", "--headless"]
-    networks:
-      - default
-
 volumes:
   mongodb-data:
